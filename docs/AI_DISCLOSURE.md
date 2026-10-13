@@ -36,5 +36,5 @@ Nhóm chỉ dùng đoạn trên sau khi thực sự thực hiện phần trách 
 ## Trạng thái cần cập nhật trước khảo sát
 
 - Local build và API integration tests có thể chạy bằng lệnh trong README.
-- Public deployment, domain/HTTPS, persistent disk và quyền truy cập giảng viên: cần cấu hình hosting; chưa coi là đã triển khai.
+- Repo public có `dev` / `build`, CI và tài khoản reviewer chỉ xem. Public deployment/domain/HTTPS: cần cấu hình Render Free + Turso Free; chưa coi là đã triển khai.
 - Chưa có dữ liệu người dùng thật, giá chốt hoặc quyết định Iterate/Persevere. Bản MVP không tự tạo các kết luận này.

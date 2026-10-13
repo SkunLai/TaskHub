@@ -1,0 +1,2116 @@
+import React, { useState, useEffect, useCallback, useId } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  ArrowLeft,
+  Plus,
+  Search,
+  MapPin,
+  CalendarDays,
+  Users,
+  Check,
+  CheckCheck,
+  X,
+  LayoutDashboard,
+  Compass,
+  ListTodo,
+  Inbox,
+  BarChart3,
+  LogOut,
+  ExternalLink,
+  Clock,
+  ChevronRight,
+  Leaf,
+  ShieldCheck,
+  RefreshCw,
+  Download,
+  Menu,
+  HelpCircle,
+  Send,
+  SlidersHorizontal,
+  CheckCircle2,
+  AlertCircle,
+  Copy,
+  Globe,
+  Mail,
+} from "lucide-react";
+import "./styles.css";
+
+const money = (n) => new Intl.NumberFormat("vi-VN").format(n) + " ₫";
+const date = (n) =>
+  new Date(n + "T12:00:00").toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+const statuses = {
+  todo: "Cần làm",
+  doing: "Đang thực hiện",
+  done: "Hoàn thành",
+};
+const navItems = [
+  ["dashboard", "Tổng quan", LayoutDashboard],
+  ["tours", "Quản lý tour", Compass],
+  ["tasks", "Công việc", ListTodo],
+  ["inbox", "Yêu cầu tư vấn", Inbox],
+  ["research", "Phản hồi MVP", BarChart3],
+];
+async function api(path, method = "GET", data) {
+  const r = await fetch("/api" + path, {
+    method,
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", "X-TaskHub": "1" },
+    ...(data ? { body: JSON.stringify(data) } : {}),
+  });
+  let body;
+  try {
+    body = await r.json();
+  } catch {
+    throw Error("Không kết nối được hệ thống.");
+  }
+  if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
+  return body;
+}
+
+function Landscape({ theme = "danang", large = false }) {
+  return (
+    <svg
+      className={"landscape " + (large ? "large" : "")}
+      viewBox="0 0 600 360"
+      role="img"
+      aria-label={
+        theme === "dalat"
+          ? "Minh họa đồi thông Đà Lạt"
+          : theme === "phuquoc"
+            ? "Minh họa biển Phú Quốc"
+            : "Minh họa phố Hội An"
+      }
+    >
+      <defs>
+        <linearGradient id={"sky-" + theme} x2="0" y2="1">
+          <stop
+            stopColor={
+              theme === "dalat"
+                ? "#d6e4d8"
+                : theme === "phuquoc"
+                  ? "#e7ceb5"
+                  : "#efddbb"
+            }
+          />
+          <stop offset="1" stopColor="#f8eee0" />
+        </linearGradient>
+      </defs>
+      <rect width="600" height="360" fill={"url(#sky-" + theme + ")"} />
+      <circle cx="450" cy="83" r="34" fill="#fffbdf" />
+      {theme === "dalat" ? (
+        <>
+          <path d="M0 214Q70 110 200 202Q350 76 600 186V360H0" fill="#8ba99a" />
+          <path
+            d="M0 263Q230 148 390 263Q500 191 600 240V360H0"
+            fill="#628675"
+          />
+          <path d="M0 329Q230 206 600 310V360H0" fill="#396756" />
+          {[80, 155, 460, 535].map((x, i) => (
+            <g key={x} transform={`translate(${x} ${190 + (i % 2) * 27})`}>
+              <rect x="-4" width="8" height="90" fill="#465b48" />
+              <path d="M0-80L-35 15H35Z M0-40L-46 45H46Z" fill="#315c4c" />
+            </g>
+          ))}
+          <path d="M250 360L306 260L370 260L324 360" fill="#d6c3a1" />
+        </>
+      ) : theme === "phuquoc" ? (
+        <>
+          <path d="M0 176Q140 170 270 188T600 178V360H0" fill="#5ca8ad" />
+          <path d="M0 238Q320 210 600 310V360H0" fill="#a5d0c9" />
+          <path d="M0 290Q260 220 600 338V360H0" fill="#e5cfab" />
+          <path
+            d="M92 337Q110 160 155 90"
+            stroke="#6a7861"
+            strokeWidth="13"
+            fill="none"
+          />
+          <path
+            d="M149 110Q75 48 23 113Q96 104 149 125Q190 57 257 82Q200 99 156 131Q209 117 249 162Q184 156 150 136Q109 158 47 164Q83 123 149 110"
+            fill="#456e60"
+          />
+          <path d="M285 231L345 215L392 231L380 240H295Z" fill="#fcf7e8" />
+        </>
+      ) : (
+        <>
+          <rect y="252" width="600" height="108" fill="#608f86" />
+          <path
+            d="M0 281Q170 246 340 279T600 267"
+            stroke="#a6c6ae"
+            fill="none"
+            strokeWidth="3"
+          />
+          {[15, 145, 285, 440].map((x, i) => (
+            <g key={x}>
+              <rect
+                x={x}
+                y={161 + (i % 2) * 18}
+                width="116"
+                height="107"
+                fill={["#cfaa64", "#dec185", "#cfa570", "#e4c382"][i]}
+              />
+              <path
+                d={`M${x - 9} ${169 + (i % 2) * 18}L${x + 56} ${115 + (i % 2) * 18}L${x + 125} ${169 + (i % 2) * 18}Z`}
+                fill="#6e7764"
+              />
+              <rect x={x + 18} y="203" width="24" height="39" fill="#657765" />
+              <rect x={x + 71} y="203" width="24" height="65" fill="#697461" />
+              <circle cx={x + 58} cy="191" r="10" fill="#cf7655" />
+            </g>
+          ))}
+          <path d="M400 315L494 312L479 326H410Z" fill="#354f49" />
+          <path d="M459 304L459 253" stroke="#596d52" strokeWidth="3" />
+        </>
+      )}
+    </svg>
+  );
+}
+function Logo() {
+  return (
+    <span className="logo">
+      <span className="logo-mark">
+        <Compass size={25} />
+      </span>
+      taskhub<span className="logo-dot">.</span>
+    </span>
+  );
+}
+function Button({ children, variant = "", ...props }) {
+  return (
+    <button className={"btn " + variant} {...props}>
+      {children}
+    </button>
+  );
+}
+function Badge({ children, tone = "" }) {
+  return <span className={"badge " + tone}>{children}</span>;
+}
+function Modal({ title, subtitle, onClose, children, wide = false }) {
+  useEffect(() => {
+    const before = document.activeElement;
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "Tab") {
+        const focusable = [
+          ...document.querySelectorAll(
+            ".modal button:not(:disabled),.modal input,.modal select,.modal textarea,.modal a",
+          ),
+        ];
+        const first = focusable[0],
+          last = focusable.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handler);
+    document.querySelector(".modal input,.modal button")?.focus();
+    const old = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = old;
+      before?.focus();
+    };
+  }, []);
+  return (
+    <div
+      className="overlay"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={"modal " + (wide ? "wide" : "")}
+      >
+        <header className="modal-header">
+          <div>
+            <h2>{title}</h2>
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+          <button className="icon-btn" aria-label="Đóng" onClick={onClose}>
+            <X />
+          </button>
+        </header>
+        {children}
+      </section>
+    </div>
+  );
+}
+function Field({ label, children, hint }) {
+  const id = useId();
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      {React.Children.map(children, (child) =>
+        React.isValidElement(child) &&
+        ["input", "select", "textarea"].includes(child.type)
+          ? React.cloneElement(child, {
+              id,
+              "aria-describedby": hint ? id + "-hint" : undefined,
+            })
+          : child,
+      )}
+      {hint && <small id={id + "-hint"}>{hint}</small>}
+    </div>
+  );
+}
+function ErrorBox({ error }) {
+  return error ? (
+    <div className="error" role="alert">
+      <AlertCircle size={18} />
+      {error}
+    </div>
+  ) : null;
+}
+function Empty({ title, children }) {
+  return (
+    <div className="empty">
+      <Leaf size={30} />
+      <h3>{title}</h3>
+      <p>{children}</p>
+    </div>
+  );
+}
+
+function Auth({ mode, setMode, onClose, onUser }) {
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const register = mode === "register";
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const f = new FormData(e.target);
+    const data = Object.fromEntries(f);
+    data.consent = f.get("consent") === "on";
+    try {
+      const result = await api(register ? "/register" : "/login", "POST", data);
+      onUser(result.user);
+      onClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal
+      title={
+        register
+          ? "Cùng thử một cách làm việc mới"
+          : "Chào mừng anh/chị trở lại"
+      }
+      subtitle={
+        register
+          ? "Khoảng 5–7 phút · Không có quà tặng · Có thể dừng bất cứ lúc nào"
+          : "Đăng nhập vào không gian điều hành của bạn."
+      }
+      onClose={onClose}
+    >
+      <form onSubmit={submit}>
+        <ErrorBox error={error} />
+        {register && (
+          <Field label="Tên hiển thị">
+            <input
+              name="name"
+              autoComplete="name"
+              required
+              maxLength="80"
+              placeholder="Anh/chị muốn được gọi là gì?"
+            />
+          </Field>
+        )}
+        <Field label="Email">
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            placeholder="ban@congty.vn"
+            maxLength="254"
+          />
+        </Field>
+        <Field
+          label="Mật khẩu"
+          hint={
+            register
+              ? "Tối thiểu 8 ký tự. Email nhập tại đây chưa được xác minh."
+              : undefined
+          }
+        >
+          <input
+            name="password"
+            type="password"
+            autoComplete={register ? "new-password" : "current-password"}
+            minLength={register ? 8 : undefined}
+            required
+            maxLength="128"
+            placeholder="Nhập mật khẩu"
+          />
+        </Field>
+        {register && (
+          <>
+            <div className="form-grid">
+              <Field label="Vai trò hiện tại">
+                <select name="role">
+                  <option value="operations">Điều hành tour</option>
+                  <option value="sales">Sales / Marketing</option>
+                  <option value="manager">Quản lý / Chủ doanh nghiệp</option>
+                  <option value="other">Khác / Chưa làm du lịch</option>
+                </select>
+              </Field>
+              <Field label="Quy mô doanh nghiệp">
+                <select name="company_size">
+                  <option value="10to30">10–30 nhân sự</option>
+                  <option value="under10">Dưới 10 nhân sự</option>
+                  <option value="31to50">31–50 nhân sự</option>
+                  <option value="over50">Trên 50 nhân sự</option>
+                  <option value="other">Không áp dụng</option>
+                </select>
+              </Field>
+            </div>
+            <div className="consent">
+              <ShieldCheck size={20} />
+              <p>
+                Nhóm TaskHub thu email, vai trò, quy mô, phản hồi và lịch sử
+                thao tác trong MVP để đánh giá CP3. Dữ liệu lưu tối đa khoảng 6
+                tháng, nhóm và giảng viên được xem; email không xuất hiện trên
+                cổng tour công khai. Không nhập thông tin khách hàng thật trong
+                không gian dùng thử. Bạn có thể xóa dữ liệu của mình tại mục
+                Hướng dẫn. Bản CSV đã xuất cần nhóm xóa riêng khi nhận yêu cầu.
+              </p>
+            </div>
+            <label className="checkbox">
+              <input name="consent" type="checkbox" required />
+              <span>Tôi đã đọc thông tin trên và tự nguyện tham gia.</span>
+            </label>
+          </>
+        )}
+        <Button disabled={busy} variant="full">
+          {busy
+            ? "Đang xử lý…"
+            : register
+              ? "Bắt đầu trải nghiệm"
+              : "Đăng nhập"}
+          <ArrowRight size={17} />
+        </Button>
+        <p className="auth-switch">
+          {register ? "Đã có tài khoản?" : "Muốn trải nghiệm MVP?"}{" "}
+          <button
+            type="button"
+            className="text-btn"
+            onClick={() => {
+              setMode(register ? "login" : "register");
+              setError("");
+            }}
+          >
+            {register ? "Đăng nhập" : "Tạo không gian dùng thử"}
+          </button>
+        </p>
+      </form>
+    </Modal>
+  );
+}
+
+function TourCard({ tour, onOpen, internal = false }) {
+  const remaining = tour.capacity - tour.reserved;
+  return (
+    <article className="tour-card">
+      <button
+        className="cover-button"
+        aria-label={"Xem " + tour.title}
+        onClick={() => onOpen(tour)}
+      >
+        <Landscape theme={tour.theme} />
+        <span className="cover-pill">
+          <MapPin size={12} />
+          {tour.destination}
+        </span>
+      </button>
+      <div className="tour-card-body">
+        <div className="eyebrow">
+          {tour.duration} <span>•</span> KHỞI HÀNH {date(tour.departure)}
+        </div>
+        <button className="card-title" onClick={() => onOpen(tour)}>
+          {tour.title}
+          <ArrowUpRight size={19} />
+        </button>
+        <p>{tour.description}</p>
+        <div className="tour-meta">
+          <span>
+            <Users size={15} />
+            {remaining > 0 ? `Còn ${remaining} chỗ` : "Đã đủ khách"}
+          </span>
+          <strong>
+            {money(tour.price)}
+            <small>/ khách</small>
+          </strong>
+        </div>
+        {internal && (
+          <div className="occupancy">
+            <div
+              style={{ width: (100 * tour.reserved) / tour.capacity + "%" }}
+            />
+          </div>
+        )}
+        {internal && (
+          <div className="card-bottom">
+            <span>
+              {tour.reserved}/{tour.capacity} khách
+            </span>
+            <Badge tone={tour.published ? "green" : "gray"}>
+              {tour.published ? "Đang công khai" : "Bản nháp"}
+            </Badge>
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
+  const [data, setData] = useState(null),
+    [error, setError] = useState(""),
+    [query, setQuery] = useState(""),
+    [destination, setDestination] = useState(""),
+    [selected, setSelected] = useState(null),
+    [last, setLast] = useState("");
+  const load = useCallback(async () => {
+    try {
+      const d = await api("/public/" + workspace);
+      setData(d);
+      setLast(new Date().toLocaleTimeString("vi-VN"));
+      setError("");
+    } catch (e) {
+      setError(e.message);
+    }
+  }, [workspace]);
+  useEffect(() => {
+    load();
+    if (user && user.workspace === workspace)
+      api("/events", "POST", { action: "portal_viewed" }).catch(() => {});
+    const timer = setInterval(() => {
+      if (!document.hidden) load();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [load, user?.id]);
+  const visible = (data?.tours || []).filter(
+    (t) =>
+      (!destination || t.destination === destination) &&
+      (t.title + " " + t.destination)
+        .toLocaleLowerCase("vi")
+        .includes(query.toLocaleLowerCase("vi")),
+  );
+  const open = (t) => {
+    setSelected(t);
+    if (user && user.workspace === workspace)
+      api("/events", "POST", { action: "tour_viewed" }).catch(() => {});
+  };
+  return (
+    <div className="portal">
+      <header className="portal-nav">
+        <a className="plain-link" href="/">
+          <Logo />
+        </a>
+        <nav>
+          <a href="#journeys">Khám phá tour</a>
+          <span className="nav-divider" />
+          <Button
+            variant="ghost"
+            onClick={user ? onWorkspace : () => onAuth("login")}
+          >
+            {user ? "Về điều hành" : "Đăng nhập"}
+            <ArrowUpRight size={16} />
+          </Button>
+          {!user && (
+            <Button onClick={() => onAuth("register")}>
+              Dùng thử MVP
+              <ArrowRight size={16} />
+            </Button>
+          )}
+        </nav>
+      </header>
+      <main>
+        <div className="portal-hero">
+          <div className="hero-copy">
+            <div className="eyebrow green">
+              <span className="live-dot" />
+              CỔNG TOUR 24/7 ·{" "}
+              {workspace === "agency"
+                ? "TASKHUB TRAVEL"
+                : "KHÔNG GIAN DÙNG THỬ"}
+            </div>
+            <h1>
+              Chuyến đi đẹp,
+              <br />
+              bắt đầu từ <em>an tâm.</em>
+            </h1>
+            <p>
+              Lịch trình rõ ràng. Giá và số chỗ luôn cập nhật.
+              <br />
+              Chọn hành trình của bạn, bất cứ lúc nào.
+            </p>
+            <a className="btn" href="#journeys">
+              Tìm chuyến đi
+              <ArrowRight size={17} />
+            </a>
+            <div className="hero-trust">
+              <ShieldCheck size={17} />
+              Cùng một nguồn thông tin với đội ngũ điều hành
+            </div>
+          </div>
+          <div className="hero-art">
+            <Landscape theme="danang" large />
+            <div className="hero-art-note">
+              <span className="tiny-mark">
+                <CheckCheck size={22} />
+              </span>
+              <div>
+                <strong>Mọi thay đổi, cùng một nhịp</strong>
+                <small>Lịch và số chỗ cập nhật từ điều hành</small>
+              </div>
+            </div>
+            <span className="art-caption">HỘI AN · VIỆT NAM</span>
+          </div>
+        </div>
+        <section id="journeys" className="journeys">
+          <div className="section-title">
+            <div>
+              <div className="eyebrow green">ĐI ĐÂU TIẾP THEO?</div>
+              <h2>Những hành trình đang mở</h2>
+            </div>
+            <span className="sync-note">
+              <RefreshCw size={14} />
+              Cập nhật {last || "…"}
+            </span>
+          </div>
+          <div className="filter-bar">
+            <label className="search">
+              <Search size={18} />
+              <input
+                aria-label="Tìm tour"
+                placeholder="Tìm tên tour hoặc điểm đến…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+            <label className="destination-select">
+              <SlidersHorizontal size={16} />
+              <select
+                aria-label="Lọc điểm đến"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+              >
+                <option value="">Tất cả điểm đến</option>
+                {[
+                  ...new Set((data?.tours || []).map((t) => t.destination)),
+                ].map((d) => (
+                  <option key={d}>{d}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <ErrorBox error={error} />
+          {!data && !error ? (
+            <p className="loading">Đang tải hành trình…</p>
+          ) : visible.length ? (
+            <div className="tour-grid">
+              {visible.map((t) => (
+                <TourCard key={t.id} tour={t} onOpen={open} />
+              ))}
+            </div>
+          ) : (
+            <Empty title="Chưa có hành trình phù hợp">
+              Thử đổi điểm đến hoặc từ khóa tìm kiếm.
+            </Empty>
+          )}
+          <div className="portal-notice">
+            <Leaf size={17} />
+            <p>
+              MVP học phần EXE101 · Tour, giá và nhân sự mẫu dùng để minh họa.
+              Yêu cầu tư vấn không giữ chỗ và không tạo thanh toán.
+            </p>
+          </div>
+        </section>
+        <section className="portal-cta">
+          <div>
+            <div className="eyebrow">DÀNH CHO ĐỘI NGŨ DU LỊCH</div>
+            <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
+            <p>
+              Một nơi quản lý tour, giao việc và chia sẻ thông tin với khách
+              hàng.
+            </p>
+          </div>
+          <Button
+            variant="light"
+            onClick={user ? onWorkspace : () => onAuth("register")}
+          >
+            {user ? "Mở điều hành" : "Trải nghiệm TaskHub"}
+            <ArrowUpRight size={18} />
+          </Button>
+        </section>
+      </main>
+      <footer className="portal-footer">
+        <Logo />
+        <span>Ít thao tác hơn. Nhiều hành trình hơn.</span>
+        <span>TaskHub MVP · CP3 / 2026</span>
+      </footer>
+      {selected && (
+        <TourDetails
+          tour={
+            (data?.tours || []).find((t) => t.id === selected.id) || selected
+          }
+          workspace={workspace}
+          onClose={() => setSelected(null)}
+          notify={notify}
+        />
+      )}
+    </div>
+  );
+}
+
+function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
+  const [booking, setBooking] = useState(false),
+    [busy, setBusy] = useState(false),
+    [sent, setSent] = useState(false),
+    [error, setError] = useState("");
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    const f = new FormData(e.target);
+    try {
+      const result = await api("/public/" + workspace + "/inquiries", "POST", {
+        ...Object.fromEntries(f),
+        people: Number(f.get("people")),
+        tour_id: tour.id,
+        consent: f.get("consent") === "on",
+      });
+      setSent(true);
+      notify(result.message);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal
+      title={tour.title}
+      subtitle={tour.destination + " · " + tour.duration}
+      onClose={onClose}
+      wide
+    >
+      <div className="detail-cover">
+        <Landscape theme={tour.theme} />
+      </div>
+      <div className="detail-facts">
+        <span>
+          <CalendarDays size={17} />
+          {date(tour.departure)}
+        </span>
+        <span>
+          <Users size={17} />
+          Còn {tour.capacity - tour.reserved} chỗ
+        </span>
+        <strong>{money(tour.price)} / khách</strong>
+      </div>
+      <p className="detail-description">{tour.description}</p>
+      <h3>Lịch trình dự kiến</h3>
+      <div className="itinerary">
+        {tour.itinerary.split("\n").map((line, i) => (
+          <div key={i}>
+            <span>{String(i + 1).padStart(2, "0")}</span>
+            <p>{line}</p>
+          </div>
+        ))}
+      </div>
+      <p className="muted">
+        Giá tour minh họa. Chi tiết dịch vụ cần đội ngũ xác nhận.
+      </p>
+      {readOnly ? (
+        <p className="workspace-notice">Chế độ xem dành cho người đánh giá.</p>
+      ) : sent ? (
+        <div className="success">
+          <CheckCircle2 size={20} />
+          Đã gửi yêu cầu. Đây chưa phải xác nhận đặt tour.
+        </div>
+      ) : booking ? (
+        <form onSubmit={submit}>
+          <h3>Để đội ngũ liên hệ với bạn</h3>
+          <ErrorBox error={error} />
+          <div className="form-grid">
+            <Field label="Tên">
+              <input name="name" required maxLength="80" />
+            </Field>
+            <Field label="Email">
+              <input name="email" type="email" required maxLength="254" />
+            </Field>
+          </div>
+          <Field label="Số khách">
+            <input
+              name="people"
+              type="number"
+              min="1"
+              max={Math.max(1, tour.capacity - tour.reserved)}
+              defaultValue="1"
+              required
+            />
+          </Field>
+          <Field label="Ghi chú">
+            <textarea name="note" maxLength="1000" rows="2" />
+          </Field>
+          <label className="checkbox">
+            <input name="consent" type="checkbox" required />
+            <span>
+              Tôi đồng ý để nhóm dùng thông tin này liên hệ tư vấn và kiểm thử
+              MVP, lưu tối đa khoảng 6 tháng. Thông tin không được công khai. Có
+              thể yêu cầu nhóm xóa; với bản dùng thử, hãy dùng dữ liệu giả.
+            </span>
+          </label>
+          <Button disabled={busy}>
+            {busy ? "Đang gửi…" : "Gửi yêu cầu tư vấn"}
+            <Send size={16} />
+          </Button>
+        </form>
+      ) : (
+        <Button
+          disabled={tour.reserved >= tour.capacity}
+          onClick={() => setBooking(true)}
+        >
+          Yêu cầu tư vấn
+          <ArrowRight size={17} />
+        </Button>
+      )}
+    </Modal>
+  );
+}
+
+function TourEditor({ tour, onClose, onSave }) {
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  const t = tour || {
+    title: "",
+    destination: "",
+    departure: new Date().toISOString().slice(0, 10),
+    duration: "3 ngày 2 đêm",
+    price: 0,
+    capacity: 30,
+    reserved: 0,
+    theme: "danang",
+    published: 1,
+    description: "",
+    itinerary: "",
+  };
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const f = new FormData(e.target),
+      b = Object.fromEntries(f);
+    for (const k of ["price", "capacity", "reserved"]) b[k] = Number(b[k]);
+    b.published = f.get("published") === "on";
+    b.version = t.version;
+    try {
+      await api(
+        tour ? "/tours/" + tour.id : "/tours",
+        tour ? "PUT" : "POST",
+        b,
+      );
+      await onSave();
+      onClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal
+      title={tour ? "Cập nhật hành trình" : "Tạo hành trình mới"}
+      subtitle="Thông tin công khai được dùng trực tiếp trên cổng tour."
+      onClose={onClose}
+      wide
+    >
+      <form onSubmit={submit}>
+        <ErrorBox error={error} />
+        <Field label="Tên tour">
+          <input name="title" defaultValue={t.title} required maxLength="120" />
+        </Field>
+        <div className="form-grid">
+          <Field label="Điểm đến">
+            <input
+              name="destination"
+              defaultValue={t.destination}
+              required
+              maxLength="80"
+            />
+          </Field>
+          <Field label="Khởi hành">
+            <input
+              name="departure"
+              type="date"
+              defaultValue={t.departure}
+              required
+            />
+          </Field>
+          <Field label="Thời lượng">
+            <input
+              name="duration"
+              defaultValue={t.duration}
+              required
+              maxLength="80"
+            />
+          </Field>
+          <Field label="Giá / khách (VND)">
+            <input
+              name="price"
+              type="number"
+              min="0"
+              max="1000000000"
+              defaultValue={t.price}
+              required
+            />
+          </Field>
+          <Field label="Sức chứa">
+            <input
+              name="capacity"
+              type="number"
+              min="1"
+              max="1000"
+              defaultValue={t.capacity}
+              required
+            />
+          </Field>
+          <Field label="Khách đã giữ chỗ">
+            <input
+              name="reserved"
+              type="number"
+              min="0"
+              max="1000"
+              defaultValue={t.reserved}
+              required
+            />
+          </Field>
+        </div>
+        <Field label="Mô tả ngắn">
+          <textarea
+            name="description"
+            defaultValue={t.description}
+            rows="3"
+            required
+            maxLength="2000"
+          />
+        </Field>
+        <Field label="Lịch trình (mỗi dòng một ngày)">
+          <textarea
+            name="itinerary"
+            defaultValue={t.itinerary}
+            rows="4"
+            required
+            maxLength="5000"
+          />
+        </Field>
+        <Field label="Hình minh họa">
+          <select name="theme" defaultValue={t.theme}>
+            <option value="danang">Phố cổ / Miền Trung</option>
+            <option value="dalat">Đồi thông / Cao nguyên</option>
+            <option value="phuquoc">Biển / Đảo</option>
+          </select>
+        </Field>
+        <label className="checkbox">
+          <input
+            name="published"
+            type="checkbox"
+            defaultChecked={!!t.published}
+          />
+          <span>Công khai trên cổng khách hàng</span>
+        </label>
+        <div className="modal-actions">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Hủy
+          </Button>
+          <Button disabled={busy}>
+            {busy ? "Đang lưu…" : "Lưu hành trình"}
+            <Check size={17} />
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+function TaskEditor({ tours, onClose, onSave }) {
+  const [error, setError] = useState(""),
+    [busy, setBusy] = useState(false);
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api("/tasks", "POST", Object.fromEntries(new FormData(e.target)));
+      await onSave();
+      onClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal
+      title="Giao một công việc"
+      subtitle="Rõ người phụ trách, rõ thời hạn, gắn với đúng tour."
+      onClose={onClose}
+    >
+      <form onSubmit={submit}>
+        <ErrorBox error={error} />
+        <Field label="Công việc">
+          <input
+            name="title"
+            required
+            maxLength="160"
+            placeholder="Ví dụ: Chốt danh sách khách"
+          />
+        </Field>
+        <Field label="Tour liên quan">
+          <select name="tour_id" required>
+            {tours.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.title}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field
+          label="Người phụ trách"
+          hint="Nhân sự mẫu trong MVP, chưa có tài khoản hoặc gửi thông báo cho người được giao."
+        >
+          <input
+            name="assignee"
+            required
+            maxLength="80"
+            placeholder="Nhập tên người phụ trách"
+            list="staff"
+          />
+          <datalist id="staff">
+            {["Minh Tuấn", "Quốc Huy", "Tấn Lợi", "Thành Đạt", "Duy An"].map(
+              (n) => (
+                <option key={n}>{n}</option>
+              ),
+            )}
+          </datalist>
+        </Field>
+        <div className="form-grid">
+          <Field label="Hạn hoàn thành">
+            <input
+              name="due"
+              type="date"
+              required
+              defaultValue={new Date().toISOString().slice(0, 10)}
+            />
+          </Field>
+          <Field label="Ưu tiên">
+            <select name="priority">
+              <option value="normal">Bình thường</option>
+              <option value="high">Cao</option>
+            </select>
+          </Field>
+        </div>
+        <Button disabled={busy || !tours.length} variant="full">
+          {busy ? "Đang lưu…" : "Giao công việc"}
+          <Plus size={17} />
+        </Button>
+      </form>
+    </Modal>
+  );
+}
+
+function Dashboard({
+  data,
+  onNav,
+  onTask,
+  onTour,
+  onPortal,
+  readOnly = false,
+}) {
+  const pending = data.tasks.filter((t) => t.status !== "done"),
+    done = data.tasks.filter((t) => t.status === "done");
+  const tourById = Object.fromEntries(data.tours.map((t) => [t.id, t]));
+  const stats = [
+    [
+      "Hành trình đang mở",
+      data.tours.filter((t) => t.published).length,
+      Compass,
+      "Thông tin sẵn sàng trên cổng tour",
+    ],
+    [
+      "Chỗ còn sẵn",
+      data.tours
+        .filter((t) => t.published)
+        .reduce((s, t) => s + t.capacity - t.reserved, 0),
+      Users,
+      "Theo dữ liệu điều hành hiện tại",
+    ],
+    [
+      "Công việc cần theo dõi",
+      pending.length,
+      ListTodo,
+      `${done.length} công việc đã hoàn thành`,
+    ],
+    [
+      "Yêu cầu mới",
+      data.inquiries.filter((i) => i.status === "new").length,
+      Inbox,
+      "Chờ đội ngũ liên hệ tư vấn",
+    ],
+  ];
+  return (
+    <>
+      <div className="welcome-banner">
+        <div>
+          <Badge tone="green">
+            <span className="live-dot" />
+            MỘT NGUỒN DỮ LIỆU CHUNG
+          </Badge>
+          <h2>
+            Mỗi hành trình,
+            <br />
+            được chăm chút từ bên trong.
+          </h2>
+          <p>Cùng theo dõi tour, công việc và những yêu cầu mới.</p>
+          <Button onClick={onPortal}>
+            Xem cổng khách hàng
+            <ArrowUpRight size={16} />
+          </Button>
+        </div>
+        <div className="banner-art">
+          <Landscape theme="dalat" />
+        </div>
+      </div>
+      <div className="stat-grid">
+        {stats.map(([label, value, Icon, note]) => (
+          <div className="stat-card" key={label}>
+            <div className="stat-top">
+              <span>{label}</span>
+              <Icon size={18} />
+            </div>
+            <strong>{value}</strong>
+            <small>{note}</small>
+          </div>
+        ))}
+      </div>
+      <div className="dashboard-lower">
+        <section className="panel">
+          <div className="panel-header">
+            <h3>
+              Công việc cần theo dõi{" "}
+              <span className="count">{pending.length}</span>
+            </h3>
+            <button className="text-btn" onClick={() => onNav("tasks")}>
+              Xem tất cả
+              <ChevronRight size={16} />
+            </button>
+          </div>
+          {pending.length ? (
+            pending.slice(0, 5).map((t) => (
+              <div className="task-row" key={t.id}>
+                <span className={"task-indicator " + t.status} />
+                <div>
+                  <strong>{t.title}</strong>
+                  <small>
+                    {tourById[t.tour_id]?.title} · {t.assignee}
+                  </small>
+                </div>
+                <Badge tone={t.priority === "high" ? "orange" : "gray"}>
+                  {date(t.due).slice(0, 5)}
+                </Badge>
+              </div>
+            ))
+          ) : (
+            <Empty title="Mọi việc đã được xử lý">
+              Tạo một công việc để bắt đầu hành trình mới.
+            </Empty>
+          )}
+          <button disabled={readOnly} className="panel-add" onClick={onTask}>
+            <Plus size={16} />
+            Giao công việc mới
+          </button>
+        </section>
+        <section className="panel departures">
+          <div className="panel-header">
+            <h3>Sắp khởi hành</h3>
+            <CalendarDays size={18} />
+          </div>
+          {data.tours.slice(0, 3).map((t) => (
+            <button
+              key={t.id}
+              className="departure-row"
+              onClick={() => onTour(t)}
+            >
+              <span className="date-block">
+                <strong>{new Date(t.departure + "T12:00:00").getDate()}</strong>
+                <small>
+                  THÁNG {new Date(t.departure + "T12:00:00").getMonth() + 1}
+                </small>
+              </span>
+              <div>
+                <strong>{t.title}</strong>
+                <small>
+                  {t.reserved}/{t.capacity} khách · {t.duration}
+                </small>
+              </div>
+              <ChevronRight size={17} />
+            </button>
+          ))}
+          <div className="soft-note">
+            <CheckCheck size={18} />
+            <p>
+              Lịch và số chỗ được chia sẻ với cổng tour. Khách hàng thấy thay
+              đổi khi cổng cập nhật.
+            </p>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
+
+function Tasks({ data, onNew, onChange, readOnly = false }) {
+  const [query, setQuery] = useState(""),
+    [filter, setFilter] = useState("");
+  const tours = Object.fromEntries(data.tours.map((t) => [t.id, t.title]));
+  const visible = data.tasks.filter(
+    (t) =>
+      (!filter || t.tour_id === filter) &&
+      (t.title + " " + t.assignee)
+        .toLocaleLowerCase()
+        .includes(query.toLocaleLowerCase()),
+  );
+  return (
+    <>
+      <div className="filter-bar">
+        <label className="search">
+          <Search size={18} />
+          <input
+            aria-label="Tìm công việc"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Tìm công việc, người phụ trách…"
+          />
+        </label>
+        <select
+          aria-label="Lọc tour"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="">Tất cả tour</option>
+          {data.tours.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.title}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="kanban">
+        {Object.entries(statuses).map(([status, label]) => (
+          <section className={"kanban-column " + status} key={status}>
+            <div className="kanban-heading">
+              <h3>
+                <span className={"task-indicator " + status} />
+                {label}
+              </h3>
+              <span className="count">
+                {visible.filter((t) => t.status === status).length}
+              </span>
+            </div>
+            {visible
+              .filter((t) => t.status === status)
+              .map((t) => (
+                <article className="task-card" key={t.id}>
+                  <div className="task-label">{tours[t.tour_id]}</div>
+                  <h3>{t.title}</h3>
+                  <div className="task-card-meta">
+                    <Badge tone={t.priority === "high" ? "orange" : "gray"}>
+                      {t.priority === "high" ? "Ưu tiên cao" : "Bình thường"}
+                    </Badge>
+                    <span>
+                      <CalendarDays size={13} />
+                      {date(t.due).slice(0, 5)}
+                    </span>
+                  </div>
+                  <div className="task-card-bottom">
+                    <span className="avatar">
+                      {t.assignee.split(" ").at(-1).slice(0, 1)}
+                    </span>
+                    <span>{t.assignee}</span>
+                  </div>
+                  <select
+                    disabled={readOnly}
+                    aria-label={"Trạng thái " + t.title}
+                    value={t.status}
+                    onChange={(e) => onChange(t, e.target.value)}
+                  >
+                    {Object.entries(statuses).map(([s, l]) => (
+                      <option key={s} value={s}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                </article>
+              ))}
+            {!visible.some((t) => t.status === status) && (
+              <div className="kanban-empty">Chưa có công việc</div>
+            )}
+            {status === "todo" && !readOnly && (
+              <button className="panel-add" onClick={onNew}>
+                <Plus size={16} />
+                Thêm công việc
+              </button>
+            )}
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Feedback({ data, notify, reload }) {
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  const f = data.feedback || {};
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    const b = Object.fromEntries(new FormData(e.target));
+    for (const k of ["portal", "operations", "sync", "ease", "price"])
+      b[k] = Number(b[k]);
+    try {
+      await api("/feedback", "POST", b);
+      await reload();
+      notify("Đã lưu phản hồi. Cảm ơn bạn đã thử TaskHub!");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const actions = new Set(data.completedActions);
+  return (
+    <div className="feedback-layout">
+      <aside className="panel testing-guide">
+        <Badge tone="green">5–7 PHÚT TRẢI NGHIỆM</Badge>
+        <h2>
+          Hãy thử trước,
+          <br />
+          rồi kể cho chúng em.
+        </h2>
+        <p>
+          Phản hồi dựa trên những gì bạn vừa sử dụng giúp nhóm chọn đúng điều
+          cần cải thiện.
+        </p>
+        {[
+          [
+            "tour_updated",
+            "Sửa lịch hoặc số chỗ",
+            "Quản lý tour → mở tour → lưu thay đổi.",
+          ],
+          [
+            "portal_viewed",
+            "Kiểm tra cổng khách hàng",
+            "Mở cổng tour để xem dữ liệu sau khi sửa.",
+          ],
+          [
+            "task_created",
+            "Giao một công việc",
+            "Tạo việc gắn với tour, rồi đổi trạng thái.",
+          ],
+        ].map(([action, title, desc], i) => (
+          <div className="test-step" key={action}>
+            <span className={actions.has(action) ? "completed" : ""}>
+              {actions.has(action) ? <Check size={16} /> : i + 1}
+            </span>
+            <div>
+              <strong>{title}</strong>
+              <small>{desc}</small>
+            </div>
+          </div>
+        ))}
+        <div className="soft-note">
+          <ShieldCheck size={18} />
+          <p>
+            Không có đáp án đúng hay sai. Câu trả lời tiêu cực cũng rất hữu ích.
+            Không gian dùng thử chỉ có dữ liệu minh họa.
+          </p>
+        </div>
+      </aside>
+      <form className="panel feedback-form" onSubmit={submit}>
+        <div className="panel-header">
+          <div>
+            <h3>Trải nghiệm của bạn</h3>
+            <p>Đánh giá sau khi dùng MVP.</p>
+          </div>
+          {data.feedback && <Badge tone="green">Đã lưu</Badge>}
+        </div>
+        <ErrorBox error={error} />
+        {[
+          ["portal", "Cổng tour 24/7 có hữu ích cho bạn?"],
+          ["operations", "Giao việc gắn với tour có hữu ích cho bạn?"],
+          ["sync", "Dữ liệu lịch / số chỗ dùng chung có hữu ích?"],
+          ["ease", "Bạn thấy thao tác trên MVP dễ đến đâu?"],
+        ].map(([key, label]) => (
+          <fieldset className="rating" key={key}>
+            <legend>{label}</legend>
+            <div>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <label key={n}>
+                  <input
+                    type="radio"
+                    name={key}
+                    value={n}
+                    defaultChecked={f[key] === n}
+                    required
+                  />
+                  <span>{n}</span>
+                </label>
+              ))}
+            </div>
+            <small>
+              {key === "ease"
+                ? "1 = Rất khó · 5 = Rất dễ"
+                : "1 = Không hữu ích · 5 = Rất hữu ích"}
+            </small>
+          </fieldset>
+        ))}
+        <Field label="Bạn có muốn dùng sản phẩm này trong công việc?">
+          <select name="intent" defaultValue={f.intent || ""} required>
+            <option value="" disabled>
+              Chọn câu trả lời
+            </option>
+            <option value="yes">Có</option>
+            <option value="maybe">Có thể, cần cải thiện thêm</option>
+            <option value="no">Không</option>
+          </select>
+        </Field>
+        <Field
+          label="Mức tối đa bạn sẵn sàng trả / doanh nghiệp / tháng (VND)"
+          hint="Có thể nhập 0 nếu không muốn trả. Đây là ý kiến khảo sát, không phải giá đã chốt."
+        >
+          <input
+            name="price"
+            type="number"
+            min="0"
+            max="100000000"
+            defaultValue={f.price ?? ""}
+            required
+            placeholder="Ví dụ: 0 hoặc 300000"
+          />
+        </Field>
+        <Field label="Điều bạn thích (không bắt buộc)">
+          <textarea
+            name="liked"
+            maxLength="1500"
+            rows="2"
+            defaultValue={f.liked || ""}
+          />
+        </Field>
+        <Field label="Điều gây khó chịu hoặc cần sửa (không bắt buộc)">
+          <textarea
+            name="disliked"
+            maxLength="1500"
+            rows="3"
+            defaultValue={f.disliked || ""}
+          />
+        </Field>
+        <Button disabled={busy} variant="full">
+          {busy
+            ? "Đang lưu…"
+            : data.feedback
+              ? "Cập nhật phản hồi"
+              : "Gửi phản hồi"}
+          <Send size={17} />
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function Research({ notify }) {
+  const [data, setData] = useState(null),
+    [error, setError] = useState("");
+  const load = () =>
+    api("/research")
+      .then(setData)
+      .catch((e) => setError(e.message));
+  useEffect(() => {
+    load();
+  }, []);
+  const avg = (k) =>
+    data?.feedback.length
+      ? (
+          data.feedback.reduce((sum, f) => sum + f[k], 0) / data.feedback.length
+        ).toFixed(1)
+      : "—";
+  return (
+    <>
+      <ErrorBox error={error} />
+      <div className="research-banner">
+        <div>
+          <Badge tone="green">DỮ LIỆU THỰC TỪ MVP</Badge>
+          <h2>Học từ những người đã thử.</h2>
+          <p>
+            Tài khoản quản trị và dữ liệu tour mẫu không được tính là người khảo
+            sát.
+          </p>
+        </div>
+        <Button variant="ghost" onClick={load}>
+          <RefreshCw size={16} />
+          Làm mới
+        </Button>
+      </div>
+      <div className="stat-grid">
+        <div className="stat-card">
+          <span>Đã tạo không gian dùng thử</span>
+          <strong>{data?.participants ?? "—"}</strong>
+          <small>Email do người tham gia tự nhập</small>
+        </div>
+        <div className="stat-card">
+          <span>Phản hồi đã hoàn thành</span>
+          <strong>
+            {data?.feedback.length ?? "—"}
+            <small> / 20</small>
+          </strong>
+          <small>Mỗi tài khoản có một phản hồi</small>
+        </div>
+        <div className="stat-card">
+          <span>Tương tác được ghi nhận</span>
+          <strong>{data?.events ?? "—"}</strong>
+          <small>Không gồm lần tải lại tự động</small>
+        </div>
+        <div className="stat-card">
+          <span>Độ dễ sử dụng trung bình</span>
+          <strong>
+            {avg("ease")}
+            <small> / 5</small>
+          </strong>
+          <small>Chưa có dữ liệu thì không tính điểm</small>
+        </div>
+      </div>
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h3>Dữ liệu phục vụ CP3</h3>
+            <p>Email nằm trong bản xuất dành cho nhóm / giảng viên.</p>
+          </div>
+          <div className="button-row">
+            <a className="btn ghost" href="/api/export/events">
+              <Download size={16} />
+              Tương tác CSV
+            </a>
+            <a className="btn" href="/api/export/feedback">
+              <Download size={16} />
+              Phản hồi CSV
+            </a>
+          </div>
+        </div>
+        <div className="research-scores">
+          {[
+            ["portal", "Cổng tour 24/7"],
+            ["operations", "Giao việc nội bộ"],
+            ["sync", "Lịch & số chỗ dùng chung"],
+          ].map(([key, label]) => (
+            <div key={key}>
+              <span>{label}</span>
+              <strong>
+                {avg(key)}
+                <small> / 5</small>
+              </strong>
+            </div>
+          ))}
+        </div>
+        {data?.feedback.length ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Người tham gia</th>
+                  <th>Vai trò</th>
+                  <th>Muốn sử dụng</th>
+                  <th>Mức sẵn sàng trả / tháng</th>
+                  <th>Cần cải thiện</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.feedback.map((f) => (
+                  <tr key={f.user_id}>
+                    <td>{f.name}</td>
+                    <td>{f.role}</td>
+                    <td>
+                      {{ yes: "Có", maybe: "Có thể", no: "Không" }[f.intent]}
+                    </td>
+                    <td>{money(f.price)}</td>
+                    <td>{f.disliked || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Empty title="Chưa có phản hồi thực">
+            Mời người tham gia tạo không gian dùng thử, trải nghiệm và gửi phản
+            hồi. Nhóm vẫn cần kiểm tra ai đã thực sự dùng MVP.
+          </Empty>
+        )}
+      </section>
+      <div className="portal-notice">
+        <AlertCircle size={18} />
+        <p>
+          20 tài khoản hoặc email khác nhau chưa chứng minh 20 cá nhân độc lập.
+          Nhóm cần đối chiếu người tham gia và lịch sử thao tác khi chốt mẫu.
+          Giá khảo sát chưa phải kết quả Van Westendorp.
+        </p>
+      </div>
+    </>
+  );
+}
+
+function Help({ user, onClose, onDelete }) {
+  return (
+    <Modal title="Bắt đầu cùng TaskHub" onClose={onClose}>
+      <div className="help-content">
+        <h3>Ba thao tác để thử MVP</h3>
+        <p>
+          1. Quản lý tour: sửa ngày khởi hành, giá hoặc số khách đã giữ chỗ rồi
+          lưu.
+        </p>
+        <p>
+          2. Mở cổng tour: kiểm tra thay đổi. Cổng đọc cùng cơ sở dữ liệu và cập
+          nhật mỗi 5 giây khi đang mở.
+        </p>
+        <p>
+          3. Công việc: giao việc gắn với tour rồi chuyển sang Đang thực hiện /
+          Hoàn thành.
+        </p>
+        <h3>Những gì bản này có</h3>
+        <p>
+          Thông tin tour, lịch/số chỗ dùng chung, giao việc, yêu cầu tư vấn và
+          phản hồi dùng thử. Chưa có thanh toán, tự gửi email, tài khoản nhân
+          viên được giao việc, nhập Excel hoặc đối soát B2B đầy đủ.
+        </p>
+        <h3>Hỗ trợ</h3>
+        <p>
+          Ghi vấn đề trong mục Phản hồi MVP để nhóm TaskHub xem. Bản học phần
+          chưa có cam kết SLA.
+        </p>
+        {!["admin", "reviewer"].includes(user.role) && (
+          <>
+            <h3>Dữ liệu của bạn</h3>
+            <p>
+              Không gian dùng thử riêng. Xóa tài khoản sẽ xóa tour, công việc,
+              lịch sử và phản hồi của bạn trên hệ thống. Nếu nhóm đã xuất CSV,
+              cần yêu cầu nhóm xóa bản xuất riêng.
+            </p>
+            <Button variant="danger" onClick={onDelete}>
+              Xóa tài khoản và dữ liệu dùng thử
+            </Button>
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function Workspace({ user, onLogout, onPortal, notify }) {
+  const readOnly = user.role === "reviewer";
+  const [nav, setNav] = useState("dashboard"),
+    [data, setData] = useState(null),
+    [error, setError] = useState(""),
+    [editor, setEditor] = useState(null),
+    [help, setHelp] = useState(false),
+    [menu, setMenu] = useState(false),
+    [query, setQuery] = useState(""),
+    [last, setLast] = useState("");
+  const reload = useCallback(async () => {
+    const d = await api("/workspace");
+    setData(d);
+    setError("");
+    setLast(new Date().toLocaleTimeString("vi-VN"));
+  }, []);
+  useEffect(() => {
+    reload().catch((e) => setError(e.message));
+    const timer = setInterval(() => {
+      if (!document.hidden) reload().catch((e) => setError(e.message));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [reload]);
+  async function changeTask(t, status) {
+    try {
+      await api("/tasks/" + t.id, "PATCH", { status });
+      await reload();
+      notify("Đã cập nhật trạng thái công việc.");
+    } catch (e) {
+      notify(e.message, "error");
+    }
+  }
+  async function changeLead(i, status) {
+    try {
+      await api("/inquiries/" + i.id, "PATCH", { status });
+      await reload();
+      notify("Đã cập nhật yêu cầu.");
+    } catch (e) {
+      notify(e.message, "error");
+    }
+  }
+  const current = navItems.find((i) => i[0] === nav);
+  const descriptions = {
+    dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
+    tours: "Một lần cập nhật. Cả đội ngũ và khách hàng cùng nhìn thấy.",
+    tasks: "Rõ người phụ trách. Đúng thời hạn. Không bỏ sót.",
+    inbox: "Tiếp nhận yêu cầu ngay cả ngoài giờ làm việc.",
+    research: ["admin", "reviewer"].includes(user.role)
+      ? "Theo dõi phản hồi và xuất dữ liệu cho nhóm."
+      : "Chia sẻ trải nghiệm sau khi thử ba tính năng cốt lõi.",
+  };
+  return (
+    <div className="app-shell">
+      <aside className={"sidebar " + (menu ? "open" : "")}>
+        <Logo />
+        <div className="workspace-switch">
+          <span className="workspace-icon">TH</span>
+          <div>
+            <strong>TaskHub Travel</strong>
+            <small>
+              {["admin", "reviewer"].includes(user.role)
+                ? "Không gian điều hành"
+                : "Không gian dùng thử riêng"}
+            </small>
+          </div>
+        </div>
+        <div className="nav-caption">KHÔNG GIAN LÀM VIỆC</div>
+        <nav>
+          {navItems.map(([id, label, Icon]) => (
+            <button
+              key={id}
+              className={nav === id ? "active" : ""}
+              onClick={() => {
+                setNav(id);
+                setMenu(false);
+              }}
+            >
+              <Icon size={19} />
+              {label}
+              {id === "inbox" &&
+                !!data?.inquiries.filter((i) => i.status === "new").length && (
+                  <span className="nav-count">
+                    {data.inquiries.filter((i) => i.status === "new").length}
+                  </span>
+                )}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-tip">
+            <Leaf size={20} />
+            <strong>
+              Ít thao tác hơn.
+              <br />
+              Nhiều hành trình hơn.
+            </strong>
+            <button onClick={onPortal}>
+              Mở cổng khách hàng
+              <ArrowUpRight size={15} />
+            </button>
+          </div>
+          <button className="help-link" onClick={() => setHelp(true)}>
+            <HelpCircle size={18} />
+            Hướng dẫn & hỗ trợ
+          </button>
+          <div className="profile">
+            <span className="avatar">{user.name[0]}</span>
+            <div>
+              <strong>{user.name}</strong>
+              <small>
+                {readOnly
+                  ? "Người đánh giá · chỉ xem"
+                  : user.role === "admin"
+                    ? "Quản trị"
+                    : "Người tham gia dùng thử"}
+              </small>
+            </div>
+            <button
+              className="icon-btn"
+              title="Đăng xuất"
+              aria-label="Đăng xuất"
+              onClick={onLogout}
+            >
+              <LogOut size={17} />
+            </button>
+          </div>
+        </div>
+      </aside>
+      <div className="app-body">
+        <header className="app-topbar">
+          <button
+            className="icon-btn mobile-menu"
+            aria-label="Mở menu"
+            onClick={() => setMenu(!menu)}
+          >
+            <Menu />
+          </button>
+          <span className="breadcrumb">
+            Không gian làm việc
+            <ChevronRight size={13} />
+            <strong>{current?.[1]}</strong>
+          </span>
+          <div className="topbar-right">
+            <Badge tone="green">
+              <span className="live-dot" />
+              MVP 0.1
+            </Badge>
+            <button className="text-btn" onClick={onPortal}>
+              <Globe size={16} />
+              Cổng khách hàng
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
+        </header>
+        <main className="app-main">
+          <div className="page-title">
+            <div>
+              <div className="eyebrow green">
+                TASKHUB · ĐIỀU HÀNH CÙNG MỘT NHỊP
+              </div>
+              <h1>{current?.[1]}</h1>
+              <p>{descriptions[nav]}</p>
+            </div>
+            <div className="button-row">
+              {nav === "dashboard" && (
+                <span className="today">
+                  <CalendarDays size={16} />
+                  {date(new Date().toISOString().slice(0, 10))}
+                </span>
+              )}
+              {nav === "tours" && !readOnly && (
+                <Button onClick={() => setEditor({ type: "tour" })}>
+                  <Plus size={17} />
+                  Tạo tour
+                </Button>
+              )}
+              {nav === "tasks" && !readOnly && (
+                <Button
+                  disabled={!data?.tours.length}
+                  onClick={() => setEditor({ type: "task" })}
+                >
+                  <Plus size={17} />
+                  Giao công việc
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="workspace-notice">
+            <ShieldCheck size={16} />
+            <span>
+              {["admin", "reviewer"].includes(user.role)
+                ? readOnly
+                  ? "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu."
+                  : "Tour và nhân sự mẫu dùng cho demo."
+                : "Dữ liệu mẫu trong không gian riêng của bạn. Không nhập thông tin khách hàng thật."}
+            </span>
+            <span className="sync-time">Cập nhật {last || "…"}</span>
+          </div>
+          <ErrorBox error={error} />
+          {!data ? (
+            <p className="loading">Đang tải không gian làm việc…</p>
+          ) : (
+            <>
+              {nav === "dashboard" && (
+                <Dashboard
+                  readOnly={readOnly}
+                  data={data}
+                  onNav={setNav}
+                  onTask={() => setEditor({ type: "task" })}
+                  onTour={(t) => setEditor({ type: "tour", tour: t })}
+                  onPortal={onPortal}
+                />
+              )}{" "}
+              {nav === "tours" && (
+                <>
+                  <div className="filter-bar">
+                    <label className="search">
+                      <Search size={18} />
+                      <input
+                        aria-label="Tìm tour nội bộ"
+                        placeholder="Tìm hành trình hoặc điểm đến…"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                      />
+                    </label>
+                    <span className="muted">
+                      {data.tours.length} hành trình
+                    </span>
+                  </div>
+                  <div className="tour-grid">
+                    {data.tours
+                      .filter((t) =>
+                        (t.title + " " + t.destination)
+                          .toLocaleLowerCase()
+                          .includes(query.toLocaleLowerCase()),
+                      )
+                      .map((t) => (
+                        <TourCard
+                          key={t.id}
+                          tour={t}
+                          onOpen={(tour) => setEditor({ type: "tour", tour })}
+                          internal
+                        />
+                      ))}
+                  </div>
+                  {!data.tours.length && (
+                    <Empty title="Chưa có hành trình">
+                      Tạo một tour để bắt đầu.
+                    </Empty>
+                  )}
+                </>
+              )}
+              {nav === "tasks" && (
+                <Tasks
+                  readOnly={readOnly}
+                  data={data}
+                  onNew={() => setEditor({ type: "task" })}
+                  onChange={changeTask}
+                />
+              )}{" "}
+              {nav === "inbox" && (
+                <section className="panel">
+                  <div className="panel-header">
+                    <h3>
+                      Yêu cầu tư vấn{" "}
+                      <span className="count">{data.inquiries.length}</span>
+                    </h3>
+                    <Badge tone="gray">Chưa giữ chỗ tự động</Badge>
+                  </div>
+                  {data.inquiries.length ? (
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Khách hàng</th>
+                            <th>Hành trình</th>
+                            <th>Số khách</th>
+                            <th>Ghi chú</th>
+                            <th>Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {data.inquiries.map((i) => (
+                            <tr key={i.id}>
+                              <td>
+                                <strong>{i.name}</strong>
+                                <small>{i.email}</small>
+                              </td>
+                              <td>{i.tour_title}</td>
+                              <td>{i.people}</td>
+                              <td>{i.note || "—"}</td>
+                              <td>
+                                <select
+                                  disabled={readOnly}
+                                  aria-label={
+                                    "Trạng thái yêu cầu của " + i.name
+                                  }
+                                  value={i.status}
+                                  onChange={(e) =>
+                                    changeLead(i, e.target.value)
+                                  }
+                                >
+                                  <option value="new">Mới</option>
+                                  <option value="contacted">Đã liên hệ</option>
+                                  <option value="closed">Đã đóng</option>
+                                </select>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <Empty title="Chưa có yêu cầu mới">
+                      Mở cổng khách hàng, chọn tour và gửi yêu cầu tư vấn để thử
+                      luồng tiếp nhận.
+                    </Empty>
+                  )}
+                </section>
+              )}
+              {nav === "research" &&
+                (["admin", "reviewer"].includes(user.role) ? (
+                  <Research notify={notify} />
+                ) : (
+                  <Feedback data={data} notify={notify} reload={reload} />
+                ))}
+            </>
+          )}
+          <footer className="app-footer">
+            <span>TaskHub · CP3 MVP</span>
+            <span>Tour · Lịch / số chỗ · Công việc</span>
+          </footer>
+        </main>
+      </div>
+      {editor?.type === "tour" && readOnly && (
+        <TourDetails
+          tour={editor.tour}
+          workspace={user.workspace}
+          readOnly
+          onClose={() => setEditor(null)}
+          notify={notify}
+        />
+      )}
+      {editor?.type === "tour" && !readOnly && (
+        <TourEditor
+          tour={editor.tour}
+          onClose={() => setEditor(null)}
+          onSave={async () => {
+            await reload();
+            notify("Đã lưu tour. Cổng khách hàng sẽ cập nhật dữ liệu mới.");
+          }}
+        />
+      )}
+      {editor?.type === "task" && !readOnly && (
+        <TaskEditor
+          tours={data.tours}
+          onClose={() => setEditor(null)}
+          onSave={async () => {
+            await reload();
+            notify("Đã giao công việc.");
+          }}
+        />
+      )}
+      {help && (
+        <Help
+          user={user}
+          onClose={() => setHelp(false)}
+          onDelete={async () => {
+            if (
+              !window.confirm(
+                "Xóa toàn bộ dữ liệu dùng thử của bạn trên hệ thống? Thao tác này không thể hoàn tác.",
+              )
+            )
+              return;
+            try {
+              await api("/account", "DELETE");
+              onLogout();
+              notify("Đã xóa tài khoản và dữ liệu.");
+            } catch (e) {
+              notify(e.message, "error");
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState(null),
+    [ready, setReady] = useState(false),
+    [path, setPath] = useState(location.pathname),
+    [auth, setAuth] = useState(null),
+    [toast, setToast] = useState(null),
+    [sessionError, setSessionError] = useState("");
+  const navigate = (p) => {
+    history.pushState({}, "", p);
+    setPath(p);
+    window.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    const handler = () => setPath(location.pathname);
+    window.addEventListener("popstate", handler);
+    api("/session")
+      .then((r) => setUser(r.user))
+      .catch((e) => setSessionError(e.message))
+      .finally(() => setReady(true));
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5500);
+    return () => clearTimeout(timer);
+  }, [toast]);
+  const notify = (text, tone = "success") => setToast({ text, tone });
+  const logout = async () => {
+    try {
+      await api("/logout", "POST", {});
+      setUser(null);
+      navigate("/");
+    } catch (e) {
+      notify(e.message, "error");
+    }
+  };
+  const isApp = path === "/app";
+  const workspace = path.startsWith("/portal/") ? path.split("/")[2] : "agency";
+  if (!ready)
+    return (
+      <div className="initial-loading">
+        <Logo />
+        <p>Đang mở TaskHub…</p>
+      </div>
+    );
+  return (
+    <>
+      {sessionError && <ErrorBox error={sessionError} />}{" "}
+      {isApp && user ? (
+        <Workspace
+          user={user}
+          onLogout={logout}
+          onPortal={() => navigate("/portal/" + user.workspace)}
+          notify={notify}
+        />
+      ) : (
+        <Portal
+          workspace={workspace}
+          user={user}
+          onAuth={setAuth}
+          onWorkspace={() => navigate("/app")}
+          notify={notify}
+        />
+      )}{" "}
+      {auth && (
+        <Auth
+          mode={auth}
+          setMode={setAuth}
+          onClose={() => setAuth(null)}
+          onUser={(u) => {
+            setUser(u);
+            navigate("/app");
+          }}
+        />
+      )}
+      {toast && (
+        <div className={"toast " + toast.tone} role="status">
+          {toast.tone === "error" ? (
+            <AlertCircle size={18} />
+          ) : (
+            <CheckCircle2 size={18} />
+          )}
+          <span>{toast.text}</span>
+          <button
+            className="icon-btn"
+            aria-label="Đóng thông báo"
+            onClick={() => setToast(null)}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+createRoot(document.getElementById("root")).render(<App />);

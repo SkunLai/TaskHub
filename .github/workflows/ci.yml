@@ -1,0 +1,45 @@
+name: TaskHub CI
+on:
+  push:
+    branches: [dev, build]
+  pull_request:
+    branches: [dev]
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - name: Verify cloud database driver contract
+        run: TEST_DATABASE_DRIVER=libsql npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start application and test browser flows
+        shell: bash
+        env:
+          REVIEWER_EMAIL: reviewer@example.test
+          REVIEWER_PASSWORD: CI-reviewer-test-2026!
+          REVIEWER_TEST_EMAIL: reviewer@example.test
+          REVIEWER_TEST_PASSWORD: CI-reviewer-test-2026!
+        run: |
+          node server/index.mjs > /tmp/taskhub-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3001/api/health; then break; fi
+            sleep 1
+          done
+          TEST_URL=http://127.0.0.1:3001 npm run test:ui
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-screenshots
+          path: work/*.png
+          retention-days: 3

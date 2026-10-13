@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@taskhub.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set a strong ADMIN_PASSWORD in .env}
+    volumes:
+      - taskhub_data:/app/data
+    ports:
+      - "127.0.0.1:3001:3001"
+volumes:
+  taskhub_data:

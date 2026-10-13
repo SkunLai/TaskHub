@@ -1,0 +1,224 @@
+import { chromium } from "playwright";
+import assert from "node:assert/strict";
+import { mkdirSync } from "node:fs";
+mkdirSync("work", { recursive: true });
+const browser = await chromium.launch({
+  headless: true,
+  ...(process.env.PLAYWRIGHT_CHANNEL || process.platform === "win32"
+    ? { channel: process.env.PLAYWRIGHT_CHANNEL || "msedge" }
+    : {}),
+});
+const context = await browser.newContext({
+  viewport: { width: 1440, height: 1050 },
+});
+const page = await context.newPage();
+const errors = [];
+page.on("pageerror", (e) => {
+  errors.push(e.message);
+  console.log("Page error:", e.message);
+});
+const base = process.env.TEST_URL || "http://127.0.0.1:5173";
+const em = "ui-" + Date.now() + "@example.test";
+let registered = false;
+try {
+  await page.goto(base);
+  await page.getByRole("button", { name: "Dùng thử MVP", exact: true }).click();
+  await page.getByLabel("Tên hiển thị").fill("Người kiểm thử UI");
+  await page.getByLabel("Email", { exact: true }).fill(em);
+  await page
+    .getByLabel("Mật khẩu", { exact: true })
+    .fill("Ui-test-secret-2026");
+  await page.locator('input[name="consent"]').check();
+  await page
+    .getByRole("button", { name: "Bắt đầu trải nghiệm", exact: true })
+    .click();
+  await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
+  registered = true;
+  console.log("Signup passed");
+  await page.screenshot({ path: "work/dashboard-desktop.png", fullPage: true });
+  await page.getByRole("button", { name: "Quản lý tour", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+    .click();
+  await page.getByLabel("Khách đã giữ chỗ").fill("24");
+  await page
+    .getByRole("button", { name: "Lưu hành trình", exact: true })
+    .click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page
+    .getByRole("button", { name: "Cổng khách hàng", exact: true })
+    .click();
+
+  await page
+    .locator(".tour-card")
+    .first()
+    .getByText("Còn 6 chỗ", { exact: true })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Yêu cầu tư vấn", exact: true })
+    .click();
+  await page.getByLabel("Tên", { exact: true }).fill("Khách minh họa");
+  await page.getByLabel("Email", { exact: true }).fill("customer@example.test");
+  await page.locator('input[name="consent"]').check();
+  await page
+    .getByRole("button", { name: "Gửi yêu cầu tư vấn", exact: true })
+    .click();
+  await page
+    .getByText("Đã gửi yêu cầu. Đây chưa phải xác nhận đặt tour.", {
+      exact: true,
+    })
+    .waitFor();
+  await page.getByRole("button", { name: "Đóng", exact: true }).click();
+  await page.getByRole("button", { name: "Về điều hành", exact: true }).click();
+  await page
+    .locator(".sidebar nav")
+    .getByRole("button", { name: /Yêu cầu tư vấn/ })
+    .click();
+  console.log("Portal and inquiry passed");
+  await page.getByText("customer@example.test", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Công việc", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Giao công việc", exact: true })
+    .click();
+
+  await page
+    .getByLabel("Công việc", { exact: true })
+    .fill("Công việc kiểm thử UI");
+  await page
+    .getByLabel("Người phụ trách", { exact: true })
+    .fill("Nhân viên mẫu");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Giao công việc", exact: true })
+    .click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page
+    .getByLabel("Trạng thái Công việc kiểm thử UI", { exact: true })
+    .selectOption("done");
+  await page
+    .locator(".kanban-column.done")
+    .getByRole("heading", { name: "Công việc kiểm thử UI" })
+    .waitFor();
+  await page.screenshot({ path: "work/tasks-desktop.png", fullPage: true });
+  console.log("Tasks passed");
+  await page.getByRole("button", { name: "Phản hồi MVP", exact: true }).click();
+  for (const k of ["portal", "operations", "sync", "ease"])
+    await page.locator(`input[name="${k}"][value="4"]`).check();
+  await page.locator('select[name="intent"]').selectOption("maybe");
+  await page.locator('input[name="price"]').fill("0");
+  await page.getByRole("button", { name: "Gửi phản hồi", exact: true }).click();
+  await page.getByText("Đã lưu", { exact: true }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: "work/feedback-mobile.png", fullPage: true });
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "Mobile feedback has horizontal overflow",
+  );
+  await page.getByRole("button", { name: "Mở menu", exact: true }).click();
+  await page.getByRole("button", { name: "Tổng quan", exact: true }).click();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: "work/dashboard-mobile.png", fullPage: true });
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "Mobile dashboard has horizontal overflow",
+  );
+  await page
+    .getByRole("button", { name: "Cổng khách hàng", exact: true })
+    .click();
+  await page.screenshot({ path: "work/portal-mobile.png", fullPage: true });
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "Mobile portal has horizontal overflow",
+  );
+  assert.deepEqual(errors, []);
+  if (process.env.REVIEWER_TEST_EMAIL && process.env.REVIEWER_TEST_PASSWORD) {
+    const reviewerContext = await browser.newContext();
+    const login = await reviewerContext.request.post(base + "/api/login", {
+      headers: { "X-TaskHub": "1" },
+      data: {
+        email: process.env.REVIEWER_TEST_EMAIL,
+        password: process.env.REVIEWER_TEST_PASSWORD,
+      },
+    });
+    assert.equal(login.status(), 200);
+    const review = await reviewerContext.newPage();
+    review.on("pageerror", (error) => errors.push(error.message));
+    await review.goto(base + "/app");
+    await review
+      .getByText(
+        "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu.",
+      )
+      .waitFor();
+    await review
+      .getByRole("button", { name: "Quản lý tour", exact: true })
+      .click();
+    assert.equal(
+      await review
+        .getByRole("button", { name: "Tạo tour", exact: true })
+        .count(),
+      0,
+    );
+    await review
+      .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+      .click();
+    await review.getByText("Chế độ xem dành cho người đánh giá.").waitFor();
+    assert.equal(
+      await review
+        .getByRole("button", { name: "Lưu hành trình", exact: true })
+        .count(),
+      0,
+    );
+    await review.keyboard.press("Escape");
+    await review
+      .getByRole("button", { name: "Công việc", exact: true })
+      .click();
+    const statuses = review.locator('select[aria-label^="Trạng thái "]');
+    assert.ok((await statuses.count()) > 0);
+    for (const control of await statuses.all())
+      assert.ok(await control.isDisabled());
+    await review
+      .getByRole("button", { name: "Phản hồi MVP", exact: true })
+      .click();
+    await review
+      .getByRole("link", { name: "Tương tác CSV", exact: true })
+      .waitFor();
+    await review.screenshot({
+      path: "work/reviewer-desktop.png",
+      fullPage: true,
+    });
+    await reviewerContext.close();
+    assert.deepEqual(errors, []);
+    console.log(
+      "Reviewer UI passed: reports visible, tour/task writes unavailable.",
+    );
+  }
+  console.log(
+    "UI PASS: signup, tour sync, inquiry, task create/status, feedback; desktop and mobile no overflow; no page errors.",
+  );
+} catch (e) {
+  await page.screenshot({ path: "work/ui-failure.png", fullPage: true });
+  console.log(
+    "Failure headings:",
+    await page.locator("h1,h2").allTextContents(),
+  );
+  throw e;
+} finally {
+  if (registered) {
+    await context.request.delete(base + "/api/account", {
+      headers: { "X-TaskHub": "1" },
+    });
+  }
+  await browser.close();
+}

@@ -1,0 +1,39 @@
+# Free web compute; persistent database is hosted separately on Turso Free.
+services:
+  - type: web
+    name: taskhub
+    runtime: node
+    repo: https://github.com/SkunLai/TaskHub
+    branch: dev
+    plan: free
+    region: singapore
+    numInstances: 1
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    startCommand: node server/index.mjs
+    autoDeployTrigger: checksPass
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.16.0
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /tmp/taskhub
+      - key: REQUIRE_REMOTE_DB
+        value: "1"
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: REVIEWER_EMAIL
+        sync: false
+      - key: REVIEWER_PASSWORD
+        sync: false

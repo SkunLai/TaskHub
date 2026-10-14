@@ -13,6 +13,12 @@ Không tự import dữ liệu khảo sát CP2 hoặc dữ liệu local lên clo
 
 ## 1. Tài khoản
 
+GitHub repo đã tồn tại với `dev` là nhánh chính và `build` là nhánh team sửa.
+Nhánh `dev` yêu cầu review của `@SkunLai`, CI `Validate` và giải quyết comment.
+Tại lần kiểm tra 14/10, GitHub Actions báo chưa khởi chạy do tài khoản bị khóa
+vì billing. Chủ tài khoản vào GitHub → Settings → Billing để kiểm tra và xử lý,
+rồi chạy lại TaskHub CI; không bỏ required check để coi như kiểm tra đã đạt.
+
 1. Vào https://dashboard.render.com, Sign up → GitHub → đăng nhập SkunLai.
    Cấp quyền kết nối **chỉ repo TaskHub** khi có lựa chọn.
 2. Vào https://app.turso.tech, đăng ký bằng GitHub, chọn **Free**.
@@ -70,6 +76,13 @@ chờ máy chủ khởi động. Trước buổi giảng viên kiểm tra, mở 
 Không hứa hoạt động liên tục hay tốc độ như gói trả phí; không dùng ping giả
 để lách giới hạn. Dữ liệu nằm ở Turso nên việc Render ngủ/redeploy không xóa nó.
 Nguồn: https://render.com/docs/free, https://render.com/docs/faq.
+
+Nếu mục tiêu là web luôn sẵn sàng, cần chọn gói compute không ngủ sau khi
+chủ tài khoản duyệt giá và chi phí định kỳ. Cấu hình hiện tại giữ Free, chưa
+mua hoặc nâng gói. Gói Free phù hợp đợt thử MVP có kiểm soát; không cam kết
+độ sẵn sàng của hệ thống kinh doanh. Sau khi tạo hosting thật, phải kiểm tra
+đăng nhập người dùng/giảng viên, tải CSV, quyền ghi, mạng chậm và giữ dữ liệu
+sau redeploy trước khi phát link.
 
 Turso Free có hạn mức storage/đọc/ghi. Theo dõi dashboard; không bật thanh
 toán hoặc nâng gói khi chưa được chủ tài khoản đồng ý. Nguồn:

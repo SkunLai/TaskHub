@@ -10,13 +10,18 @@ export function connectDatabase(filename) {
   if (process.env.REQUIRE_REMOTE_DB === "1" && !url)
     throw new Error("TURSO_DATABASE_URL is required on ephemeral hosting.");
   if (process.env.REQUIRE_REMOTE_DB === "1" && !/^libsql:\/\//.test(url))
-    throw new Error("Ephemeral hosting requires a libsql:// cloud database URL.");
+    throw new Error(
+      "Ephemeral hosting requires a libsql:// cloud database URL.",
+    );
   if (url && !process.env.TURSO_AUTH_TOKEN && !url.startsWith("file:"))
     throw new Error("Set TURSO_AUTH_TOKEN for the hosted database.");
   const remote = url
     ? createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN })
     : null;
   const local = remote ? null : new DatabaseSync(filename);
+  // Cloud requests use separate database streams. Unlike a shared file handle,
+  // they can read committed state while another connection owns a transaction.
+  const parallelReads = Boolean(remote && !url.startsWith("file:"));
   const context = new AsyncLocalStorage();
   let queue = Promise.resolve();
   const exclusive = async (fn) => {
@@ -49,7 +54,7 @@ export function connectDatabase(filename) {
       }
       return local.prepare(sql)[kind](...args);
     };
-    return context.getStore() ? perform() : exclusive(perform);
+    return context.getStore() || parallelReads ? perform() : exclusive(perform);
   };
   return {
     remote: Boolean(remote),

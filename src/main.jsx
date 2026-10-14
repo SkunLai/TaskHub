@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback, useId, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowUpRight,
@@ -57,20 +57,35 @@ const navItems = [
   ["research", "Phản hồi MVP", BarChart3],
 ];
 async function api(path, method = "GET", data) {
-  const r = await fetch("/api" + path, {
-    method,
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", "X-TaskHub": "1" },
-    ...(data ? { body: JSON.stringify(data) } : {}),
-  });
-  let body;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
   try {
-    body = await r.json();
-  } catch {
-    throw Error("Không kết nối được hệ thống.");
+    const r = await fetch("/api" + path, {
+      method,
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-TaskHub": "1" },
+      signal: controller.signal,
+      ...(data ? { body: JSON.stringify(data) } : {}),
+    });
+    let body;
+    try {
+      body = await r.json();
+    } catch {
+      throw Error("Không kết nối được hệ thống.");
+    }
+    if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
+    return body;
+  } catch (error) {
+    if (error.name === "AbortError")
+      throw Error(
+        "Máy chủ phản hồi chậm. Vui lòng thử lại; trước khi gửi lại thay đổi, kiểm tra dữ liệu đã được lưu chưa.",
+      );
+    if (error instanceof TypeError)
+      throw Error("Mất kết nối. Kiểm tra mạng và thử lại.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
-  return body;
 }
 
 function Landscape({ theme = "danang", large = false }) {
@@ -482,6 +497,7 @@ function TourCard({ tour, onOpen, internal = false }) {
 }
 
 function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
+  const pending = useRef(0);
   const [data, setData] = useState(null),
     [error, setError] = useState(""),
     [query, setQuery] = useState(""),
@@ -489,6 +505,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     [selected, setSelected] = useState(null),
     [last, setLast] = useState("");
   const load = useCallback(async () => {
+    pending.current += 1;
     try {
       const d = await api("/public/" + workspace);
       setData(d);
@@ -496,6 +513,8 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
       setError("");
     } catch (e) {
       setError(e.message);
+    } finally {
+      pending.current -= 1;
     }
   }, [workspace]);
   useEffect(() => {
@@ -503,7 +522,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     if (user && user.workspace === workspace)
       api("/events", "POST", { action: "portal_viewed" }).catch(() => {});
     const timer = setInterval(() => {
-      if (!document.hidden) load();
+      if (!document.hidden && pending.current === 0) load();
     }, 5000);
     return () => clearInterval(timer);
   }, [load, user?.id]);
@@ -1631,6 +1650,8 @@ function Help({ user, onClose, onDelete }) {
 }
 
 function Workspace({ user, onLogout, onPortal, notify }) {
+  const pending = useRef(0);
+  const latest = useRef(0);
   const readOnly = user.role === "reviewer";
   const [nav, setNav] = useState("dashboard"),
     [data, setData] = useState(null),
@@ -1641,15 +1662,23 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     [query, setQuery] = useState(""),
     [last, setLast] = useState("");
   const reload = useCallback(async () => {
-    const d = await api("/workspace");
-    setData(d);
-    setError("");
-    setLast(new Date().toLocaleTimeString("vi-VN"));
+    const request = ++latest.current;
+    pending.current += 1;
+    try {
+      const d = await api("/workspace");
+      if (request !== latest.current) return;
+      setData(d);
+      setError("");
+      setLast(new Date().toLocaleTimeString("vi-VN"));
+    } finally {
+      pending.current -= 1;
+    }
   }, []);
   useEffect(() => {
     reload().catch((e) => setError(e.message));
     const timer = setInterval(() => {
-      if (!document.hidden) reload().catch((e) => setError(e.message));
+      if (!document.hidden && pending.current === 0)
+        reload().catch((e) => setError(e.message));
     }, 5000);
     return () => clearInterval(timer);
   }, [reload]);

@@ -16,6 +16,8 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
     child = spawn(process.execPath, ["server/index.mjs"], {
       env: {
         ...process.env,
+        NODE_ENV: "test",
+        ADMIN_EMAIL: "admin@taskhub.local",
         DATA_DIR: dir,
         TURSO_DATABASE_URL:
           process.env.TEST_DATABASE_DRIVER === "libsql"
@@ -31,13 +33,19 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       },
       stdio: "pipe",
     });
+    let startupErrors = "";
+    child.stderr.on("data", (chunk) => {
+      startupErrors = (startupErrors + chunk.toString()).slice(-2500);
+    });
     for (let i = 0; i < 80; i++) {
+      if (child.exitCode !== null)
+        throw Error("Test server exited: " + startupErrors);
       try {
         if ((await fetch(base + "/api/health")).ok) return;
       } catch {}
       await new Promise((r) => setTimeout(r, 100));
     }
-    throw Error("Test server failed to start");
+    throw Error("Test server failed to start: " + startupErrors);
   };
   const stop = async () => {
     if (child.exitCode !== null) return;
@@ -173,12 +181,52 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
     );
     const a = await request("/register", "POST", participant("TesterA")),
       b = await request("/register", "POST", participant("TesterB"));
+    await t.test(
+      "duplicate concurrent signups return a conflict without orphan data",
+      async () => {
+        const results = await Promise.all([
+          request("/register", "POST", participant("Duplicate")),
+          request("/register", "POST", participant("Duplicate")),
+        ]);
+        assert.deepEqual(
+          results.map((result) => result.status).sort(),
+          [201, 409],
+        );
+        const registered = results.find((result) => result.status === 201);
+        assert.equal(
+          (await request("/account", "DELETE", null, registered.cookie)).status,
+          200,
+        );
+      },
+    );
     assert.equal(a.status, 201);
     assert.equal(b.status, 201);
     assert.notEqual(a.body.user.workspace, b.body.user.workspace);
     const ac = a.cookie,
       bc = b.cookie,
       ws = a.body.user.workspace;
+    await t.test(
+      "20 concurrent workspace reads keep each account isolated",
+      async () => {
+        const requests = await Promise.all(
+          Array.from({ length: 20 }, (_, index) =>
+            request("/workspace", "GET", null, index % 2 ? ac : bc),
+          ),
+        );
+        for (const [index, result] of requests.entries()) {
+          assert.equal(result.status, 200);
+          assert.equal(result.body.tours.length, 3);
+          assert.equal(result.body.tasks.length, 6);
+          assert.ok(
+            result.body.tours.every(
+              (tour) =>
+                tour.workspace ===
+                (index % 2 ? a.body.user.workspace : b.body.user.workspace),
+            ),
+          );
+        }
+      },
+    );
     let data = (await request("/workspace", "GET", null, ac)).body;
     const initialTour = data.tours[0];
     await t.test(

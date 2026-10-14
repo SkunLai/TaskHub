@@ -344,6 +344,8 @@ export const server = http.createServer(async (req, res) => {
       const id = randomUUID(),
         workspace = randomUUID();
       const u = await transaction(db, async () => {
+        if (await db.prepare("SELECT id FROM users WHERE email=?").get(em))
+          fail("Email đã đăng ký. Anh/chị có thể đăng nhập.", 409);
         await seedWorkspace(db, workspace, "Không gian của " + name);
         await db
           .prepare("INSERT INTO users VALUES (?,?,?,?,?,?,?,?,?)")
@@ -456,37 +458,39 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/workspace" && method === "GET") {
       const u = await required(req);
-      const tasks = await db
-        .prepare("SELECT * FROM tasks WHERE workspace=? ORDER BY due,created")
-        .all(u.workspace);
-      const tours = await db
-        .prepare("SELECT * FROM tours WHERE workspace=? ORDER BY departure")
-        .all(u.workspace);
-      const inquiries = await db
-        .prepare(
-          "SELECT i.*,t.title AS tour_title FROM inquiries i JOIN tours t ON t.id=i.tour_id WHERE i.workspace=? ORDER BY i.created DESC",
-        )
-        .all(u.workspace);
-      const activity = await db
-        .prepare(
-          "SELECT action,entity,created FROM events WHERE user_id=? ORDER BY created DESC LIMIT 8",
-        )
-        .all(u.id);
-      const completedActions = (
-        await db
-          .prepare("SELECT DISTINCT action FROM events WHERE user_id=?")
-          .all(u.id)
-      ).map((e) => e.action);
+      const [tasks, tours, inquiries, activity, actionRows, feedback] =
+        await Promise.all([
+          db
+            .prepare(
+              "SELECT * FROM tasks WHERE workspace=? ORDER BY due,created",
+            )
+            .all(u.workspace),
+          db
+            .prepare("SELECT * FROM tours WHERE workspace=? ORDER BY departure")
+            .all(u.workspace),
+          db
+            .prepare(
+              "SELECT i.*,t.title AS tour_title FROM inquiries i JOIN tours t ON t.id=i.tour_id WHERE i.workspace=? ORDER BY i.created DESC",
+            )
+            .all(u.workspace),
+          db
+            .prepare(
+              "SELECT action,entity,created FROM events WHERE user_id=? ORDER BY created DESC LIMIT 8",
+            )
+            .all(u.id),
+          db
+            .prepare("SELECT DISTINCT action FROM events WHERE user_id=?")
+            .all(u.id),
+          db.prepare("SELECT * FROM feedback WHERE user_id=?").get(u.id),
+        ]);
+      const completedActions = actionRows.map((e) => e.action);
       return json(res, {
         tours,
         tasks,
         inquiries,
         activity,
         completedActions,
-        feedback:
-          (await db
-            .prepare("SELECT * FROM feedback WHERE user_id=?")
-            .get(u.id)) || null,
+        feedback: feedback || null,
       });
     }
     if (p === "/api/events" && method === "POST") {

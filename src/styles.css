@@ -3180,6 +3180,14 @@ td small {
 .drawer-close {
   display: none;
 }
+@media (max-height: 850px) {
+  .sidebar-tip {
+    display: none;
+  }
+  .sidebar-bottom {
+    padding-top: 16px;
+  }
+}
 @media (max-width: 1150px) {
   .trial-grid {
     grid-template-columns: 1fr;

@@ -1449,8 +1449,7 @@ function Feedback({ data, notify, reload }) {
       <aside className="panel testing-guide">
         <Badge tone="blue">5–7 PHÚT TRẢI NGHIỆM</Badge>
         <h2>
-          Hãy thử trước,
-          <br />
+          Hãy thử trước, <br />
           rồi kể cho chúng em.
         </h2>
         <p>

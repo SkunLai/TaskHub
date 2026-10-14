@@ -24,6 +24,12 @@ Nhóm chỉ dùng đoạn trên sau khi thực sự thực hiện phần trách 
 
 **Link AI đã dùng:** https://openai.com/codex/
 
+## Đợt rà giao diện / CP3 ngày 14/10/2026
+
+Prompt bổ sung của Tuấn: “em hãy soi qua 1 lượt xem web này cần chỉnh sửa gì hãy làm cho nó tốt hơn, anh muốn tone màu nó sẽ xanh dương nhạt và kèm với các màu cùng bảng màu của nó nhìn vẫn cứ phải gọi là chuyên nghiệp cho đúng mục tiêu khách hàng, hãy sửa nó nhé, và kiểm tra các yêu cầu này đã đủ chưa”, kèm lại danh sách tài liệu CP2/CP3, timeline và link CP3_context.
+
+Codex hỗ trợ thay bảng màu, tăng độ dễ đọc, sửa phản hồi mất kết nối/menu mobile/trạng thái không có kết quả, thêm lộ trình trải nghiệm và bộ đếm đối chiếu thao tác trước phản hồi. Đã kiểm tra local bằng dữ liệu giả, không tạo người thử thật. Bảng đối chiếu tại `docs/CP3_READINESS.md` ghi riêng phần đã xây và bằng chứng CP3 còn thiếu. Tài liệu và prompt này là bản bàn giao để nhóm đưa vào “Thống Nhất”; chưa ghi vào doc chung vì tại thời điểm đọc lại chưa có phần đó.
+
 Đây là link công cụ. Nếu giảng viên/nhóm cần link từng hội thoại, nhóm cung cấp bản chia sẻ đã rà soát thông tin cá nhân; repo không giả lập một URL hội thoại.
 
 ## Nguồn kỹ thuật

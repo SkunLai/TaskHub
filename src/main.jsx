@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useId } from "react";
+import React, { useState, useEffect, useCallback, useId, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowUpRight,
@@ -21,7 +21,6 @@ import {
   ExternalLink,
   Clock,
   ChevronRight,
-  Leaf,
   ShieldCheck,
   RefreshCw,
   Download,
@@ -49,6 +48,34 @@ const statuses = {
   doing: "Đang thực hiện",
   done: "Hoàn thành",
 };
+const trialSteps = [
+  {
+    title: "Cập nhật một tour",
+    description: "Sửa lịch hoặc số khách đã giữ chỗ, rồi lưu.",
+    nav: "tours",
+    actions: ["tour_updated"],
+  },
+  {
+    title: "Xem cổng khách hàng",
+    description: "Kiểm tra lịch và số chỗ sau khi vừa sửa.",
+    nav: "portal",
+    actions: ["portal_viewed"],
+  },
+  {
+    title: "Giao và xử lý công việc",
+    description: "Tạo một việc gắn với tour, rồi đổi trạng thái.",
+    nav: "tasks",
+    actions: ["task_created", "task_status_changed"],
+  },
+];
+const stepDone = (step, actions) =>
+  step.actions.every((action) => actions.has(action));
+const roleNames = {
+  operations: "Điều hành tour",
+  sales: "Sales / Marketing",
+  manager: "Quản lý / Chủ doanh nghiệp",
+  other: "Khác",
+};
 const navItems = [
   ["dashboard", "Tổng quan", LayoutDashboard],
   ["tours", "Quản lý tour", Compass],
@@ -57,23 +84,39 @@ const navItems = [
   ["research", "Phản hồi MVP", BarChart3],
 ];
 async function api(path, method = "GET", data) {
-  const r = await fetch("/api" + path, {
-    method,
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", "X-TaskHub": "1" },
-    ...(data ? { body: JSON.stringify(data) } : {}),
-  });
-  let body;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
   try {
-    body = await r.json();
-  } catch {
-    throw Error("Không kết nối được hệ thống.");
+    const r = await fetch("/api" + path, {
+      method,
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-TaskHub": "1" },
+      signal: controller.signal,
+      ...(data ? { body: JSON.stringify(data) } : {}),
+    });
+    let body;
+    try {
+      body = await r.json();
+    } catch {
+      throw Error("Không kết nối được hệ thống.");
+    }
+    if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
+    return body;
+  } catch (error) {
+    if (error.name === "AbortError")
+      throw Error(
+        "Máy chủ phản hồi chậm. Vui lòng thử lại; trước khi gửi lại thay đổi, kiểm tra dữ liệu đã được lưu chưa.",
+      );
+    if (error instanceof TypeError)
+      throw Error("Mất kết nối. Kiểm tra mạng và thử lại.");
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
-  return body;
 }
 
 function Landscape({ theme = "danang", large = false }) {
+  const gradientId = useId();
   return (
     <svg
       className={"landscape " + (large ? "large" : "")}
@@ -88,29 +131,29 @@ function Landscape({ theme = "danang", large = false }) {
       }
     >
       <defs>
-        <linearGradient id={"sky-" + theme} x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop
             stopColor={
               theme === "dalat"
-                ? "#d6e4d8"
+                ? "#deedff"
                 : theme === "phuquoc"
-                  ? "#e7ceb5"
-                  : "#efddbb"
+                  ? "#cce5ff"
+                  : "#d5eaff"
             }
           />
-          <stop offset="1" stopColor="#f8eee0" />
+          <stop offset="1" stopColor="#f1f7ff" />
         </linearGradient>
       </defs>
-      <rect width="600" height="360" fill={"url(#sky-" + theme + ")"} />
+      <rect width="600" height="360" fill={`url(#${gradientId})`} />
       <circle cx="450" cy="83" r="34" fill="#fffbdf" />
       {theme === "dalat" ? (
         <>
-          <path d="M0 214Q70 110 200 202Q350 76 600 186V360H0" fill="#8ba99a" />
+          <path d="M0 214Q70 110 200 202Q350 76 600 186V360H0" fill="#9bbbcf" />
           <path
             d="M0 263Q230 148 390 263Q500 191 600 240V360H0"
-            fill="#628675"
+            fill="#7599b5"
           />
-          <path d="M0 329Q230 206 600 310V360H0" fill="#396756" />
+          <path d="M0 329Q230 206 600 310V360H0" fill="#527594" />
           {[80, 155, 460, 535].map((x, i) => (
             <g key={x} transform={`translate(${x} ${190 + (i % 2) * 27})`}>
               <rect x="-4" width="8" height="90" fill="#465b48" />
@@ -121,8 +164,8 @@ function Landscape({ theme = "danang", large = false }) {
         </>
       ) : theme === "phuquoc" ? (
         <>
-          <path d="M0 176Q140 170 270 188T600 178V360H0" fill="#5ca8ad" />
-          <path d="M0 238Q320 210 600 310V360H0" fill="#a5d0c9" />
+          <path d="M0 176Q140 170 270 188T600 178V360H0" fill="#76afd8" />
+          <path d="M0 238Q320 210 600 310V360H0" fill="#b4d6ed" />
           <path d="M0 290Q260 220 600 338V360H0" fill="#e5cfab" />
           <path
             d="M92 337Q110 160 155 90"
@@ -138,10 +181,10 @@ function Landscape({ theme = "danang", large = false }) {
         </>
       ) : (
         <>
-          <rect y="252" width="600" height="108" fill="#608f86" />
+          <rect y="252" width="600" height="108" fill="#7aaccd" />
           <path
             d="M0 281Q170 246 340 279T600 267"
-            stroke="#a6c6ae"
+            stroke="#cce3f4"
             fill="none"
             strokeWidth="3"
           />
@@ -278,7 +321,7 @@ function ErrorBox({ error }) {
 function Empty({ title, children }) {
   return (
     <div className="empty">
-      <Leaf size={30} />
+      <Compass size={30} />
       <h3>{title}</h3>
       <p>{children}</p>
     </div>
@@ -471,7 +514,7 @@ function TourCard({ tour, onOpen, internal = false }) {
             <span>
               {tour.reserved}/{tour.capacity} khách
             </span>
-            <Badge tone={tour.published ? "green" : "gray"}>
+            <Badge tone={tour.published ? "blue" : "gray"}>
               {tour.published ? "Đang công khai" : "Bản nháp"}
             </Badge>
           </div>
@@ -482,6 +525,8 @@ function TourCard({ tour, onOpen, internal = false }) {
 }
 
 function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
+  const pending = useRef(0);
+  const latest = useRef(0);
   const [data, setData] = useState(null),
     [error, setError] = useState(""),
     [query, setQuery] = useState(""),
@@ -489,13 +534,18 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     [selected, setSelected] = useState(null),
     [last, setLast] = useState("");
   const load = useCallback(async () => {
+    const request = ++latest.current;
+    pending.current += 1;
     try {
       const d = await api("/public/" + workspace);
+      if (request !== latest.current) return;
       setData(d);
       setLast(new Date().toLocaleTimeString("vi-VN"));
       setError("");
     } catch (e) {
-      setError(e.message);
+      if (request === latest.current) setError(e.message);
+    } finally {
+      pending.current -= 1;
     }
   }, [workspace]);
   useEffect(() => {
@@ -503,7 +553,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     if (user && user.workspace === workspace)
       api("/events", "POST", { action: "portal_viewed" }).catch(() => {});
     const timer = setInterval(() => {
-      if (!document.hidden) load();
+      if (!document.hidden && pending.current === 0) load();
     }, 5000);
     return () => clearInterval(timer);
   }, [load, user?.id]);
@@ -521,6 +571,9 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
   };
   return (
     <div className="portal">
+      <a className="skip-link" href="#journeys">
+        Đến danh sách tour
+      </a>
       <header className="portal-nav">
         <a className="plain-link" href="/">
           <Logo />
@@ -546,7 +599,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
       <main>
         <div className="portal-hero">
           <div className="hero-copy">
-            <div className="eyebrow green">
+            <div className="eyebrow blue">
               <span className="live-dot" />
               CỔNG TOUR 24/7 ·{" "}
               {workspace === "agency"
@@ -559,9 +612,8 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               bắt đầu từ <em>an tâm.</em>
             </h1>
             <p>
-              Lịch trình rõ ràng. Giá và số chỗ luôn cập nhật.
-              <br />
-              Chọn hành trình của bạn, bất cứ lúc nào.
+              Lịch trình rõ ràng. Giá và số chỗ từ đội ngũ điều hành. Chọn hành
+              trình của bạn, bất cứ lúc nào.
             </p>
             <a className="btn" href="#journeys">
               Tìm chuyến đi
@@ -589,12 +641,12 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
         <section id="journeys" className="journeys">
           <div className="section-title">
             <div>
-              <div className="eyebrow green">ĐI ĐÂU TIẾP THEO?</div>
+              <div className="eyebrow blue">ĐI ĐÂU TIẾP THEO?</div>
               <h2>Những hành trình đang mở</h2>
             </div>
-            <span className="sync-note">
-              <RefreshCw size={14} />
-              Cập nhật {last || "…"}
+            <span className={"sync-note " + (error ? "stale" : "")}>
+              {error ? <AlertCircle size={14} /> : <RefreshCw size={14} />}
+              {error ? "Chưa thể cập nhật" : `Cập nhật ${last || "…"}`}
             </span>
           </div>
           <div className="filter-bar">
@@ -624,6 +676,19 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
             </label>
           </div>
           <ErrorBox error={error} />
+          {error && (
+            <div className="connection-recovery">
+              <p>
+                {data
+                  ? "Đang hiển thị dữ liệu từ lần tải thành công gần nhất. Số chỗ có thể đã thay đổi."
+                  : "Danh sách tour chưa tải được. Vui lòng thử lại khi kết nối ổn định."}
+              </p>
+              <Button variant="ghost" onClick={load}>
+                <RefreshCw size={16} />
+                Thử tải lại
+              </Button>
+            </div>
+          )}
           {!data && !error ? (
             <p className="loading">Đang tải hành trình…</p>
           ) : visible.length ? (
@@ -632,13 +697,26 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
                 <TourCard key={t.id} tour={t} onOpen={open} />
               ))}
             </div>
-          ) : (
+          ) : data ? (
             <Empty title="Chưa có hành trình phù hợp">
-              Thử đổi điểm đến hoặc từ khóa tìm kiếm.
+              {query || destination
+                ? "Thử đổi điểm đến hoặc từ khóa tìm kiếm."
+                : "Hiện chưa có tour được công khai. Vui lòng quay lại sau."}
+              {(query || destination) && (
+                <button
+                  className="text-btn"
+                  onClick={() => {
+                    setQuery("");
+                    setDestination("");
+                  }}
+                >
+                  Xóa bộ lọc
+                </button>
+              )}
             </Empty>
-          )}
+          ) : null}
           <div className="portal-notice">
-            <Leaf size={17} />
+            <ShieldCheck size={17} />
             <p>
               MVP học phần EXE101 · Tour, giá và nhân sự mẫu dùng để minh họa.
               Yêu cầu tư vấn không giữ chỗ và không tạo thanh toán.
@@ -647,11 +725,13 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
         </section>
         <section className="portal-cta">
           <div>
-            <div className="eyebrow">DÀNH CHO ĐỘI NGŨ DU LỊCH</div>
+            <div className="eyebrow">
+              DÀNH CHO DOANH NGHIỆP LỮ HÀNH 10–50 NHÂN SỰ
+            </div>
             <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
             <p>
-              Một nơi quản lý tour, giao việc và chia sẻ thông tin với khách
-              hàng.
+              Điều hành và Sales dùng chung lịch, số chỗ và công việc. Khách
+              hàng tra cứu tour trên một cổng riêng.
             </p>
           </div>
           <Button
@@ -690,6 +770,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
+    setError("");
     const f = new FormData(e.target);
     try {
       const result = await api("/public/" + workspace + "/inquiries", "POST", {
@@ -957,6 +1038,7 @@ function TaskEditor({ tours, onClose, onSave }) {
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
+    setError("");
     try {
       await api("/tasks", "POST", Object.fromEntries(new FormData(e.target)));
       await onSave();
@@ -1043,6 +1125,7 @@ function Dashboard({
   onTour,
   onPortal,
   readOnly = false,
+  showTrial = false,
 }) {
   const pending = data.tasks.filter((t) => t.status !== "done"),
     done = data.tasks.filter((t) => t.status === "done");
@@ -1079,16 +1162,18 @@ function Dashboard({
     <>
       <div className="welcome-banner">
         <div>
-          <Badge tone="green">
+          <Badge tone="blue">
             <span className="live-dot" />
             MỘT NGUỒN DỮ LIỆU CHUNG
           </Badge>
           <h2>
-            Mỗi hành trình,
+            Lịch rõ ràng.
             <br />
-            được chăm chút từ bên trong.
+            Đội ngũ cùng nhịp.
           </h2>
-          <p>Cùng theo dõi tour, công việc và những yêu cầu mới.</p>
+          <p>
+            Một nơi theo dõi lịch khởi hành, số chỗ và công việc của đội ngũ.
+          </p>
           <Button onClick={onPortal}>
             Xem cổng khách hàng
             <ArrowUpRight size={16} />
@@ -1098,6 +1183,43 @@ function Dashboard({
           <Landscape theme="dalat" />
         </div>
       </div>
+      {showTrial && (
+        <section className="trial-checklist" aria-label="Lộ trình dùng thử">
+          <div className="trial-heading">
+            <div>
+              <h3>Bắt đầu trong 3 bước</h3>
+              <p>Thử các thao tác dưới đây, rồi chia sẻ trải nghiệm của bạn.</p>
+            </div>
+            <Button variant="ghost" onClick={() => onNav("research")}>
+              {data.feedback ? "Xem phản hồi" : "Gửi phản hồi"}
+              <ArrowRight size={16} />
+            </Button>
+          </div>
+          <div className="trial-grid">
+            {trialSteps.map((step, i) => {
+              const done = stepDone(step, new Set(data.completedActions));
+              return (
+                <button
+                  key={step.nav}
+                  className={"trial-item " + (done ? "completed" : "")}
+                  onClick={() =>
+                    step.nav === "portal" ? onPortal() : onNav(step.nav)
+                  }
+                >
+                  <span className="step-number">
+                    {done ? <Check size={17} /> : `0${i + 1}`}
+                  </span>
+                  <span>
+                    <strong>{step.title}</strong>
+                    <small>{step.description}</small>
+                  </span>
+                  <ChevronRight size={17} />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <div className="stat-grid">
         {stats.map(([label, value, Icon, note]) => (
           <div className="stat-card" key={label}>
@@ -1152,27 +1274,42 @@ function Dashboard({
             <h3>Sắp khởi hành</h3>
             <CalendarDays size={18} />
           </div>
-          {data.tours.slice(0, 3).map((t) => (
-            <button
-              key={t.id}
-              className="departure-row"
-              onClick={() => onTour(t)}
-            >
-              <span className="date-block">
-                <strong>{new Date(t.departure + "T12:00:00").getDate()}</strong>
-                <small>
-                  THÁNG {new Date(t.departure + "T12:00:00").getMonth() + 1}
-                </small>
-              </span>
-              <div>
-                <strong>{t.title}</strong>
-                <small>
-                  {t.reserved}/{t.capacity} khách · {t.duration}
-                </small>
-              </div>
-              <ChevronRight size={17} />
-            </button>
-          ))}
+          {data.tours
+            .filter(
+              (t) => t.departure >= new Date().toLocaleDateString("sv-SE"),
+            )
+            .sort((a, b) => a.departure.localeCompare(b.departure))
+            .slice(0, 3)
+            .map((t) => (
+              <button
+                key={t.id}
+                className="departure-row"
+                onClick={() => onTour(t)}
+              >
+                <span className="date-block">
+                  <strong>
+                    {new Date(t.departure + "T12:00:00").getDate()}
+                  </strong>
+                  <small>
+                    THÁNG {new Date(t.departure + "T12:00:00").getMonth() + 1}
+                  </small>
+                </span>
+                <div>
+                  <strong>{t.title}</strong>
+                  <small>
+                    {t.reserved}/{t.capacity} khách · {t.duration}
+                  </small>
+                </div>
+                <ChevronRight size={17} />
+              </button>
+            ))}
+          {!data.tours.some(
+            (t) => t.departure >= new Date().toLocaleDateString("sv-SE"),
+          ) && (
+            <Empty title="Chưa có lịch khởi hành sắp tới">
+              Các tour đã qua ngày khởi hành vẫn nằm trong Quản lý tour.
+            </Empty>
+          )}
           <div className="soft-note">
             <CheckCheck size={18} />
             <p>
@@ -1292,6 +1429,7 @@ function Feedback({ data, notify, reload }) {
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
+    setError("");
     const b = Object.fromEntries(new FormData(e.target));
     for (const k of ["portal", "operations", "sync", "ease", "price"])
       b[k] = Number(b[k]);
@@ -1309,40 +1447,23 @@ function Feedback({ data, notify, reload }) {
   return (
     <div className="feedback-layout">
       <aside className="panel testing-guide">
-        <Badge tone="green">5–7 PHÚT TRẢI NGHIỆM</Badge>
+        <Badge tone="blue">5–7 PHÚT TRẢI NGHIỆM</Badge>
         <h2>
-          Hãy thử trước,
-          <br />
+          Hãy thử trước, <br />
           rồi kể cho chúng em.
         </h2>
         <p>
           Phản hồi dựa trên những gì bạn vừa sử dụng giúp nhóm chọn đúng điều
           cần cải thiện.
         </p>
-        {[
-          [
-            "tour_updated",
-            "Sửa lịch hoặc số chỗ",
-            "Quản lý tour → mở tour → lưu thay đổi.",
-          ],
-          [
-            "portal_viewed",
-            "Kiểm tra cổng khách hàng",
-            "Mở cổng tour để xem dữ liệu sau khi sửa.",
-          ],
-          [
-            "task_created",
-            "Giao một công việc",
-            "Tạo việc gắn với tour, rồi đổi trạng thái.",
-          ],
-        ].map(([action, title, desc], i) => (
-          <div className="test-step" key={action}>
-            <span className={actions.has(action) ? "completed" : ""}>
-              {actions.has(action) ? <Check size={16} /> : i + 1}
+        {trialSteps.map((step, i) => (
+          <div className="test-step" key={step.nav}>
+            <span className={stepDone(step, actions) ? "completed" : ""}>
+              {stepDone(step, actions) ? <Check size={16} /> : i + 1}
             </span>
             <div>
-              <strong>{title}</strong>
-              <small>{desc}</small>
+              <strong>{step.title}</strong>
+              <small>{step.description}</small>
             </div>
           </div>
         ))}
@@ -1360,7 +1481,7 @@ function Feedback({ data, notify, reload }) {
             <h3>Trải nghiệm của bạn</h3>
             <p>Đánh giá sau khi dùng MVP.</p>
           </div>
-          {data.feedback && <Badge tone="green">Đã lưu</Badge>}
+          {data.feedback && <Badge tone="blue">Đã lưu</Badge>}
         </div>
         <ErrorBox error={error} />
         {[
@@ -1450,7 +1571,10 @@ function Research({ notify }) {
     [error, setError] = useState("");
   const load = () =>
     api("/research")
-      .then(setData)
+      .then((result) => {
+        setData(result);
+        setError("");
+      })
       .catch((e) => setError(e.message));
   useEffect(() => {
     load();
@@ -1466,7 +1590,7 @@ function Research({ notify }) {
       <ErrorBox error={error} />
       <div className="research-banner">
         <div>
-          <Badge tone="green">DỮ LIỆU THỰC TỪ MVP</Badge>
+          <Badge tone="blue">DỮ LIỆU THỰC TỪ MVP</Badge>
           <h2>Học từ những người đã thử.</h2>
           <p>
             Tài khoản quản trị và dữ liệu tour mẫu không được tính là người khảo
@@ -1505,6 +1629,20 @@ function Research({ notify }) {
           </strong>
           <small>Chưa có dữ liệu thì không tính điểm</small>
         </div>
+      </div>
+      <div className="research-readiness">
+        <div>
+          <strong>
+            {data?.readyToReview ?? "—"} tài khoản có phản hồi và đủ thao tác
+            thử
+          </strong>
+          <p>
+            Đã sửa tour, mở cổng khách hàng, tạo việc và đổi trạng thái trước
+            khi gửi phản hồi. Nhóm cần xác nhận từng người thật để chốt mẫu tối
+            thiểu 20 cá nhân.
+          </p>
+        </div>
+        <span className="badge blue">Mục tiêu tuyển: trên 20 người</span>
       </div>
       <section className="panel">
         <div className="panel-header">
@@ -1545,6 +1683,7 @@ function Research({ notify }) {
                 <tr>
                   <th>Người tham gia</th>
                   <th>Vai trò</th>
+                  <th>Thao tác thử</th>
                   <th>Muốn sử dụng</th>
                   <th>Mức sẵn sàng trả / tháng</th>
                   <th>Cần cải thiện</th>
@@ -1554,7 +1693,12 @@ function Research({ notify }) {
                 {data.feedback.map((f) => (
                   <tr key={f.user_id}>
                     <td>{f.name}</td>
-                    <td>{f.role}</td>
+                    <td>{roleNames[f.role] || f.role}</td>
+                    <td>
+                      <Badge tone={f.has_test_flow ? "blue" : "orange"}>
+                        {f.has_test_flow ? "Đủ thao tác" : "Cần đối chiếu"}
+                      </Badge>
+                    </td>
                     <td>
                       {{ yes: "Có", maybe: "Có thể", no: "Không" }[f.intent]}
                     </td>
@@ -1631,6 +1775,8 @@ function Help({ user, onClose, onDelete }) {
 }
 
 function Workspace({ user, onLogout, onPortal, notify }) {
+  const pending = useRef(0);
+  const latest = useRef(0);
   const readOnly = user.role === "reviewer";
   const [nav, setNav] = useState("dashboard"),
     [data, setData] = useState(null),
@@ -1640,16 +1786,49 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     [menu, setMenu] = useState(false),
     [query, setQuery] = useState(""),
     [last, setLast] = useState("");
+  const [mobile, setMobile] = useState(
+    () => matchMedia("(max-width: 650px)").matches,
+  );
+  useEffect(() => {
+    const media = matchMedia("(max-width: 650px)");
+    const update = () => {
+      setMobile(media.matches);
+      if (!media.matches) setMenu(false);
+    };
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (!menu || !mobile) return;
+    const before = document.activeElement;
+    document.querySelector(".drawer-close")?.focus();
+    const close = (e) => {
+      if (e.key === "Escape") setMenu(false);
+    };
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+      before?.focus();
+    };
+  }, [menu, mobile]);
   const reload = useCallback(async () => {
-    const d = await api("/workspace");
-    setData(d);
-    setError("");
-    setLast(new Date().toLocaleTimeString("vi-VN"));
+    const request = ++latest.current;
+    pending.current += 1;
+    try {
+      const d = await api("/workspace");
+      if (request !== latest.current) return;
+      setData(d);
+      setError("");
+      setLast(new Date().toLocaleTimeString("vi-VN"));
+    } finally {
+      pending.current -= 1;
+    }
   }, []);
   useEffect(() => {
     reload().catch((e) => setError(e.message));
     const timer = setInterval(() => {
-      if (!document.hidden) reload().catch((e) => setError(e.message));
+      if (!document.hidden && pending.current === 0)
+        reload().catch((e) => setError(e.message));
     }, 5000);
     return () => clearInterval(timer);
   }, [reload]);
@@ -1672,6 +1851,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     }
   }
   const current = navItems.find((i) => i[0] === nav);
+  const visibleTours =
+    data?.tours.filter((t) =>
+      (t.title + " " + t.destination)
+        .toLocaleLowerCase("vi")
+        .includes(query.toLocaleLowerCase("vi")),
+    ) || [];
   const descriptions = {
     dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
     tours: "Một lần cập nhật. Cả đội ngũ và khách hàng cùng nhìn thấy.",
@@ -1683,7 +1868,28 @@ function Workspace({ user, onLogout, onPortal, notify }) {
   };
   return (
     <div className="app-shell">
-      <aside className={"sidebar " + (menu ? "open" : "")}>
+      <a className="skip-link" href="#workspace-main">
+        Đến nội dung chính
+      </a>
+      {menu && (
+        <button
+          className="drawer-backdrop"
+          aria-label="Đóng menu"
+          onClick={() => setMenu(false)}
+        />
+      )}
+      <aside
+        id="workspace-nav"
+        inert={mobile && !menu ? true : undefined}
+        className={"sidebar " + (menu ? "open" : "")}
+      >
+        <button
+          className="icon-btn drawer-close"
+          aria-label="Đóng menu điều hành"
+          onClick={() => setMenu(false)}
+        >
+          <X size={20} />
+        </button>
         <Logo />
         <div className="workspace-switch">
           <span className="workspace-icon">TH</span>
@@ -1702,6 +1908,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             <button
               key={id}
               className={nav === id ? "active" : ""}
+              aria-current={nav === id ? "page" : undefined}
               onClick={() => {
                 setNav(id);
                 setMenu(false);
@@ -1720,7 +1927,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         </nav>
         <div className="sidebar-bottom">
           <div className="sidebar-tip">
-            <Leaf size={20} />
+            <Globe size={20} />
             <strong>
               Ít thao tác hơn.
               <br />
@@ -1758,11 +1965,13 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           </div>
         </div>
       </aside>
-      <div className="app-body">
+      <div className="app-body" inert={mobile && menu ? true : undefined}>
         <header className="app-topbar">
           <button
             className="icon-btn mobile-menu"
             aria-label="Mở menu"
+            aria-expanded={menu}
+            aria-controls="workspace-nav"
             onClick={() => setMenu(!menu)}
           >
             <Menu />
@@ -1773,9 +1982,9 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             <strong>{current?.[1]}</strong>
           </span>
           <div className="topbar-right">
-            <Badge tone="green">
+            <Badge tone="blue">
               <span className="live-dot" />
-              MVP 0.1
+              Bản dùng thử
             </Badge>
             <button className="text-btn" onClick={onPortal}>
               <Globe size={16} />
@@ -1784,10 +1993,10 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </button>
           </div>
         </header>
-        <main className="app-main">
+        <main id="workspace-main" className="app-main">
           <div className="page-title">
             <div>
-              <div className="eyebrow green">
+              <div className="eyebrow blue">
                 TASKHUB · ĐIỀU HÀNH CÙNG MỘT NHỊP
               </div>
               <h1>{current?.[1]}</h1>
@@ -1826,9 +2035,27 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   : "Tour và nhân sự mẫu dùng cho demo."
                 : "Dữ liệu mẫu trong không gian riêng của bạn. Không nhập thông tin khách hàng thật."}
             </span>
-            <span className="sync-time">Cập nhật {last || "…"}</span>
+            <span className={"sync-time " + (error ? "stale" : "")}>
+              {error ? "Đồng bộ gián đoạn" : `Cập nhật ${last || "…"}`}
+            </span>
           </div>
           <ErrorBox error={error} />
+          {error && (
+            <div className="connection-recovery">
+              <p>
+                {data
+                  ? "Dữ liệu hiển thị có thể chưa phải bản mới nhất."
+                  : "Chưa tải được không gian làm việc."}
+              </p>
+              <Button
+                variant="ghost"
+                onClick={() => reload().catch((e) => setError(e.message))}
+              >
+                <RefreshCw size={16} />
+                Thử tải lại
+              </Button>
+            </div>
+          )}
           {!data ? (
             <p className="loading">Đang tải không gian làm việc…</p>
           ) : (
@@ -1836,6 +2063,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               {nav === "dashboard" && (
                 <Dashboard
                   readOnly={readOnly}
+                  showTrial={!["admin", "reviewer"].includes(user.role)}
                   data={data}
                   onNav={setNav}
                   onTask={() => setEditor({ type: "task" })}
@@ -1856,28 +2084,38 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                       />
                     </label>
                     <span className="muted">
-                      {data.tours.length} hành trình
+                      {visibleTours.length} / {data.tours.length} hành trình
                     </span>
                   </div>
                   <div className="tour-grid">
-                    {data.tours
-                      .filter((t) =>
-                        (t.title + " " + t.destination)
-                          .toLocaleLowerCase()
-                          .includes(query.toLocaleLowerCase()),
-                      )
-                      .map((t) => (
-                        <TourCard
-                          key={t.id}
-                          tour={t}
-                          onOpen={(tour) => setEditor({ type: "tour", tour })}
-                          internal
-                        />
-                      ))}
+                    {visibleTours.map((t) => (
+                      <TourCard
+                        key={t.id}
+                        tour={t}
+                        onOpen={(tour) => setEditor({ type: "tour", tour })}
+                        internal
+                      />
+                    ))}
                   </div>
-                  {!data.tours.length && (
-                    <Empty title="Chưa có hành trình">
-                      Tạo một tour để bắt đầu.
+                  {!visibleTours.length && (
+                    <Empty
+                      title={
+                        query
+                          ? "Không tìm thấy hành trình"
+                          : "Chưa có hành trình"
+                      }
+                    >
+                      {query
+                        ? "Thử từ khóa khác hoặc xóa bộ lọc."
+                        : "Tạo một tour để bắt đầu."}
+                      {query && (
+                        <button
+                          className="text-btn"
+                          onClick={() => setQuery("")}
+                        >
+                          Xóa bộ lọc
+                        </button>
+                      )}
                     </Empty>
                   )}
                 </>
@@ -2030,15 +2268,23 @@ function App() {
     setPath(p);
     window.scrollTo(0, 0);
   };
+  const loadSession = useCallback(async () => {
+    try {
+      const result = await api("/session");
+      setUser(result.user);
+      setSessionError("");
+    } catch (e) {
+      setSessionError(e.message);
+    } finally {
+      setReady(true);
+    }
+  }, []);
   useEffect(() => {
     const handler = () => setPath(location.pathname);
     window.addEventListener("popstate", handler);
-    api("/session")
-      .then((r) => setUser(r.user))
-      .catch((e) => setSessionError(e.message))
-      .finally(() => setReady(true));
+    loadSession();
     return () => window.removeEventListener("popstate", handler);
-  }, []);
+  }, [loadSession]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 5500);
@@ -2065,7 +2311,14 @@ function App() {
     );
   return (
     <>
-      {sessionError && <ErrorBox error={sessionError} />}{" "}
+      {sessionError && (
+        <div className="session-recovery">
+          <ErrorBox error={sessionError} />
+          <button className="text-btn" onClick={loadSession}>
+            Kiểm tra lại kết nối
+          </button>
+        </div>
+      )}{" "}
       {isApp && user ? (
         <Workspace
           user={user}
@@ -2089,6 +2342,7 @@ function App() {
           onClose={() => setAuth(null)}
           onUser={(u) => {
             setUser(u);
+            setSessionError("");
             navigate("/app");
           }}
         />

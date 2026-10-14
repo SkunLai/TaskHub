@@ -22,6 +22,46 @@ const em = "ui-" + Date.now() + "@example.test";
 let registered = false;
 try {
   await page.goto(base);
+  await page
+    .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+    .waitFor();
+  await page.screenshot({ path: "work/portal-desktop.png", fullPage: true });
+  for (const width of [320, 390, 768]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `Portal overflows at ${width}px`,
+    );
+  }
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await page.getByLabel("Tìm tour", { exact: true }).fill("NoMatchingTour-UI");
+  await page
+    .getByRole("heading", { name: "Chưa có hành trình phù hợp" })
+    .waitFor();
+  await page.getByRole("button", { name: "Xóa bộ lọc", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+    .waitFor();
+  await page.route("**/api/public/agency", (route) => route.abort());
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Thử tải lại", exact: true })
+    .waitFor();
+  assert.equal(
+    await page
+      .getByRole("heading", { name: "Chưa có hành trình phù hợp" })
+      .count(),
+    0,
+    "Network failure is presented as an empty search",
+  );
+  await page.unroute("**/api/public/agency");
+  await page.getByRole("button", { name: "Thử tải lại", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Đà Nẵng – Hội An", exact: true })
+    .waitFor();
+  console.log("Portal responsive, search reset and network recovery passed");
   await page.getByRole("button", { name: "Dùng thử MVP", exact: true }).click();
   await page.getByLabel("Tên hiển thị").fill("Người kiểm thử UI");
   await page.getByLabel("Email", { exact: true }).fill(em);
@@ -33,8 +73,36 @@ try {
     .getByRole("button", { name: "Bắt đầu trải nghiệm", exact: true })
     .click();
   await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
+  await page
+    .getByRole("heading", { name: "Bắt đầu trong 3 bước", exact: true })
+    .waitFor();
   registered = true;
   console.log("Signup passed");
+  await page.getByText("Hành trình đang mở", { exact: true }).waitFor();
+  let pending = 0,
+    maxPending = 0,
+    refreshes = 0;
+  await page.route("**/api/workspace", async (route) => {
+    pending++;
+    maxPending = Math.max(maxPending, pending);
+    refreshes++;
+    try {
+      const response = await route.fetch();
+      await new Promise((resolve) => setTimeout(resolve, 6500));
+      await route.fulfill({ response });
+    } finally {
+      pending--;
+    }
+  });
+  await page.waitForTimeout(12000);
+  assert.ok(refreshes > 0, "The slow refresh was not exercised");
+  assert.equal(
+    maxPending,
+    1,
+    "Background requests piled up while the server was slow",
+  );
+  await page.unroute("**/api/workspace");
+  console.log("Slow connection passed: no background request pile-up");
   await page.screenshot({ path: "work/dashboard-desktop.png", fullPage: true });
   await page.getByRole("button", { name: "Quản lý tour", exact: true }).click();
   await page
@@ -122,6 +190,14 @@ try {
     "Mobile feedback has horizontal overflow",
   );
   await page.getByRole("button", { name: "Mở menu", exact: true }).click();
+  await page.keyboard.press("Escape");
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Mở menu", exact: true })
+      .getAttribute("aria-expanded"),
+    "false",
+  );
+  await page.getByRole("button", { name: "Mở menu", exact: true }).click();
   await page.getByRole("button", { name: "Tổng quan", exact: true }).click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(250);
@@ -132,6 +208,16 @@ try {
     ),
     "Mobile dashboard has horizontal overflow",
   );
+  for (const width of [320, 768]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `Workspace overflows at ${width}px`,
+    );
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
   await page
     .getByRole("button", { name: "Cổng khách hàng", exact: true })
     .click();

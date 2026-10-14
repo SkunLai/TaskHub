@@ -49,7 +49,7 @@ CP3 Requirements mục 2.1 yêu cầu ít nhất **20 cá nhân**, xem/dùng MVP
 - Mỗi người tự tạo tài khoản bằng email và đồng ý thông báo dữ liệu. Email do người dùng nhập, **chưa xác minh**; không suy luận số email = số người độc lập.
 - Yêu cầu sửa tour, xem portal, tạo/đổi trạng thái việc rồi đánh giá. Tải lại tự động không ghi nhận thêm lượt xem.
 - `interactions.csv`: email, vai trò, quy mô, consent timestamp/version, action, entity và thời gian UTC. `feedback.csv`: cùng thông tin đối chiếu và điểm từng tính năng, ý định, mức trả, câu trả lời mở.
-- Admin chỉ đếm tài khoản / phản hồi. Nhóm phải đối chiếu người thử thật và thao tác trước khi chốt mẫu; đăng ký đơn thuần chưa phải core-feature validation. Không tính dữ liệu tự động/QA vào khảo sát.
+- Admin/reviewer xem tài khoản, phản hồi và số phản hồi có đủ thao tác thử trước khi gửi (sửa tour, mở portal, tạo việc, đổi trạng thái). Nhóm vẫn phải đối chiếu người thử thật; bộ đếm không xác minh danh tính, thứ tự thử hoặc mức hiểu tính năng. Không tính dữ liệu tự động/QA vào khảo sát.
 - Không tự quyết định Iterate/Persevere hoặc giá khi chưa có dữ liệu thật. Phần slide, BMC và phân tích giá thuộc phân công riêng; repo chỉ cung cấp dữ liệu phục vụ các phần đó.
 
 ## Bảo vệ / lưu dữ liệu
@@ -68,7 +68,11 @@ npm start
 
 `npm start` phục vụ cả FE build và API tại http://127.0.0.1:3001. Không cần Vite trên production. Test tích hợp dùng SQLite tạm, kiểm tra consent, phân tách tenant, sync, sức chứa, ghi đồng thời, task, inquiry, CSV, lưu sau restart và xóa dữ liệu. Test không nhập email hoặc dữ liệu CP2 thật.
 
-Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task → feedback, kiểm tra màn hình 1440px và 390px, rồi xóa tài khoản test. Ảnh QA lưu trong `work/`. Không chạy với dữ liệu sản xuất.
+Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task → feedback, kiểm tra màn hình 320/390/768/1440px, phục hồi kết nối và tìm kiếm, rồi xóa tài khoản test. Ảnh QA lưu trong `work/`. Không chạy với dữ liệu sản xuất.
+
+Giao diện ngày 14/10 dùng nền xanh dương nhạt, nút xanh đậm, chữ slate và điểm nhấn mint/lavender. Tổng quan có lộ trình thử 3 bước. Khi mạng lỗi, web phân biệt dữ liệu chưa tải được với tìm kiếm không có kết quả, và cho phép tải lại. Menu mobile có lớp nền, nút đóng, Escape và trạng thái truy cập bằng bàn phím.
+
+Xem [bảng đối chiếu CP3](docs/CP3_READINESS.md) cho phần đã xây, giới hạn và bằng chứng còn cần thu.
 
 ## Deploy
 
@@ -91,10 +95,11 @@ Sao lưu SQLite đang chạy bằng `node --env-file-if-exists=.env scripts/back
 Codex hỗ trợ đọc yêu cầu CP2/CP3, đề xuất phạm vi và stack, viết FE/BE, tài liệu chạy, kịch bản demo và kiểm thử bằng dữ liệu giả. Nhóm cần đọc, chạy và hiểu code trước khi dùng để khảo sát hoặc thuyết trình. Không dùng AI để tạo phản hồi tester hay kết quả willingness-to-pay. Mẫu prompt và ghi chú làm việc trong `docs/AI_DISCLOSURE.md`.
 
 **Link AI đã dùng:** https://openai.com/codex/ (công cụ Codex; không phải link chia sẻ hội thoại).
+
 ## GitHub và web công khai
 
-Repo: https://github.com/SkunLai/TaskHub. Nhánh chính `dev`; team sửa trên
-`build` rồi mở PR vào `dev` cho SkunLai review. Xem [CONTRIBUTING.md](CONTRIBUTING.md).
+Repo: https://github.com/skunlainro3-glitch/TaskHub. Nhánh chính `dev`; team sửa trên
+`build` rồi mở PR vào `dev` cho skunlainro3-glitch review. Xem [CONTRIBUTING.md](CONTRIBUTING.md).
 Cấu hình hosting và các bước kiểm tra nằm trong [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 Giảng viên đăng nhập bằng `REVIEWER_EMAIL` / `REVIEWER_PASSWORD` do chủ hệ thống
 cấu hình riêng: chỉ xem tour, công việc, yêu cầu và báo cáo; không được chỉnh sửa.

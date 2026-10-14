@@ -420,6 +420,20 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
           .body;
         assert.equal(research.participants, 2);
         assert.equal(research.feedback.length, 1);
+        assert.equal(research.readyToReview, 0);
+        assert.equal(research.feedback[0].has_test_flow, 0);
+        await request("/events", "POST", { action: "portal_viewed" }, ac);
+        // Interaction after feedback must not qualify an earlier response.
+        const beforeResubmit = (
+          await request("/research", "GET", null, admin.cookie)
+        ).body;
+        assert.equal(beforeResubmit.readyToReview, 0);
+        await request("/feedback", "POST", feedback, ac);
+        const afterResubmit = (
+          await request("/research", "GET", null, admin.cookie)
+        ).body;
+        assert.equal(afterResubmit.readyToReview, 1);
+        assert.equal(afterResubmit.feedback[0].has_test_flow, 1);
         const csv = await request(
           "/export/feedback",
           "GET",

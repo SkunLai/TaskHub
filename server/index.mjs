@@ -626,7 +626,11 @@ export const server = http.createServer(async (req, res) => {
       await adminOnly(req);
       const feedback = await db
         .prepare(
-          "SELECT f.*,u.name,u.role,u.company_size FROM feedback f JOIN users u ON u.id=f.user_id ORDER BY f.created DESC",
+          `SELECT f.*,u.name,u.role,u.company_size,
+            (SELECT COUNT(DISTINCT e.action) FROM events e
+             WHERE e.user_id=f.user_id AND e.created<=f.created
+             AND e.action IN ('tour_updated','portal_viewed','task_created','task_status_changed'))=4 AS has_test_flow
+           FROM feedback f JOIN users u ON u.id=f.user_id ORDER BY f.created DESC`,
         )
         .all();
       const participants = (
@@ -639,6 +643,7 @@ export const server = http.createServer(async (req, res) => {
       return json(res, {
         participants,
         feedback,
+        readyToReview: feedback.filter((f) => f.has_test_flow).length,
         events: (await db.prepare("SELECT COUNT(*) AS count FROM events").get())
           .count,
       });

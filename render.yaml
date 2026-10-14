@@ -3,7 +3,7 @@ services:
   - type: web
     name: taskhub
     runtime: node
-    repo: https://github.com/SkunLai/TaskHub
+    repo: https://github.com/skunlainro3-glitch/TaskHub
     branch: dev
     plan: free
     region: singapore

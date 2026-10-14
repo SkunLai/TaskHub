@@ -4,7 +4,7 @@
 Quyền ghi repo được cấp sau khi chủ repo mời từng GitHub username.
 
 ```powershell
-git clone https://github.com/SkunLai/TaskHub.git
+git clone https://github.com/skunlainro3-glitch/TaskHub.git
 cd TaskHub
 git switch build
 npm ci
@@ -21,7 +21,7 @@ git commit -m "Mo ta thay doi"
 git push origin build
 ```
 
-Mở Pull Request: base **dev**, compare **build**. SkunLai review và merge khi
+Mở Pull Request: base **dev**, compare **build**. skunlainro3-glitch review và merge khi
 CI đạt. Team không push thẳng vào `dev` và không force-push nhánh chung.
 Trao đổi trước khi hai người sửa cùng một file; có thể dùng nhánh tính năng
 riêng từ `build` để giảm xung đột.

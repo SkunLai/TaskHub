@@ -93,8 +93,8 @@ Codex hỗ trợ đọc yêu cầu CP2/CP3, đề xuất phạm vi và stack, vi
 **Link AI đã dùng:** https://openai.com/codex/ (công cụ Codex; không phải link chia sẻ hội thoại).
 ## GitHub và web công khai
 
-Repo: https://github.com/SkunLai/TaskHub. Nhánh chính `dev`; team sửa trên
-`build` rồi mở PR vào `dev` cho SkunLai review. Xem [CONTRIBUTING.md](CONTRIBUTING.md).
+Repo: https://github.com/skunlainro3-glitch/TaskHub. Nhánh chính `dev`; team sửa trên
+`build` rồi mở PR vào `dev` cho skunlainro3-glitch review. Xem [CONTRIBUTING.md](CONTRIBUTING.md).
 Cấu hình hosting và các bước kiểm tra nằm trong [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 Giảng viên đăng nhập bằng `REVIEWER_EMAIL` / `REVIEWER_PASSWORD` do chủ hệ thống
 cấu hình riêng: chỉ xem tour, công việc, yêu cầu và báo cáo; không được chỉnh sửa.

@@ -14,12 +14,12 @@ Không tự import dữ liệu khảo sát CP2 hoặc dữ liệu local lên clo
 ## 1. Tài khoản
 
 GitHub repo đã tồn tại với `dev` là nhánh chính và `build` là nhánh team sửa.
-Nhánh `dev` yêu cầu review của `@SkunLai`, CI `Validate` và giải quyết comment.
+Nhánh `dev` yêu cầu review của `@skunlainro3-glitch`, CI `Validate` và giải quyết comment.
 Tại lần kiểm tra 14/10, GitHub Actions báo chưa khởi chạy do tài khoản bị khóa
 vì billing. Chủ tài khoản vào GitHub → Settings → Billing để kiểm tra và xử lý,
 rồi chạy lại TaskHub CI; không bỏ required check để coi như kiểm tra đã đạt.
 
-1. Vào https://dashboard.render.com, Sign up → GitHub → đăng nhập SkunLai.
+1. Vào https://dashboard.render.com, Sign up → GitHub → đăng nhập skunlainro3-glitch.
    Cấp quyền kết nối **chỉ repo TaskHub** khi có lựa chọn.
 2. Vào https://app.turso.tech, đăng ký bằng GitHub, chọn **Free**.
    Không bật overages hoặc nâng gói trả phí.
@@ -40,7 +40,7 @@ tra SDK phù hợp; không tự chuyển engine của database đang có dữ li
 
 ## 3. Web Render
 
-1. New → Blueprint → kết nối repo `SkunLai/TaskHub` → chọn nhánh **dev**.
+1. New → Blueprint → kết nối repo `skunlainro3-glitch/TaskHub` → chọn nhánh **dev**.
 2. Render đọc `render.yaml`. Xác minh web service **Free**, không có disk
    trả phí và không có database Render trả phí. Tổng tiền dự kiến phải là $0.
 3. Điền `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` từ Turso.

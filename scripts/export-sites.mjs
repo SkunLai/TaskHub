@@ -21,7 +21,7 @@ const startupEnd = api.indexOf('const limits = new Map();');
 assert.ok(startupStart > 0 && startupEnd > startupStart);
 api = api.slice(0, startupStart) + `
 if (!(await db.prepare("SELECT id FROM workspaces WHERE id=?").get("agency"))) {
-  try { await db.batch(await workspaceStatements("agency", "TaskHub Travel")); }
+  try { await db.batch(await workspaceStatements("agency", "TaskHub")); }
   catch (e) { if (!(await db.prepare("SELECT id FROM workspaces WHERE id=?").get("agency"))) throw e; }
 }
 async function systemUser(em, password, role, name) {
@@ -94,7 +94,16 @@ replace(`      await transaction(db, async () => {
           .run(id, u.workspace, ...values, 1, now());
         await log(u, "tour_created", id);
       });`, `      await db.batch([['INSERT INTO tours VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[id,u.workspace,...values,1,now()]],...eventStatement(u,'tour_created',id)]);`);
-const tourStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('const tourMatch'));
+const deleteStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('const tourMatch'));
+const deleteEnd=api.indexOf('      return json(res, { ok: true });',deleteStart);
+assert.ok(deleteStart>0 && deleteEnd>deleteStart);
+api=api.slice(0,deleteStart)+`      const result=await db.batch([
+        ['DELETE FROM tours WHERE id=? AND workspace=? AND version=?',[tourMatch[1],u.workspace,b.version]],
+        ...eventStatement(u,'tour_deleted',tourMatch[1],true),
+      ]);
+      if(!result[0].changes) fail('Tour đã thay đổi hoặc không tồn tại. Tải lại trước khi xóa.',409);
+`+api.slice(deleteEnd);
+const tourStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('if (tourMatch && method === "PUT")'));
 const tourEnd=api.indexOf('      return json(res, { ok: true });',tourStart);
 assert.ok(tourStart>0 && tourEnd>tourStart);
 api = api.slice(0,tourStart) + `      const result=await db.batch([
@@ -200,7 +209,7 @@ put('app/TaskHub.jsx','"use client";\n'+ui);
 put('app/globals.css',readFileSync('src/styles.css','utf8'));
 for(const [file,relative] of [['app/page.tsx','./TaskHub'],['app/app/page.tsx','../TaskHub'],['app/portal/[workspace]/page.tsx','../../TaskHub']]) put(file,`import TaskHub from '${relative}';\nexport default function Page(){return <TaskHub/>;}\n`);
 put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'TaskHub · Điều hành tour, cùng một nhịp',description:'TaskHub hỗ trợ doanh nghiệp lữ hành quản lý tour, lịch/số chỗ và công việc.',icons:{icon:'/favicon.svg'}};\nexport default function Layout({children}:{children:React.ReactNode}){return <html lang="vi"><body>{children}</body></html>;}\n`);
-put('README.md',`# TaskHub cloud\n\nGenerated from the TaskHub FE/BE by scripts/export-sites.mjs. Uses Sites Workers and persistent D1, independent of the owner's PC. Runtime credentials are private environment secrets. No CP2 or local personal data is imported.\n\nAI tool used: https://openai.com/codex/\n`);
+put('README.md',`# TaskHub cloud\n\nGenerated from the TaskHub FE/BE by scripts/export-sites.mjs. Uses Sites Workers and persistent D1, independent of the owner's PC. Runtime credentials are private environment secrets. No CP2 or local personal data is imported.\n`);
 copyFileSync('cloud/schema.ts',join(target,'db/schema.ts'));
 copyFileSync('cloud/favicon.svg',join(target,'public/favicon.svg'));
 function copyMigrations(from,to) {

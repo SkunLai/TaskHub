@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { once } from "node:events";
 import { DatabaseSync } from "node:sqlite";
+import { qaTour } from "./fixtures.mjs";
 
 test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and deletion", async (t) => {
   const dir = mkdtempSync(join(tmpdir(), "taskhub-test-"));
@@ -92,12 +93,14 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         const cookie = reviewer.cookie;
         const workspace = await request("/workspace", "GET", null, cookie);
         assert.equal(workspace.status, 200);
-        const tour = workspace.body.tours[0];
+        assert.equal(workspace.body.tours.length, 0);
+        const tour = { ...qaTour, id: "nonexistent" };
         for (const [path, method, payload] of [
           ["/tours", "POST", tour],
           ["/tours/" + tour.id, "PUT", tour],
+          ["/tours/" + tour.id, "DELETE", { version: 1 }],
           ["/tasks", "POST", {}],
-          ["/tasks/" + workspace.body.tasks[0].id, "PATCH", { status: "done" }],
+          ["/tasks/nonexistent", "PATCH", { status: "done" }],
           ["/inquiries/fake", "PATCH", { status: "closed" }],
           ["/feedback", "POST", {}],
           ["/account", "DELETE", {}],
@@ -205,6 +208,18 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
     const ac = a.cookie,
       bc = b.cookie,
       ws = a.body.user.workspace;
+    await t.test("new workspaces contain no fabricated tours, staff or public offers", async () => {
+      for (const cookie of [ac, bc]) {
+        const data = (await request('/workspace','GET',null,cookie)).body;
+        assert.deepEqual(data.tours, []);
+        assert.deepEqual(data.tasks, []);
+      }
+      assert.deepEqual((await request('/public/'+ws)).body.tours, []);
+      assert.deepEqual((await request('/public/agency')).body.tours, []);
+    });
+    // All business fields below are explicit QA input; production creates none.
+    assert.equal((await request('/tours','POST',qaTour,ac)).status,201);
+    assert.equal((await request('/tours','POST',qaTour,bc)).status,201);
     await t.test(
       "20 concurrent workspace reads keep each account isolated",
       async () => {
@@ -215,8 +230,8 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         );
         for (const [index, result] of requests.entries()) {
           assert.equal(result.status, 200);
-          assert.equal(result.body.tours.length, 3);
-          assert.equal(result.body.tasks.length, 6);
+          assert.equal(result.body.tours.length, 1);
+          assert.equal(result.body.tasks.length, 0);
           assert.ok(
             result.body.tours.every(
               (tour) =>
@@ -233,7 +248,7 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       "workspace is isolated and public schema has no private contacts",
       async () => {
         const other = (await request("/workspace", "GET", null, bc)).body;
-        assert.equal(other.tours.length, 3);
+        assert.equal(other.tours.length, 1);
         assert.ok(!other.tours.some((t) => t.id === initialTour.id));
         assert.equal(
           (
@@ -247,7 +262,7 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
           409,
         );
         const pub = (await request("/public/" + ws)).body;
-        assert.equal(pub.tours.length, 3);
+        assert.equal(pub.tours.length, 1);
         assert.ok(!("workspace" in pub.tours[0]));
         assert.ok(!("inquiries" in pub));
         assert.equal((await request("/research", "GET", null, ac)).status, 403);
@@ -470,6 +485,16 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         );
       },
     );
+    await t.test("tour deletion checks ownership/version and removes dependent data", async () => {
+      const latest = (await request('/workspace','GET',null,ac)).body.tours.find(t=>t.id===initialTour.id);
+      const other = await request('/login','POST',{email:participant('TesterB').email,password:participant('TesterB').password});
+      assert.equal((await request('/tours/'+latest.id,'DELETE',{version:latest.version},other.cookie)).status,409);
+      assert.equal((await request('/tours/'+latest.id,'DELETE',{version:latest.version-1},ac)).status,409);
+      assert.equal((await request('/tours/'+latest.id,'DELETE',{version:latest.version},ac)).status,200);
+      const after=(await request('/workspace','GET',null,ac)).body;
+      assert.deepEqual(after.tours,[]); assert.deepEqual(after.tasks,[]); assert.deepEqual(after.inquiries,[]);
+      assert.deepEqual((await request('/public/'+ws)).body.tours,[]);
+    });
     await t.test(
       "self deletion removes participant data and public sandbox",
       async () => {
@@ -485,7 +510,7 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         const r = (await request("/research", "GET", null, admin.cookie)).body;
         assert.equal(r.feedback.length, 0);
         assert.equal(r.participants, 1);
-        assert.equal(r.events, 1); // Tester B's registration remains.
+        assert.equal(r.events, 2); // Tester B's registration and explicit test tour remain.
         const csv = (await request("/export/events", "GET", null, admin.cookie))
           .body;
         assert.ok(!csv.includes("testera@example.test"));

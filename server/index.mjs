@@ -40,7 +40,7 @@ const verify = (password, stored) => {
 };
 await transaction(db, async () => {
   if (!(await db.prepare("SELECT id FROM workspaces WHERE id=?").get("agency")))
-    await seedWorkspace(db, "agency", "TaskHub Travel");
+    await seedWorkspace(db, "agency", "TaskHub");
   const admin = await db
     .prepare("SELECT id,role,workspace FROM users WHERE email=?")
     .get(adminEmail);
@@ -407,7 +407,7 @@ export const server = http.createServer(async (req, res) => {
         .get(publicMatch[1]);
       if (!ws) fail("Không tìm thấy cổng tour.", 404);
       return json(res, {
-        agency: ws.name,
+        agency: ws.id === "agency" ? "TaskHub" : ws.name,
         tours: await publicTours(db, ws.id),
         updated: now(),
       });
@@ -520,6 +520,16 @@ export const server = http.createServer(async (req, res) => {
       return json(res, { id }, 201);
     }
     const tourMatch = p.match(/^\/api\/tours\/([^/]+)$/);
+    if (tourMatch && method === "DELETE") {
+      const u = await required(req), b = await body(req);
+      integer(b.version, "phiên bản", 1, 1000000000);
+      await transaction(db, async () => {
+        const result = await db.prepare("DELETE FROM tours WHERE id=? AND workspace=? AND version=?").run(tourMatch[1], u.workspace, b.version);
+        if (!result.changes) fail("Tour đã thay đổi hoặc không tồn tại. Tải lại trước khi xóa.", 409);
+        await log(u, "tour_deleted", tourMatch[1]);
+      });
+      return json(res, { ok: true });
+    }
     if (tourMatch && method === "PUT") {
       const u = await required(req),
         b = await body(req),

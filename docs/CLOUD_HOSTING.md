@@ -38,5 +38,3 @@ Email tester do họ tự nhập, chưa được xác minh. API xuất CSV có p
 - API trên D1 local và URL cloud: consent, đăng ký trùng đồng thời, tenant isolation, giới hạn sức chứa/ngày, cập nhật phiên bản đồng thời, event đúng, feedback upsert/đủ thao tác, CSV an toàn công thức và reviewer chỉ xem đều đạt.
 - UI trên URL cloud: đăng ký → sửa tour/portal → tư vấn → tạo/hoàn tất việc → phản hồi; màn hình 320/390/768/1440 px, mất mạng/tải lại, mạng chậm và reviewer đều đạt.
 - Sau redeploy cùng Site/version, phiên, công việc và phản hồi QA vẫn còn; cookie HTTPS Secure/HttpOnly/SameSite. QA đã xóa. Bộ đếm trước bàn giao: 0 tester, 0 feedback, 0 interaction event.
-
-Link AI đã dùng: https://openai.com/codex/

@@ -50,8 +50,8 @@ const statuses = {
 };
 const trialSteps = [
   {
-    title: "Cập nhật một tour",
-    description: "Sửa lịch hoặc số khách đã giữ chỗ, rồi lưu.",
+    title: "Tạo và cập nhật tour",
+    description: "Nhập tour của bạn, sau đó thử sửa lịch hoặc số chỗ.",
     nav: "tours",
     actions: ["tour_updated"],
   },
@@ -124,10 +124,10 @@ function Landscape({ theme = "danang", large = false }) {
       role="img"
       aria-label={
         theme === "dalat"
-          ? "Minh họa đồi thông Đà Lạt"
+          ? "Minh họa đồi thông"
           : theme === "phuquoc"
-            ? "Minh họa biển Phú Quốc"
-            : "Minh họa phố Hội An"
+            ? "Minh họa biển"
+            : "Minh họa phố cổ"
       }
     >
       <defs>
@@ -358,7 +358,7 @@ function Auth({ mode, setMode, onClose, onUser }) {
       }
       subtitle={
         register
-          ? "Khoảng 5–7 phút · Không có quà tặng · Có thể dừng bất cứ lúc nào"
+          ? "Dùng thử tự nguyện · Không có quà tặng · Có thể dừng bất cứ lúc nào"
           : "Đăng nhập vào không gian điều hành của bạn."
       }
       onClose={onClose}
@@ -408,7 +408,8 @@ function Auth({ mode, setMode, onClose, onUser }) {
           <>
             <div className="form-grid">
               <Field label="Vai trò hiện tại">
-                <select name="role">
+                <select name="role" required defaultValue="">
+                  <option value="" disabled>Chọn vai trò của bạn</option>
                   <option value="operations">Điều hành tour</option>
                   <option value="sales">Sales / Marketing</option>
                   <option value="manager">Quản lý / Chủ doanh nghiệp</option>
@@ -416,7 +417,8 @@ function Auth({ mode, setMode, onClose, onUser }) {
                 </select>
               </Field>
               <Field label="Quy mô doanh nghiệp">
-                <select name="company_size">
+                <select name="company_size" required defaultValue="">
+                  <option value="" disabled>Chọn quy mô phù hợp</option>
                   <option value="10to30">10–30 nhân sự</option>
                   <option value="under10">Dưới 10 nhân sự</option>
                   <option value="31to50">31–50 nhân sự</option>
@@ -579,7 +581,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
           <Logo />
         </a>
         <nav>
-          <a href="#journeys">Khám phá tour</a>
+          <a href="#journeys">Cổng tour</a>
           <span className="nav-divider" />
           <Button
             variant="ghost"
@@ -590,7 +592,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
           </Button>
           {!user && (
             <Button onClick={() => onAuth("register")}>
-              Dùng thử MVP
+              Dùng thử TaskHub
               <ArrowRight size={16} />
             </Button>
           )}
@@ -601,22 +603,22 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
           <div className="hero-copy">
             <div className="eyebrow blue">
               <span className="live-dot" />
-              CỔNG TOUR 24/7 ·{" "}
+              TASKHUB ·{" "}
               {workspace === "agency"
-                ? "TASKHUB TRAVEL"
-                : "KHÔNG GIAN DÙNG THỬ"}
+                ? "ĐIỀU HÀNH TOUR"
+                : data?.agency || "CỔNG THÔNG TIN TOUR"}
             </div>
             <h1>
-              Chuyến đi đẹp,
+              Lịch rõ ràng.
               <br />
-              bắt đầu từ <em>an tâm.</em>
+              Đội ngũ <em>cùng nhịp.</em>
             </h1>
             <p>
-              Lịch trình rõ ràng. Giá và số chỗ từ đội ngũ điều hành. Chọn hành
-              trình của bạn, bất cứ lúc nào.
+              Quản lý tour, lịch khởi hành và công việc tại một nơi. Thông tin
+              được công khai từ điều hành để khách hàng cùng tra cứu.
             </p>
             <a className="btn" href="#journeys">
-              Tìm chuyến đi
+              Xem cổng tour
               <ArrowRight size={17} />
             </a>
             <div className="hero-trust">
@@ -624,25 +626,28 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               Cùng một nguồn thông tin với đội ngũ điều hành
             </div>
           </div>
-          <div className="hero-art">
-            <Landscape theme="danang" large />
-            <div className="hero-art-note">
-              <span className="tiny-mark">
-                <CheckCheck size={22} />
-              </span>
-              <div>
-                <strong>Mọi thay đổi, cùng một nhịp</strong>
-                <small>Lịch và số chỗ cập nhật từ điều hành</small>
+          <div className="capability-board" aria-label="Ba chức năng của TaskHub">
+            <span className="eyebrow blue">MỘT NGUỒN THÔNG TIN</span>
+            <h2>Từ điều hành<br />đến cổng khách hàng.</h2>
+            {[
+              [Compass, "Quản lý tour", "Lịch trình, ngày khởi hành, giá và số chỗ"],
+              [Globe, "Cổng khách hàng", "Tra cứu thông tin tour đã công khai"],
+              [ListTodo, "Công việc theo tour", "Người phụ trách, thời hạn và tiến độ"],
+            ].map(([Icon, title, description]) => (
+              <div className="capability-row" key={title}>
+                <span className="capability-icon"><Icon size={22} /></span>
+                <div><strong>{title}</strong><p>{description}</p></div>
+                <Check size={16} aria-hidden="true" />
               </div>
-            </div>
-            <span className="art-caption">HỘI AN · VIỆT NAM</span>
+            ))}
+            <span className="capability-note"><RefreshCw size={14} /> Lịch và số chỗ dùng chung với điều hành</span>
           </div>
         </div>
         <section id="journeys" className="journeys">
           <div className="section-title">
             <div>
-              <div className="eyebrow blue">ĐI ĐÂU TIẾP THEO?</div>
-              <h2>Những hành trình đang mở</h2>
+              <div className="eyebrow blue">THÔNG TIN TỪ ĐIỀU HÀNH</div>
+              <h2>Cổng thông tin tour</h2>
             </div>
             <span className={"sync-note " + (error ? "stale" : "")}>
               {error ? <AlertCircle size={14} /> : <RefreshCw size={14} />}
@@ -698,10 +703,10 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               ))}
             </div>
           ) : data ? (
-            <Empty title="Chưa có hành trình phù hợp">
+            <Empty title={query || destination ? "Chưa có hành trình phù hợp" : "Chưa có tour công khai"}>
               {query || destination
                 ? "Thử đổi điểm đến hoặc từ khóa tìm kiếm."
-                : "Hiện chưa có tour được công khai. Vui lòng quay lại sau."}
+                : "Tour chỉ xuất hiện tại đây sau khi người quản lý nhập thông tin và chọn công khai."}
               {(query || destination) && (
                 <button
                   className="text-btn"
@@ -718,7 +723,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
           <div className="portal-notice">
             <ShieldCheck size={17} />
             <p>
-              MVP học phần EXE101 · Tour, giá và nhân sự mẫu dùng để minh họa.
+              Chỉ hiển thị thông tin tour do người quản lý công khai.
               Yêu cầu tư vấn không giữ chỗ và không tạo thanh toán.
             </p>
           </div>
@@ -746,7 +751,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
       <footer className="portal-footer">
         <Logo />
         <span>Ít thao tác hơn. Nhiều hành trình hơn.</span>
-        <span>TaskHub MVP · CP3 / 2026</span>
+        <span>Quản lý tour · Cổng khách hàng · Công việc</span>
       </footer>
       {selected && (
         <TourDetails
@@ -819,7 +824,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
         ))}
       </div>
       <p className="muted">
-        Giá tour minh họa. Chi tiết dịch vụ cần đội ngũ xác nhận.
+        Thông tin do người quản lý tour cung cấp. Chi tiết dịch vụ cần được xác nhận trước khi đặt tour.
       </p>
       {readOnly ? (
         <p className="workspace-notice">Chế độ xem dành cho người đánh giá.</p>
@@ -830,7 +835,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
         </div>
       ) : booking ? (
         <form onSubmit={submit}>
-          <h3>Để đội ngũ liên hệ với bạn</h3>
+          <h3>Gửi yêu cầu tư vấn</h3>
           <ErrorBox error={error} />
           <div className="form-grid">
             <Field label="Tên">
@@ -881,20 +886,31 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
 
 function TourEditor({ tour, onClose, onSave }) {
   const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [confirmDelete, setConfirmDelete] = useState(false);
   const t = tour || {
     title: "",
     destination: "",
-    departure: new Date().toISOString().slice(0, 10),
-    duration: "3 ngày 2 đêm",
-    price: 0,
-    capacity: 30,
+    departure: "",
+    duration: "",
+    price: "",
+    capacity: "",
     reserved: 0,
     theme: "danang",
-    published: 1,
+    published: 0,
     description: "",
     itinerary: "",
   };
+  async function remove() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("/tours/" + tour.id, "DELETE", { version: tour.version });
+      await onSave();
+      onClose();
+    } catch (e) { setError(e.message); }
+    finally { setBusy(false); }
+  }
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
@@ -1019,7 +1035,16 @@ function TourEditor({ tour, onClose, onSave }) {
           />
           <span>Công khai trên cổng khách hàng</span>
         </label>
+        {tour && confirmDelete && (
+          <div className="delete-confirm" role="alert">
+            <strong>Xóa tour này?</strong>
+            <p>Công việc và yêu cầu tư vấn gắn với tour cũng sẽ bị xóa. Thao tác này không thể hoàn tác. Để chỉ ẩn khỏi cổng khách hàng, hãy bỏ chọn công khai rồi lưu.</p>
+            <Button type="button" variant="danger" disabled={busy} onClick={remove}>Xác nhận xóa tour</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(false)}>Giữ lại tour</Button>
+          </div>
+        )}
         <div className="modal-actions">
+          {tour && !confirmDelete && <Button type="button" variant="danger" disabled={busy} onClick={() => setConfirmDelete(true)}>Xóa tour</Button>}
           <Button type="button" variant="ghost" onClick={onClose}>
             Hủy
           </Button>
@@ -1065,6 +1090,7 @@ function TaskEditor({ tours, onClose, onSave }) {
             placeholder="Ví dụ: Chốt danh sách khách"
           />
         </Field>
+        {!tours.length && <p className="workspace-notice">Tạo một tour trong Quản lý tour trước khi giao công việc.</p>}
         <Field label="Tour liên quan">
           <select name="tour_id" required>
             {tours.map((t) => (
@@ -1076,22 +1102,14 @@ function TaskEditor({ tours, onClose, onSave }) {
         </Field>
         <Field
           label="Người phụ trách"
-          hint="Nhân sự mẫu trong MVP, chưa có tài khoản hoặc gửi thông báo cho người được giao."
+          hint="Tên do bạn nhập để theo dõi. Hệ thống chưa tạo tài khoản hoặc gửi thông báo cho người được giao."
         >
           <input
             name="assignee"
             required
             maxLength="80"
             placeholder="Nhập tên người phụ trách"
-            list="staff"
           />
-          <datalist id="staff">
-            {["Minh Tuấn", "Quốc Huy", "Tấn Lợi", "Thành Đạt", "Duy An"].map(
-              (n) => (
-                <option key={n}>{n}</option>
-              ),
-            )}
-          </datalist>
         </Field>
         <div className="form-grid">
           <Field label="Hạn hoàn thành">
@@ -1099,7 +1117,6 @@ function TaskEditor({ tours, onClose, onSave }) {
               name="due"
               type="date"
               required
-              defaultValue={new Date().toISOString().slice(0, 10)}
             />
           </Field>
           <Field label="Ưu tiên">
@@ -1260,7 +1277,7 @@ function Dashboard({
               </div>
             ))
           ) : (
-            <Empty title="Mọi việc đã được xử lý">
+            <Empty title={data.tasks.length ? "Mọi việc đã được xử lý" : "Chưa có công việc"}>
               Tạo một công việc để bắt đầu hành trình mới.
             </Empty>
           )}
@@ -1447,7 +1464,7 @@ function Feedback({ data, notify, reload }) {
   return (
     <div className="feedback-layout">
       <aside className="panel testing-guide">
-        <Badge tone="blue">5–7 PHÚT TRẢI NGHIỆM</Badge>
+        <Badge tone="blue">ĐÁNH GIÁ SAU TRẢI NGHIỆM</Badge>
         <h2>
           Hãy thử trước, <br />
           rồi kể cho chúng em.
@@ -1471,7 +1488,7 @@ function Feedback({ data, notify, reload }) {
           <ShieldCheck size={18} />
           <p>
             Không có đáp án đúng hay sai. Câu trả lời tiêu cực cũng rất hữu ích.
-            Không gian dùng thử chỉ có dữ liệu minh họa.
+            Bạn tự nhập dữ liệu trong không gian dùng thử riêng.
           </p>
         </div>
       </aside>
@@ -1485,7 +1502,7 @@ function Feedback({ data, notify, reload }) {
         </div>
         <ErrorBox error={error} />
         {[
-          ["portal", "Cổng tour 24/7 có hữu ích cho bạn?"],
+          ["portal", "Cổng thông tin tour có hữu ích cho bạn?"],
           ["operations", "Giao việc gắn với tour có hữu ích cho bạn?"],
           ["sync", "Dữ liệu lịch / số chỗ dùng chung có hữu ích?"],
           ["ease", "Bạn thấy thao tác trên MVP dễ đến đâu?"],
@@ -1590,7 +1607,7 @@ function Research({ notify }) {
       <ErrorBox error={error} />
       <div className="research-banner">
         <div>
-          <Badge tone="blue">DỮ LIỆU THỰC TỪ MVP</Badge>
+          <Badge tone="blue">PHẢN HỒI ĐÃ GHI NHẬN</Badge>
           <h2>Học từ những người đã thử.</h2>
           <p>
             Tài khoản quản trị và dữ liệu tour mẫu không được tính là người khảo
@@ -1663,7 +1680,7 @@ function Research({ notify }) {
         </div>
         <div className="research-scores">
           {[
-            ["portal", "Cổng tour 24/7"],
+            ["portal", "Cổng thông tin tour"],
             ["operations", "Giao việc nội bộ"],
             ["sync", "Lịch & số chỗ dùng chung"],
           ].map(([key, label]) => (
@@ -1734,8 +1751,7 @@ function Help({ user, onClose, onDelete }) {
       <div className="help-content">
         <h3>Ba thao tác để thử MVP</h3>
         <p>
-          1. Quản lý tour: sửa ngày khởi hành, giá hoặc số khách đã giữ chỗ rồi
-          lưu.
+          1. Quản lý tour: tạo tour bằng thông tin bạn nhập. Chọn công khai nếu muốn xem trên cổng khách hàng; sau đó sửa lịch hoặc số chỗ để kiểm tra cập nhật.
         </p>
         <p>
           2. Mở cổng tour: kiểm tra thay đổi. Cổng đọc cùng cơ sở dữ liệu và cập
@@ -1894,7 +1910,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         <div className="workspace-switch">
           <span className="workspace-icon">TH</span>
           <div>
-            <strong>TaskHub Travel</strong>
+            <strong>TaskHub</strong>
             <small>
               {["admin", "reviewer"].includes(user.role)
                 ? "Không gian điều hành"
@@ -2032,8 +2048,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               {["admin", "reviewer"].includes(user.role)
                 ? readOnly
                   ? "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu."
-                  : "Tour và nhân sự mẫu dùng cho demo."
-                : "Dữ liệu mẫu trong không gian riêng của bạn. Không nhập thông tin khách hàng thật."}
+                  : "Chỉ công khai tour sau khi đã kiểm tra thông tin."
+                : "Không gian dùng thử riêng. Tự nhập dữ liệu để trải nghiệm; không nhập thông tin khách hàng thật."}
             </span>
             <span className={"sync-time " + (error ? "stale" : "")}>
               {error ? "Đồng bộ gián đoạn" : `Cập nhật ${last || "…"}`}
@@ -2197,7 +2213,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · CP3 MVP</span>
+            <span>TaskHub · Điều hành tour</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>

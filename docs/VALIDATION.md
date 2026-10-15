@@ -21,4 +21,9 @@
 - D1 API local và cloud đều đạt suite `tests/cloud-api.mjs`, gồm atomic signup, optimistic concurrency, tenant isolation, chính xác interaction logs, feedback upsert/đủ thao tác, CSV có quyền/an toàn công thức và reviewer chỉ xem.
 - UI qua URL cloud đạt các luồng và màn hình trong suite hiện có. Sau redeploy, phiên/công việc/phản hồi QA vẫn còn. QA đã xóa; trước bàn giao có 0 tester, 0 feedback, 0 event. Các test này không chứng minh 20 người thử thật.
 
-Link AI đã dùng: https://openai.com/codex/
+## Rà nội dung — 15/10/2026
+
+- Bản này bỏ seed tour/công việc và tên nhân sự tự điền; tour mới mặc định chưa công khai. Form đăng ký yêu cầu người dùng chọn vai trò/quy mô.
+- 22/22 kiểm tra API và gateway đạt trên SQLite và driver libSQL. Có kiểm tra không gian mới trống, quyền sở hữu/phiên bản khi xóa tour và dữ liệu phụ thuộc.
+- UI local đạt tạo tour bằng thông tin tự nhập, cập nhật/tra cứu, tư vấn, công việc, phản hồi, xác nhận/hủy xóa tour; responsive 320/390/768/1440 px, phục hồi lỗi mạng, tải chậm và quyền reviewer.
+- Đây là QA tự động, không phải phản hồi khảo sát người thật. Xem `CONTENT_REVIEW.md` để đối chiếu nội dung với dữ liệu chủ dự án cung cấp.

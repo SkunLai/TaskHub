@@ -1,6 +1,8 @@
 # TaskHub đã chạy trên cloud — 15/10/2026
 
-Web: https://taskhub.ninaninohihi.chatgpt.site
+Web công khai cho người dùng: https://taskhub-travel.pages.dev/
+
+Backend Sites / URL cũ: https://taskhub.ninaninohihi.chatgpt.site. Pages dùng gateway có chữ ký tới API này và cùng D1; giữ backend hoạt động. Xem [vận hành Pages](PAGES_DEPLOYMENT.md).
 
 FE/BE chạy trên hosting Sites (Cloudflare Workers); dữ liệu nằm trong D1 binding `DB`. Web không dùng tunnel, không gọi localhost của chủ repo, không cần máy anh bật. Đây là MVP để thử nghiệm CP3; tour/giá là dữ liệu mẫu, tư vấn chưa phải booking hay thanh toán.
 

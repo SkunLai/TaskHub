@@ -1,0 +1,13 @@
+{
+  "provider": "Cloudflare Pages",
+  "account_id": "5ba821b71ddc3e5bfc0ca8eeec6c2ce3",
+  "project_name": "taskhub-travel",
+  "production_branch": "dev",
+  "url": "https://taskhub-travel.pages.dev/",
+  "deployment_id": "fafdaabf-a491-4cd1-ab82-e8d3f2b1ea01",
+  "deployment_url": "https://fafdaabf.taskhub-travel.pages.dev",
+  "source_commit": "ea7cdf154d698544e959f50d354e1123c3a66736",
+  "backend_url": "https://taskhub.ninaninohihi.chatgpt.site",
+  "database": "Existing Sites D1 binding DB; no migration or data reset",
+  "verified_on": "2026-10-15"
+}

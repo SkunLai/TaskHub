@@ -101,7 +101,8 @@ try {
     1,
     "Background requests piled up while the server was slow",
   );
-  await page.unroute("**/api/workspace");
+  // Drain delayed handlers before later navigation can cancel/handle their routes.
+  await page.unrouteAll({ behavior: "wait" });
   console.log("Slow connection passed: no background request pile-up");
   await page.screenshot({ path: "work/dashboard-desktop.png", fullPage: true });
   await page.getByRole("button", { name: "Quản lý tour", exact: true }).click();

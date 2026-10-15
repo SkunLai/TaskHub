@@ -2,9 +2,9 @@
 
 Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/Vite + Node.js 24 + SQLite; web công khai dùng Sites Workers + D1 từ cùng nguồn FE/BE. Không cần dịch vụ AI/API key để chạy MVP.
 
-**Web:** https://taskhub.ninaninohihi.chatgpt.site — hoạt động độc lập với máy chủ repo.
+**Web:** https://taskhub-travel.pages.dev/ — hoạt động độc lập với máy chủ repo.
 
-Địa chỉ `.pages.dev` đang được chuẩn bị theo yêu cầu chủ repo, **chưa phát hành**. Xem [cấu hình Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn và dùng tiếp database cloud hiện có.
+Giao diện chạy trên Cloudflare Pages; gateway dùng tiếp backend/database cloud hiện có. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn. URL Sites cũ vẫn hoạt động và dùng cùng dữ liệu.
 
 ## Chạy trên máy anh
 
@@ -80,7 +80,7 @@ Xem [bảng đối chiếu CP3](docs/CP3_READINESS.md) cho phần đã xây, gi�
 
 ## Deploy
 
-**Web cloud đã hoạt động:** https://taskhub.ninaninohihi.chatgpt.site — FE/BE chạy trên Sites Workers, dữ liệu lưu ở D1; máy chủ repo tắt vẫn truy cập được. Đã kiểm tra UI/API và giữ dữ liệu sau redeploy ngày 15/10. Xem [vận hành cloud](docs/CLOUD_HOSTING.md); không dùng link Quick Tunnel cũ để thu khảo sát.
+**Web cloud đã hoạt động:** https://taskhub-travel.pages.dev/ — FE chạy trên Pages, API đi qua gateway có chữ ký tới Sites Workers và dữ liệu lưu ở D1; máy chủ repo tắt vẫn truy cập được. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md) và [backend cloud](docs/CLOUD_HOSTING.md); không dùng link Quick Tunnel cũ để thu khảo sát.
 
 Phương án hosting thay thế đã chuẩn bị: **Render Free + Turso Free**, xem [hướng dẫn deploy](docs/DEPLOYMENT.md). Chưa triển khai phương án này; không cần tạo Render/Turso để dùng URL cloud hiện tại.
 

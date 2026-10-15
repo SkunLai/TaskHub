@@ -1,6 +1,6 @@
 # Đối chiếu TaskHub với CP3 — 15/10/2026
 
-**Phần FE/BE đã chạy local và public cloud, được kiểm tra API/UI và persistence sau redeploy. Toàn bộ CP3 chưa hoàn thành.** Web: https://taskhub.ninaninohihi.chatgpt.site. Khảo sát người thật, phân tích và bài nộp cần hoàn tất riêng. Bảng này đối chiếu chức năng và bằng chứng, không tự chấm điểm rubric.
+**Phần FE/BE đã chạy local và public cloud, được kiểm tra API/UI và persistence sau redeploy. Toàn bộ CP3 chưa hoàn thành.** Web: https://taskhub-travel.pages.dev/. Khảo sát người thật, phân tích và bài nộp cần hoàn tất riêng. Bảng này đối chiếu chức năng và bằng chứng, không tự chấm điểm rubric.
 
 ## Căn cứ và phạm vi
 

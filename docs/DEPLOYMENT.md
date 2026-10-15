@@ -1,5 +1,7 @@
 # Deploy miễn phí: Render + Turso
 
+**Phương án thay thế.** TaskHub đã chạy trên Sites Workers + D1 tại https://taskhub.ninaninohihi.chatgpt.site, độc lập với máy chủ repo. Xem [CLOUD_HOSTING.md](CLOUD_HOSTING.md) cho hệ thống đang chạy. Hướng dẫn dưới đây dùng nếu nhóm chuyển sang Render/Turso; chưa triển khai dịch vụ đó.
+
 ## Cấu hình
 
 `render.yaml` chạy FE React và BE Node.js 24 trên **Render Free**, nhánh `dev`,
@@ -15,9 +17,9 @@ Không tự import dữ liệu khảo sát CP2 hoặc dữ liệu local lên clo
 
 GitHub repo đã tồn tại với `dev` là nhánh chính và `build` là nhánh team sửa.
 Nhánh `dev` yêu cầu review của `@skunlainro3-glitch`, CI `Validate` và giải quyết comment.
-Tại lần kiểm tra 14/10, GitHub Actions báo chưa khởi chạy do tài khoản bị khóa
-vì billing. Chủ tài khoản vào GitHub → Settings → Billing để kiểm tra và xử lý,
-rồi chạy lại TaskHub CI; không bỏ required check để coi như kiểm tra đã đạt.
+CI chạy thủ công trên tài khoản mới đã thành công ở run `38620884849`, commit
+`22f3f24`. PR #1 được chủ repo duyệt và đã merge theo yêu cầu trực tiếp ngày
+15/10. Không quy lỗi billing của run trên tài khoản cũ cho tài khoản mới.
 
 1. Vào https://dashboard.render.com, Sign up → GitHub → đăng nhập skunlainro3-glitch.
    Cấp quyền kết nối **chỉ repo TaskHub** khi có lựa chọn.

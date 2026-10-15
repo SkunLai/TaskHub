@@ -1,0 +1,70 @@
+// Run explicitly against a prepared cloud/staging URL. Uses disposable QA only.
+import assert from 'node:assert/strict';
+import { randomBytes } from 'node:crypto';
+const base = process.env.TEST_URL;
+assert.ok(base, 'Set TEST_URL to the prepared cloud/staging URL.');
+const cookies = [];
+async function req(path, method='GET', data, cookie, extra={}) {
+  const r=await fetch(base+'/api'+path,{method,headers:{'Content-Type':'application/json','X-TaskHub':'1',...(cookie?{Cookie:cookie}:{}),...extra},...(data?{body:JSON.stringify(data)}:{}),signal:AbortSignal.timeout(30000)});
+  const raw=await r.text();
+  if(r.status>=500)console.log('Server error',path,r.status,raw.slice(0,200));
+  const sessionCookie=r.headers.getSetCookie().find(c=>c.startsWith('taskhub_session='))?.split(';')[0];
+  return {status:r.status,body:raw.startsWith('{')?JSON.parse(raw):raw,cookie:sessionCookie,headers:r.headers};
+}
+const participant = suffix=>({name:'Cloud QA '+suffix,email:'cloud-'+Date.now()+'-'+suffix+'@example.test',password:randomBytes(24).toString('base64url'),role:'operations',company_size:'10to30',consent:true});
+try {
+  assert.equal((await req('/health')).status,200);
+  assert.equal((await req('/research')).status,401);
+  assert.equal((await req('/export/feedback')).status,401);
+  assert.equal((await req('/register','POST',{...participant('no-consent'),consent:false})).status,400);
+  const a=await req('/register','POST',participant('a')), b=await req('/register','POST',participant('b'));
+  if(a.cookie)cookies.push(a.cookie);if(b.cookie)cookies.push(b.cookie);
+  assert.equal(a.status,201);assert.equal(b.status,201);
+  const duplicate=participant('duplicate');
+  const race=await Promise.all([req('/register','POST',duplicate),req('/register','POST',duplicate)]);
+  for(const r of race)if(r.status===201 && r.cookie)cookies.push(r.cookie);
+  assert.deepEqual(race.map(r=>r.status).sort(),[201,409]);
+  const ac=a.cookie, bc=b.cookie;
+  const aw=await req('/workspace','GET',null,ac), bw=await req('/workspace','GET',null,bc);
+  assert.equal(aw.body.tours.length,3);assert.equal(aw.body.tasks.length,6);
+  assert.ok(!bw.body.tours.some(t=>t.id===aw.body.tours[0].id));
+  const tour=aw.body.tours[0], update={...tour,published:true,reserved:tour.reserved+1};
+  assert.equal((await req('/tours/'+tour.id,'PUT',update,bc)).status,409);
+  assert.equal((await req('/tours/'+tour.id,'PUT',{...update,reserved:tour.capacity+1},ac)).status,400);
+  assert.equal((await req('/tours/'+tour.id,'PUT',{...update,departure:'2026-02-30'},ac)).status,400);
+  const concurrent=await Promise.all([req('/tours/'+tour.id,'PUT',update,ac),req('/tours/'+tour.id,'PUT',{...update,reserved:update.reserved+1},ac)]);
+  assert.deepEqual(concurrent.map(r=>r.status).sort(),[200,409]);
+  const portal=await req('/public/'+a.body.user.workspace);
+  assert.ok(!JSON.stringify(portal.body).includes(a.body.user.email));
+  assert.equal(portal.body.tours.find(t=>t.id===tour.id).version,tour.version+1);
+  const task=await req('/tasks','POST',{tour_id:tour.id,title:'Atomic D1 QA',assignee:'QA',due:tour.departure,priority:'high'},ac);
+  assert.equal(task.status,201);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done'},bc)).status,404);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done'},ac)).status,200);
+  assert.equal((await req('/events','POST',{action:'portal_viewed'},ac)).status,200);
+  const feedback={portal:4,operations:5,sync:4,ease:4,intent:'maybe',price:0,liked:'Automated QA',disliked:'=1+1'};
+  assert.equal((await req('/feedback','POST',feedback,ac)).status,200);
+  assert.equal((await req('/feedback','POST',{...feedback,ease:3},ac)).status,200);
+  const admin=await req('/login','POST',{email:process.env.ADMIN_EMAIL,password:process.env.ADMIN_PASSWORD});
+  assert.equal(admin.status,200);
+  const research=await req('/research','GET',null,admin.cookie);
+  const saved=research.body.feedback.filter(f=>f.user_id===a.body.user.id);
+  assert.equal(saved.length,1);assert.equal(saved[0].ease,3);assert.equal(saved[0].has_test_flow,1);
+  const csv=await req('/export/feedback','GET',null,admin.cookie);
+  assert.equal(csv.status,200);assert.ok(csv.body.includes("'=1+1"));
+  const events=await req('/export/events','GET',null,admin.cookie);
+  const lines=events.body.split('\r\n').filter(l=>l.includes(a.body.user.email));
+  assert.equal(lines.filter(l=>l.includes('tour_updated')).length,1,'Rejected optimistic update must not log a successful update');
+  assert.equal(lines.filter(l=>l.includes('task_status_changed')).length,1,'Cross-tenant failed update must not log');
+  const reviewer=await req('/login','POST',{email:process.env.REVIEWER_EMAIL,password:process.env.REVIEWER_PASSWORD});
+  assert.equal(reviewer.status,200);
+  assert.equal((await req('/research','GET',null,reviewer.cookie)).status,200);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'todo'},reviewer.cookie)).status,403);
+  assert.equal((await req('/feedback','POST',feedback,reviewer.cookie)).status,403);
+  assert.equal((await req('/account','DELETE',null,reviewer.cookie)).status,403);
+  assert.equal((await req('/events','POST',{action:'portal_viewed'},ac,{Origin:'https://unrelated.example'})).status,403);
+  console.log('CLOUD API PASS: consent, atomic duplicate signup, tenant isolation, capacity/date validation, concurrent version updates, correct event logs, feedback upsert/test flow, protected formula-safe CSV and reviewer restrictions.');
+} finally {
+  for(const cookie of cookies) assert.equal((await req('/account','DELETE',null,cookie)).status,200);
+  console.log('Disposable cloud API QA accounts deleted.');
+}

@@ -27,3 +27,4 @@
 - 22/22 kiểm tra API và gateway đạt trên SQLite và driver libSQL. Có kiểm tra không gian mới trống, quyền sở hữu/phiên bản khi xóa tour và dữ liệu phụ thuộc.
 - UI local đạt tạo tour bằng thông tin tự nhập, cập nhật/tra cứu, tư vấn, công việc, phản hồi, xác nhận/hủy xóa tour; responsive 320/390/768/1440 px, phục hồi lỗi mạng, tải chậm và quyền reviewer.
 - Đây là QA tự động, không phải phản hồi khảo sát người thật. Xem `CONTENT_REVIEW.md` để đối chiếu nội dung với dữ liệu chủ dự án cung cấp.
+- Đã triển khai bản rà nội dung lên Pages và backend hiện có. Bộ API cloud và UI production đều đạt, gồm chọn nhân khẩu học, tạo từ form trống và xác nhận/hủy xóa tour. Ba tour cùng sáu việc mẫu cũ được đối chiếu đầy đủ với seed nguyên bản, sao lưu riêng rồi gỡ; không xóa dữ liệu người tham gia.

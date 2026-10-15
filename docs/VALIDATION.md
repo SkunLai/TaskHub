@@ -13,6 +13,12 @@
 - **Chưa deploy công khai**. Đã chuẩn bị Render Free + Turso Free, CI và hướng dẫn deploy. Chờ chủ tài khoản đăng nhập/cấu hình hai dịch vụ; cần kiểm tra Turso thật, HTTPS và redeploy giữ dữ liệu trước khi phát link khảo sát.
 - Đợt chỉnh giao diện 14/10: bảng màu xanh dương nhạt, độ tương phản chữ rõ hơn, hướng dẫn dùng thử ngay tổng quan, trạng thái tải lại/mất kết nối và empty search riêng. Đã rà ảnh portal, dashboard, tasks, feedback và reviewer trên desktop/mobile.
 - API nghiên cứu đã kiểm tra: phản hồi chưa có đủ 4 thao tác không được tính vào bộ đếm đối chiếu; thao tác xảy ra sau phản hồi không làm đủ điều kiện cho phản hồi cũ; gửi cập nhật phản hồi sau khi thử thì được tính. Bộ đếm này không xác nhận cá nhân độc lập.
-- GitHub Actions: run cũ `38436404455` không khởi chạy do lỗi billing tại thời điểm đó. Repo đã chuyển sang `skunlainro3-glitch`; lúc rà ngày 14/10 chưa có run mới, nên chưa xác nhận CI trên tài khoản mới. Không dùng test local để ghi CI đã pass; giữ điều kiện `Validate` trên dev.
+- GitHub Actions: run cũ `38436404455` lỗi billing trên tài khoản cũ. Run mới `38620884849` đã thành công trên tài khoản mới, đúng commit `22f3f24`; PR #1 đã được chủ repo duyệt và merge ngày 15/10 thành `811004d`. Hai nhánh dev/build được đồng bộ.
+
+## Cloud — 15/10/2026
+
+- Sites public tại https://taskhub.ninaninohihi.chatgpt.site; FE/BE Workers và D1 độc lập với máy chủ repo. Không import dữ liệu cá nhân local/CP2.
+- D1 API local và cloud đều đạt suite `tests/cloud-api.mjs`, gồm atomic signup, optimistic concurrency, tenant isolation, chính xác interaction logs, feedback upsert/đủ thao tác, CSV có quyền/an toàn công thức và reviewer chỉ xem.
+- UI qua URL cloud đạt các luồng và màn hình trong suite hiện có. Sau redeploy, phiên/công việc/phản hồi QA vẫn còn. QA đã xóa; trước bàn giao có 0 tester, 0 feedback, 0 event. Các test này không chứng minh 20 người thử thật.
 
 Link AI đã dùng: https://openai.com/codex/

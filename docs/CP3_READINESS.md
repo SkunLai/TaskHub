@@ -1,6 +1,6 @@
-# Đối chiếu TaskHub với CP3 — 14/10/2026
+# Đối chiếu TaskHub với CP3 — 15/10/2026
 
-**Phần FE/BE đã có MVP hoạt động và được kiểm tra local. Toàn bộ CP3 chưa hoàn thành.** Web công khai, khảo sát người thật, phân tích và bài nộp cần hoàn tất riêng. Bảng này đối chiếu chức năng và bằng chứng, không tự chấm điểm rubric.
+**Phần FE/BE đã chạy local và public cloud, được kiểm tra API/UI và persistence sau redeploy. Toàn bộ CP3 chưa hoàn thành.** Web: https://taskhub.ninaninohihi.chatgpt.site. Khảo sát người thật, phân tích và bài nộp cần hoàn tất riêng. Bảng này đối chiếu chức năng và bằng chứng, không tự chấm điểm rubric.
 
 ## Căn cứ và phạm vi
 
@@ -17,14 +17,14 @@ Chỉ chỉnh frontend/backend và tài liệu bàn giao của Tuấn. Không đ
 | Hạng mục                        | Bằng chứng trong MVP                                                                                             | Trạng thái / phần cần bổ sung                                                                                                                                                              |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Uses / chức năng đáp ứng CP2    | Tạo/sửa/công khai tour; lịch trình, ngày, giá, sức chứa; giao việc gắn tour, người phụ trách, hạn và trạng thái  | Đã có bản local hoạt động. Chưa có tài khoản nhân viên riêng, thông báo hoặc đối soát B2B đầy đủ.                                                                                          |
-| Cổng thông tin ngoài giờ        | Cổng tour công khai, tìm/lọc/xem chi tiết, yêu cầu tư vấn đi vào điều hành                                       | Đã có chức năng. Chưa có URL public; Render Free có thời gian ngủ nên chưa thể cam kết dịch vụ luôn hoạt động tức thời 24/7. Yêu cầu tư vấn không tự giữ chỗ/thu tiền.                     |
-| Lịch/số chỗ dùng chung          | Portal và điều hành đọc cùng database; cập nhật khi tab hiển thị mỗi 5 giây; kiểm tra sức chứa và phiên bản tour | Đã test local. Đây là polling, không phải đồng bộ tức thời qua WebSocket.                                                                                                                  |
+| Cổng thông tin ngoài giờ        | Cổng tour công khai, tìm/lọc/xem chi tiết, yêu cầu tư vấn đi vào điều hành                                       | Đã có chức năng. Đã chạy public trên Sites Workers/D1, độc lập với máy chủ repo; chưa cam kết SLA thương mại. Yêu cầu tư vấn không tự giữ chỗ/thu tiền.                     |
+| Lịch/số chỗ dùng chung          | Portal và điều hành đọc cùng database; cập nhật khi tab hiển thị mỗi 5 giây; kiểm tra sức chứa và phiên bản tour | Đã test local và cloud. Đây là polling, không phải đồng bộ tức thời qua WebSocket.                                                                                                                  |
 | Specs / hiệu năng               | API có timeout, tải nền tránh chồng yêu cầu; thử 20 lượt đọc đồng thời và ghi tour xung đột                      | Đã test tự động local, chưa đo hiệu năng Turso/Render thật. Không dùng 20 request làm bằng chứng 20 tester.                                                                                |
 | Interface / Packaging / UI & UX | Web responsive, xanh dương nhạt, chữ rõ, phản hồi lỗi, menu điện thoại đóng được, lộ trình dùng thử              | Đã rà ảnh desktop/mobile và test 320, 390, 768, 1440 px. Cần thử trên thiết bị/mạng của người tham gia thật.                                                                               |
 | Support                         | Hướng dẫn trong app, ghi lỗi qua Phản hồi MVP, README/deploy guide                                               | Có hỗ trợ dùng thử. Nhóm cần xác định kênh và người trực hỗ trợ thực tế; chưa có SLA thương mại.                                                                                           |
 | Lợi thế / AI-proof              | Dữ liệu tour dùng chung với thao tác điều hành theo ngành du lịch                                                | Có nội dung để demo. Nhóm vẫn phải lập luận lợi thế so với công cụ khác và khả năng bị AI thay thế; code không chứng minh lợi thế thị trường.                                              |
 | Pricing strategy / Price        | Thu mức tối đa sẵn sàng trả / doanh nghiệp / tháng, cho phép 0                                                   | Chưa có dữ liệu thật, chiến lược hoặc giá đã chốt. 500.000 VND/tháng ở CP2 là giả định. Form này không phải nghiên cứu Van Westendorp.                                                     |
-| Live demo và giảng viên         | Đã có kịch bản demo, tài khoản reviewer chỉ xem và xuất dữ liệu                                                  | Reviewer đã test local. Cần cấu hình tài khoản thật cho `Thanhntl2@fpt.edu.vn`, cấp thông tin truy cập qua kênh riêng và thử HTTPS/public URL. Không công khai mật khẩu hoặc CSV có email. |
+| Live demo và giảng viên         | Đã có kịch bản demo, tài khoản reviewer chỉ xem và xuất dữ liệu                                                  | Reviewer chỉ xem đã test qua HTTPS/cloud. Nhóm cần cấp thông tin đăng nhập riêng cho `Thanhntl2@fpt.edu.vn`, cấp thông tin truy cập qua kênh riêng ; HTTPS/cloud đã được kiểm tra. Không công khai mật khẩu hoặc CSV có email. |
 
 ## Testing và bài nộp
 
@@ -40,10 +40,10 @@ Chỉ chỉnh frontend/backend và tài liệu bàn giao của Tuấn. Không đ
 
 ## Công việc FE/BE còn lại trước phát link
 
-1. Chủ repo duyệt [PR #1: build → dev](https://github.com/skunlainro3-glitch/TaskHub/pull/1). Bản mới được cập nhật trên `build`, chưa merge thay anh.
-2. Xác minh CI của tài khoản GitHub mới. Run cũ `38436404455` chưa khởi chạy do lỗi billing của tài khoản tại thời điểm đó; chưa có run mới để suy luận tình trạng tài khoản sau chuyển repo.
-3. Kết nối Render/Turso của anh, chọn Free và database libSQL phù hợp, cấu hình secret/admin/reviewer, deploy từ `dev`.
-4. Kiểm tra public HTTPS: đăng ký/đăng nhập, tenant isolation, sửa tour → portal, việc, inquiry, feedback/CSV, quyền giảng viên và dữ liệu còn sau redeploy. Xóa QA trước khảo sát.
+1. PR #1 đã được chủ repo duyệt và merge theo yêu cầu ngày 15/10; dev/build được đồng bộ.
+2. CI run `38620884849` trên tài khoản mới đã thành công đúng commit `22f3f24`. Lỗi billing của run cũ thuộc tài khoản tại thời điểm đó.
+3. Đã deploy Sites Workers/D1 public; cấu hình secret/admin/reviewer. Không cần Render/Turso để dùng link hiện tại; đây là phương án thay thế.
+4. Public HTTPS, tenant isolation, tour/portal, việc, inquiry, feedback/CSV, reviewer chỉ xem và persistence sau redeploy đã đạt. QA đã xóa; 0 tester/feedback/event trước bàn giao. Tiếp theo thu khảo sát người thật.
 5. Có username thành viên thì cấp quyền để team push `build`. Không tự thêm người chưa được xác định.
 
 ## Timeline nhóm cần theo dõi
@@ -52,7 +52,7 @@ Chỉ chỉnh frontend/backend và tài liệu bàn giao của Tuấn. Không đ
 | --------------------------------------- | ---------------------------------------------------------------------------- |
 | 13/10: chia việc/chốt lịch              | FE/BE Tuấn đã xác định; chưa xác nhận lịch trình bày chính thức.             |
 | 14–16/10: build MVP và bảng khảo sát    | Bản local và feedback đã có; đang hoàn thiện, cần nhóm rà nội dung khảo sát. |
-| 16–18/10: deploy/khảo sát >20 người     | Chưa triển khai công khai hoặc thu mẫu thật.                                 |
+| 16–18/10: deploy/khảo sát >20 người     | Đã triển khai public cloud; chưa thu mẫu thật.                                 |
 | 17/10: book present                     | Nhóm trưởng thực hiện theo link giảng viên.                                  |
 | 18–19/10: phân tích/chốt giá/quyết định | Chờ mẫu thật.                                                                |
 | 19–20/10: slide/BMC/AI disclosure       | Các thành viên phụ trách hoàn thiện.                                         |

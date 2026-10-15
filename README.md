@@ -1,6 +1,8 @@
 # TaskHub — CP3 MVP
 
-Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. FE React/Vite, BE Node.js 24, SQLite local hoặc Turso cloud. Không cần dịch vụ AI/API key để chạy MVP. Hosting miễn phí dùng Render + Turso; xem hướng dẫn cuối trang.
+Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/Vite + Node.js 24 + SQLite; web công khai dùng Sites Workers + D1 từ cùng nguồn FE/BE. Không cần dịch vụ AI/API key để chạy MVP.
+
+**Web:** https://taskhub.ninaninohihi.chatgpt.site — hoạt động độc lập với máy chủ repo.
 
 ## Chạy trên máy anh
 
@@ -76,7 +78,9 @@ Xem [bảng đối chiếu CP3](docs/CP3_READINESS.md) cho phần đã xây, gi�
 
 ## Deploy
 
-Phương án miễn phí đã chuẩn bị: **Render Free + Turso Free**, xem [hướng dẫn deploy](docs/DEPLOYMENT.md). Turso lưu database riêng để dữ liệu không mất khi Render ngủ hoặc redeploy. Cần tài khoản của chủ repo và cấu hình biến môi trường; chưa có URL public đã xác minh.
+**Web cloud đã hoạt động:** https://taskhub.ninaninohihi.chatgpt.site — FE/BE chạy trên Sites Workers, dữ liệu lưu ở D1; máy chủ repo tắt vẫn truy cập được. Đã kiểm tra UI/API và giữ dữ liệu sau redeploy ngày 15/10. Xem [vận hành cloud](docs/CLOUD_HOSTING.md); không dùng link Quick Tunnel cũ để thu khảo sát.
+
+Phương án hosting thay thế đã chuẩn bị: **Render Free + Turso Free**, xem [hướng dẫn deploy](docs/DEPLOYMENT.md). Chưa triển khai phương án này; không cần tạo Render/Turso để dùng URL cloud hiện tại.
 
 Cũng có Dockerfile/Compose cho VPS hoặc hosting có persistent disk, dùng một instance Node + SQLite volume. Các bước dưới đây chỉ áp dụng khi tự host với ổ đĩa bền vững:
 
@@ -86,7 +90,7 @@ Cũng có Dockerfile/Compose cho VPS hoặc hosting có persistent disk, dùng m
 4. Với platform deploy trực tiếp Node: Build `npm ci && npm run build`, Start `npm start`; đặt `NODE_ENV=production`, `HOST=0.0.0.0`, `PORT` do platform cấp, `DATA_DIR` tới persistent disk và admin credentials. Chỉ chạy **một instance** với SQLite này.
 5. Kiểm tra `/api/health`, đăng ký thử, sửa tour, refresh portal và restart service để xác minh disk giữ dữ liệu. Xóa tài khoản QA trước khi mời tester.
 
-**Chưa deploy công khai** và chưa có URL cho tester bên ngoài. Dockerfile là cấu hình chuẩn bị, chỉ tuyên bố đã build container khi đã kiểm tra Docker thực tế.
+Dockerfile là phương án tự host đã chuẩn bị; Docker daemon chưa chạy nên chưa xác nhận build container. Web cloud hiện tại dùng Workers/D1 và đã được triển khai thực tế.
 
 Sao lưu SQLite đang chạy bằng `node --env-file-if-exists=.env scripts/backup.mjs` (dùng SQLite backup API, không copy mỗi tệp `.sqlite` khi WAL đang hoạt động). Bản backup chứa dữ liệu cá nhân; nhóm giữ riêng và quản lý thời hạn. Để restore: dừng app, xác minh thư mục dữ liệu, sao lưu hiện trạng, thay DB bằng bản backup bằng thao tác file có chủ đích; không xóa volume để restart/deploy.
 

@@ -42,5 +42,10 @@ Codex hỗ trợ thay bảng màu, tăng độ dễ đọc, sửa phản hồi m
 ## Trạng thái cần cập nhật trước khảo sát
 
 - Local build và API integration tests có thể chạy bằng lệnh trong README.
-- Repo public có `dev` / `build`, CI và tài khoản reviewer chỉ xem. Public deployment/domain/HTTPS: cần cấu hình Render Free + Turso Free; chưa coi là đã triển khai.
+- Repo public có `dev` / `build`, CI và reviewer chỉ xem. Ngày 15/10 đã triển khai HTTPS public trên Sites Workers/D1, kiểm tra API/UI và persistence sau redeploy. Render/Turso là phương án thay thế chưa triển khai.
 - Chưa có dữ liệu người dùng thật, giá chốt hoặc quyết định Iterate/Persevere. Bản MVP không tự tạo các kết luận này.
+## Đưa lên cloud — 15/10/2026
+
+Prompt của Tuấn: “Em gộp vào dev cho anh; có cách nào để tên web là taskhub.??? và máy anh off vẫn có thể truy cập? Em tự lo.”
+
+Codex gộp PR đã được duyệt, chuyển FE/BE đã có sang hosting Sites Workers/D1, viết script export, schema/migrations, kịch bản API cloud và tài liệu vận hành. Kiểm thử bằng tài khoản giả và xóa QA; không tạo dữ liệu khảo sát người thật, không tự chốt giá hoặc làm BMC/slide của thành viên khác. Link công cụ là https://openai.com/codex/; không phải link chia sẻ hội thoại.

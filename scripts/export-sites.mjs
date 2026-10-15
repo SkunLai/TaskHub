@@ -154,12 +154,19 @@ put('lib/d1.mjs', `export function adaptD1(DB) {
   };
 }
 `);
+copyFileSync('cloud/pages/proxy-auth.mjs',join(target,'lib/proxy-auth.mjs'));
 put('lib/route.mjs', `import { env } from 'cloudflare:workers';
 import { createApi } from './taskhub-api.mjs';
 import { adaptD1 } from './d1.mjs';
+import { verifyProxyRequest } from './proxy-auth.mjs';
 const handlers=new WeakMap();
 export async function handleApi(request) {
   if(!env.DB) return Response.json({message:'Database chưa được cấu hình.'},{status:503});
+  let clientAddress=request.headers.get('cf-connecting-ip') || 'local';
+  if(request.headers.has('x-taskhub-proxy-signature')) {
+    clientAddress=verifyProxyRequest(request,env.TASKHUB_PROXY_SECRET);
+    if(!clientAddress)return Response.json({message:'Nguồn yêu cầu không hợp lệ.'},{status:403});
+  }
   let pending=handlers.get(env.DB);
   if(!pending) {
     const local=['127.0.0.1','localhost'].includes(new URL(request.url).hostname);
@@ -175,7 +182,7 @@ export async function handleApi(request) {
     // Leaving a rejected POST body unread can reset the local proxy connection.
     const chunks=[];let bytes=0;
     if(request.body)for await(const chunk of request.body){bytes+=chunk.length;if(bytes>32768)return Response.json({message:'Dữ liệu quá lớn.'},{status:413});chunks.push(Buffer.from(chunk));}
-    const req={url:request.url,method:request.method,headers,socket:{remoteAddress:headers['cf-connecting-ip'] || 'local'},
+    const req={url:request.url,method:request.method,headers,socket:{remoteAddress:clientAddress},
       async *[Symbol.asyncIterator]() { for(const chunk of chunks)yield chunk; }
     };
     const outgoing=new Headers(); let status=200, payload='';

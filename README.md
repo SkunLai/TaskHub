@@ -4,6 +4,8 @@ Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/V
 
 **Web:** https://taskhub.ninaninohihi.chatgpt.site — hoạt động độc lập với máy chủ repo.
 
+Địa chỉ `.pages.dev` đang được chuẩn bị theo yêu cầu chủ repo, **chưa phát hành**. Xem [cấu hình Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn và dùng tiếp database cloud hiện có.
+
 ## Chạy trên máy anh
 
 Máy hiện tại đã cài thư viện. Trong terminal ở thư mục TaskHub:

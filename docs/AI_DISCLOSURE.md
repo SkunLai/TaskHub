@@ -49,3 +49,5 @@ Codex hỗ trợ thay bảng màu, tăng độ dễ đọc, sửa phản hồi m
 Prompt của Tuấn: “Em gộp vào dev cho anh; có cách nào để tên web là taskhub.??? và máy anh off vẫn có thể truy cập? Em tự lo.”
 
 Codex gộp PR đã được duyệt, chuyển FE/BE đã có sang hosting Sites Workers/D1, viết script export, schema/migrations, kịch bản API cloud và tài liệu vận hành. Kiểm thử bằng tài khoản giả và xóa QA; không tạo dữ liệu khảo sát người thật, không tự chốt giá hoặc làm BMC/slide của thành viên khác. Link công cụ là https://openai.com/codex/; không phải link chia sẻ hội thoại.
+
+Theo yêu cầu tiếp theo “cho anh `.pages.dev`”, Codex triển khai frontend/gateway lên https://taskhub-travel.pages.dev/, dùng lại API và D1 đang chạy. Chủ tài khoản đã đồng ý xác nhận thiết bị Cloudflare. Codex kiểm tra API, UI desktop/mobile, tài khoản reviewer, cookie HTTPS và dọn QA; không đưa credential vào repo. AI tool used: https://openai.com/codex/.

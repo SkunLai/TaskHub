@@ -48,13 +48,23 @@ Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có ti
 
 ## Thử với ít nhất 20 người
 
-CP3 Requirements mục 2.1 yêu cầu ít nhất **20 cá nhân**, xem/dùng MVP rồi đánh giá tính năng. Mời >20 người theo lịch nhóm để dự phòng. Gửi **link gốc của web** (nút Dùng thử MVP), không gửi link `/portal/<id>` riêng của người khác.
+CP3 Requirements mục 2.1 yêu cầu ít nhất **20 cá nhân**, xem/dùng MVP rồi đánh giá tính năng. Mời >20 người theo lịch nhóm để dự phòng. Gửi **link gốc của web** (nút Dùng thử TaskHub), không gửi link `/portal/<id>` riêng của người khác.
 
 - Mỗi người tự tạo tài khoản bằng email và đồng ý thông báo dữ liệu. Email do người dùng nhập, **chưa xác minh**; không suy luận số email = số người độc lập.
 - Yêu cầu sửa tour, xem portal, tạo/đổi trạng thái việc rồi đánh giá. Tải lại tự động không ghi nhận thêm lượt xem.
 - `interactions.csv`: email, vai trò, quy mô, consent timestamp/version, action, entity và thời gian UTC. `feedback.csv`: cùng thông tin đối chiếu và điểm từng tính năng, ý định, mức trả, câu trả lời mở.
 - Admin/reviewer xem tài khoản, phản hồi và số phản hồi có đủ thao tác thử trước khi gửi (sửa tour, mở portal, tạo việc, đổi trạng thái). Nhóm vẫn phải đối chiếu người thử thật; bộ đếm không xác minh danh tính, thứ tự thử hoặc mức hiểu tính năng. Không tính dữ liệu tự động/QA vào khảo sát.
 - Không tự quyết định Iterate/Persevere hoặc giá khi chưa có dữ liệu thật. Phần slide, BMC và phân tích giá thuộc phân công riêng; repo chỉ cung cấp dữ liệu phục vụ các phần đó.
+
+Hướng dẫn thực hiện: [khảo sát và dữ liệu CP3](docs/CP3_TESTING_GUIDE.md). Sau khi quản trị/reviewer tải hai CSV, chạy:
+
+```powershell
+npm run research:report -- work/research/input/taskhub-feedback.csv work/research/input/taskhub-interactions.csv work/research/report
+```
+
+Tool tạo `summary.md` và `summary.json` chỉ có thống kê tổng hợp, kiểm tra dữ liệu và đối chiếu thao tác trước phản hồi; không sửa bản gốc, xuất email, tự chọn giá hoặc kết luận sản phẩm. `work/` không được commit. Báo cáo rỗng ghi rõ chưa có dữ liệu; 20 email không được coi là 20 cá nhân đã xác minh.
+
+Tài liệu trình diễn và giải thích kỹ thuật: [bàn giao FE/BE](docs/CP3_FE_BE_HANDOFF.md). Trạng thái còn thiếu được cập nhật ở [đối chiếu CP3](docs/CP3_READINESS.md).
 
 ## Bảo vệ / lưu dữ liệu
 

@@ -23,7 +23,16 @@ const em = "ui-" + Date.now() + "@example.test";
 let registered = false;
 try {
   await page.goto(base);
-  await page.getByRole('heading', {name:'Chưa có tour công khai',exact:true}).waitFor();
+  await page.locator('.catalog-card').last().waitFor();
+  assert.equal(await page.locator('.catalog-card').count(),13);
+  await page.getByLabel('Tìm tour',{exact:true}).fill('EVG-TQ11');
+  assert.equal(await page.locator('.catalog-card').count(),1);
+  await page.locator('.catalog-card .card-title').click();
+  await page.getByRole('dialog').getByText('Liên hệ',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Yêu cầu tư vấn',exact:true}).count(),0);
+  await page.getByText('Chưa có ngày khởi hành cụ thể, số chỗ và lịch trình từng ngày.',{exact:false}).waitFor();
+  await page.getByRole('button',{name:'Xong',exact:true}).click();
+  await page.getByLabel('Tìm tour',{exact:true}).fill('');
   assert.equal(await page.getByText('TaskHub Travel',{exact:true}).count(),0);
   await page.screenshot({ path: "work/portal-desktop.png", fullPage: true });
   for (const width of [320, 390, 768]) {
@@ -41,7 +50,7 @@ try {
     .getByRole("heading", { name: "Chưa có hành trình phù hợp" })
     .waitFor();
   await page.getByRole("button", { name: "Xóa bộ lọc", exact: true }).click();
-  await page.getByRole('heading', {name:'Chưa có tour công khai',exact:true}).waitFor();
+  await page.locator('.catalog-card').last().waitFor();
   await page.route("**/api/public/agency", (route) => route.abort());
   await page.reload();
   await page
@@ -56,7 +65,7 @@ try {
   );
   await page.unroute("**/api/public/agency");
   await page.getByRole("button", { name: "Thử tải lại", exact: true }).click();
-  await page.getByRole('heading', {name:'Chưa có tour công khai',exact:true}).waitFor();
+  await page.locator('.catalog-card').last().waitFor();
   console.log("Portal responsive, search reset and network recovery passed");
   await page.getByRole("button", { name: "Dùng thử TaskHub", exact: true }).click();
   await page.getByLabel("Tên hiển thị").fill("Người kiểm thử UI");
@@ -111,6 +120,21 @@ try {
   for(const name of ['duration','departure','price','capacity'])
     assert.equal(await page.locator(`input[name="${name}"]`).inputValue(),'');
   assert.equal(await page.locator('input[name="published"]').isChecked(),false);
+  await page.getByRole('button',{name:'Hủy',exact:true}).click();
+  for (const [code,price] of [['EVG-TQ11',''],['EVG-TQ01','28990000']]) {
+    await page.getByRole('button',{name:'Danh mục Én Việt',exact:true}).click();
+    await page.getByLabel('Tìm trong danh mục').fill(code);
+    await page.locator('.catalog-picker-row').click();
+    await page.getByRole('button',{name:'Dùng nội dung tour',exact:true}).click();
+    assert.equal(await page.locator('input[name="price"]').inputValue(),price);
+    for (const name of ['departure','capacity','reserved'])
+      assert.equal(await page.locator(`input[name="${name}"]`).inputValue(),'');
+    assert.equal(await page.locator('textarea[name="itinerary"]').inputValue(),'');
+    assert.equal(await page.locator('input[name="published"]').isChecked(),false);
+    assert.ok((await page.locator('textarea[name="description"]').inputValue()).includes('https://dulichenvietcs.netlify.app/'));
+    await page.getByRole('button',{name:'Hủy',exact:true}).click();
+  }
+  await page.getByRole('button',{name:'Tạo tour',exact:true}).click();
   for(const name of ['title','destination','departure','duration','price','capacity','reserved'])
     await page.locator(`input[name="${name}"]`).fill(String(qaTour[name]));
   await page.locator('textarea[name="description"]').fill(qaTour.description);

@@ -1,4 +1,5 @@
 import http from "node:http";
+import { referenceCatalog } from "./catalog.mjs";
 import { isIP } from "node:net";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { resolve, extname } from "node:path";
@@ -285,7 +286,7 @@ export const server = http.createServer(async (req, res) => {
   if (production)
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
+      "default-src 'self'; img-src 'self' data: https://dulichenvietcs.netlify.app; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
     );
   try {
     const url = new URL(req.url, "http://localhost");
@@ -409,6 +410,7 @@ export const server = http.createServer(async (req, res) => {
       return json(res, {
         agency: ws.id === "agency" ? "TaskHub" : ws.name,
         tours: await publicTours(db, ws.id),
+        catalog: ws.id === "agency" ? referenceCatalog : null,
         updated: now(),
       });
     }
@@ -490,6 +492,7 @@ export const server = http.createServer(async (req, res) => {
         inquiries,
         activity,
         completedActions,
+        catalog: referenceCatalog,
         feedback: feedback || null,
       });
     }

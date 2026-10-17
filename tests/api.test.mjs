@@ -217,6 +217,20 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       assert.deepEqual((await request('/public/'+ws)).body.tours, []);
       assert.deepEqual((await request('/public/agency')).body.tours, []);
     });
+    await t.test('reference catalog is available without creating offers or accepting unconfirmed bookings', async () => {
+      const root = (await request('/public/agency')).body;
+      assert.equal(root.catalog.tours.length,13);
+      assert.equal(root.catalog.tours.find(t=>t.code==='EVG-TQ11').price,null);
+      assert.equal((await request('/public/'+ws)).body.catalog,null);
+      const own = (await request('/workspace','GET',null,ac)).body;
+      assert.equal(own.catalog.tours.length,13);
+      assert.deepEqual(own.tours,[]);
+      assert.ok(own.activity.every(e => e.action === 'test_started'));
+      assert.equal((await request('/public/agency/inquiries','POST',{
+        tour_id:root.catalog.tours[0].id,name:'QA',email:'qa@example.test',people:1,consent:true
+      })).status,404);
+      assert.equal((await request('/tours','POST',{...qaTour,departure:'Hàng tuần',capacity:null},ac)).status,400);
+    });
     // All business fields below are explicit QA input; production creates none.
     assert.equal((await request('/tours','POST',qaTour,ac)).status,201);
     assert.equal((await request('/tours','POST',qaTour,bc)).status,201);

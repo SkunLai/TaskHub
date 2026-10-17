@@ -526,6 +526,76 @@ function TourCard({ tour, onOpen, internal = false }) {
   );
 }
 
+function CatalogImage({ tour }) {
+  const [failed, setFailed] = useState(false);
+  return failed || !tour.image ? <div className="catalog-placeholder"><Compass size={42} strokeWidth={1.2} /><span>Đang cập nhật ảnh</span></div> : (
+    <img className="catalog-image" src={tour.image} alt={tour.title}
+      loading="lazy" decoding="async" referrerPolicy="no-referrer"
+      onError={() => setFailed(true)} />
+  );
+}
+
+function CatalogCard({ tour, onOpen }) {
+  return (
+    <article className="tour-card catalog-card">
+      <button className="cover-button" aria-label={"Xem " + tour.title} onClick={() => onOpen(tour)}>
+        <CatalogImage tour={tour} />
+        <span className="cover-pill"><MapPin size={12} />{tour.destination}</span>
+        {tour.image && <span className="catalog-image-note">Ảnh minh họa từ nguồn</span>}
+      </button>
+      <div className="tour-card-body">
+        <div className="catalog-kicker"><span>{tour.code}</span><Badge tone="blue">Tham khảo</Badge></div>
+        <div className="eyebrow">{tour.duration}</div>
+        <button className="card-title" onClick={() => onOpen(tour)}>{tour.title}<ArrowUpRight size={19} /></button>
+        <p>{tour.route}</p>
+        <div className="catalog-departure"><CalendarDays size={15} /><span>{tour.departureNote} · Chưa chốt ngày</span></div>
+        <div className="tour-meta catalog-price"><span>Giá tham khảo</span><strong>{tour.price === null ? "Liên hệ" : money(tour.price)}{tour.price !== null && <small>/ khách</small>}</strong></div>
+      </div>
+    </article>
+  );
+}
+
+function CatalogDetails({ tour, source, onClose, onUse }) {
+  return (
+    <Modal title={tour.title} subtitle={tour.code + " · Danh mục tham khảo"} onClose={onClose} wide>
+      <div className="catalog-detail-cover"><CatalogImage tour={tour} /></div>
+      <div className="catalog-facts">
+        <div><span>Thời lượng</span><strong>{tour.duration}</strong></div>
+        <div><span>Giá tham khảo / khách</span><strong>{tour.price === null ? "Liên hệ" : money(tour.price)}</strong></div>
+        <div><span>Lịch theo nguồn</span><strong>{tour.departureNote}</strong></div>
+        <div><span>Hàng không theo nguồn</span><strong>{tour.airline || "Chưa nêu cụ thể"}</strong></div>
+      </div>
+      <div className="catalog-section"><h3>Tuyến hành trình</h3><p>{tour.route}</p></div>
+      <div className="catalog-section"><h3>Điểm nổi bật</h3><ul>{tour.highlights.map(h => <li key={h}>{h}</li>)}</ul></div>
+      <div className="catalog-source">
+        <ShieldCheck size={19} />
+        <div><strong>Cần xác nhận trước khi mở bán</strong>
+          <p>Chưa có ngày khởi hành cụ thể, số chỗ và lịch trình từng ngày. Giá và lịch có thể thay đổi; danh mục này chưa nhận đặt chỗ.</p>
+          <a href={tour.sourceUrl} target="_blank" rel="noopener noreferrer">Nguồn: {source.name}<ArrowUpRight size={14} /></a>
+          <small>Ghi nhận ngày {date(source.capturedOn)}</small>
+        </div>
+      </div>
+      <div className="modal-actions"><Button variant="ghost" onClick={onClose}>Xong</Button>
+        {onUse && <Button onClick={() => onUse(tour)}>Dùng nội dung tour<ArrowRight size={16} /></Button>}
+      </div>
+    </Modal>
+  );
+}
+
+function CatalogPicker({ catalog, onClose, onUse }) {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState(null);
+  const tours = catalog.tours.filter(t => (t.title + " " + t.code + " " + t.destination).toLocaleLowerCase("vi").includes(query.toLocaleLowerCase("vi")));
+  if (selected) return <CatalogDetails tour={selected} source={catalog.source} onClose={() => setSelected(null)} onUse={tour => onUse({ ...tour, capturedOn: catalog.source.capturedOn })} />;
+  return <Modal title="Danh mục tour Én Việt" subtitle="Chọn nội dung có sẵn, sau đó bổ sung dữ liệu vận hành." onClose={onClose} wide>
+    <label className="search catalog-search"><Search size={18} /><input aria-label="Tìm trong danh mục" placeholder="Tên tour, mã hoặc điểm đến…" value={query} onChange={e => setQuery(e.target.value)} /></label>
+    <div className="catalog-picker-list">{tours.map(t => <button className="catalog-picker-row" key={t.id} onClick={() => setSelected(t)}>
+      <span><small>{t.code} · {t.destination}</small><strong>{t.title}</strong><span>{t.duration} · {t.price === null ? "Giá: Liên hệ" : money(t.price)}</span></span><ChevronRight size={19} />
+    </button>)}</div>
+    {!tours.length && <p className="muted">Không tìm thấy tour. Thử từ khóa khác.</p>}
+  </Modal>;
+}
+
 function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
   const pending = useRef(0);
   const latest = useRef(0);
@@ -534,6 +604,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     [query, setQuery] = useState(""),
     [destination, setDestination] = useState(""),
     [selected, setSelected] = useState(null),
+    [reference, setReference] = useState(null),
     [last, setLast] = useState("");
   const load = useCallback(async () => {
     const request = ++latest.current;
@@ -559,13 +630,13 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
     }, 5000);
     return () => clearInterval(timer);
   }, [load, user?.id]);
-  const visible = (data?.tours || []).filter(
-    (t) =>
-      (!destination || t.destination === destination) &&
-      (t.title + " " + t.destination)
-        .toLocaleLowerCase("vi")
-        .includes(query.toLocaleLowerCase("vi")),
-  );
+  const allTours = [...(data?.tours || []), ...(data?.catalog?.tours || [])];
+  const matches = (t) =>
+    (!destination || t.destination === destination) &&
+    (t.title + " " + t.destination + " " + (t.code || "") + " " + (t.route || ""))
+      .toLocaleLowerCase("vi").includes(query.toLocaleLowerCase("vi"));
+  const references = (data?.catalog?.tours || []).filter(matches);
+  const visible = (data?.tours || []).filter(matches);
   const open = (t) => {
     setSelected(t);
     if (user && user.workspace === workspace)
@@ -673,7 +744,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               >
                 <option value="">Tất cả điểm đến</option>
                 {[
-                  ...new Set((data?.tours || []).map((t) => t.destination)),
+                  ...new Set(allTours.map((t) => t.destination)),
                 ].map((d) => (
                   <option key={d}>{d}</option>
                 ))}
@@ -702,7 +773,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
                 <TourCard key={t.id} tour={t} onOpen={open} />
               ))}
             </div>
-          ) : data ? (
+          ) : data && !references.length ? (
             <Empty title={query || destination ? "Chưa có hành trình phù hợp" : "Chưa có tour công khai"}>
               {query || destination
                 ? "Thử đổi điểm đến hoặc từ khóa tìm kiếm."
@@ -720,10 +791,16 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               )}
             </Empty>
           ) : null}
+          {!!references.length && <div className="reference-catalog">
+            <div className="catalog-heading"><div><div className="eyebrow blue">DỮ LIỆU TOUR TỪ ÉN VIỆT</div><h3>Khám phá hành trình quốc tế</h3></div><span>{references.length} hành trình</span></div>
+            <p className="catalog-intro">Tham khảo tuyến đi, điểm nổi bật và giá. Ngày khởi hành và số chỗ cần được xác nhận riêng.</p>
+            <div className="tour-grid">{references.map(t => <CatalogCard key={t.id} tour={t} onOpen={setReference} />)}</div>
+            <p className="catalog-attribution">Nguồn: <a href={data.catalog.source.url} target="_blank" rel="noopener noreferrer">{data.catalog.source.name}</a> · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin tham khảo có thể thay đổi.</p>
+          </div>}
           <div className="portal-notice">
             <ShieldCheck size={17} />
             <p>
-              Chỉ hiển thị thông tin tour do người quản lý công khai.
+              Tour có lịch và số chỗ được công khai từ điều hành.{data?.catalog && " Danh mục Én Việt là thông tin tham khảo."}
               Yêu cầu tư vấn không giữ chỗ và không tạo thanh toán.
             </p>
           </div>
@@ -753,6 +830,7 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
         <span>Ít thao tác hơn. Nhiều hành trình hơn.</span>
         <span>Quản lý tour · Cổng khách hàng · Công việc</span>
       </footer>
+      {reference && <CatalogDetails tour={reference} source={data.catalog.source} onClose={() => setReference(null)} />}
       {selected && (
         <TourDetails
           tour={
@@ -884,7 +962,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
   );
 }
 
-function TourEditor({ tour, onClose, onSave }) {
+function TourEditor({ tour, prefill, onClose, onSave }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [confirmDelete, setConfirmDelete] = useState(false);
@@ -900,6 +978,11 @@ function TourEditor({ tour, onClose, onSave }) {
     published: 0,
     description: "",
     itinerary: "",
+    ...(prefill ? {
+      title: prefill.title, destination: prefill.destination, duration: prefill.duration,
+      price: prefill.price ?? "", reserved: "",
+      description: `${prefill.route}\n${prefill.highlights.join("; ")}\nNguồn: ${prefill.sourceUrl} · ${prefill.code} · Ghi nhận ${date(prefill.capturedOn)}.`,
+    } : {}),
   };
   async function remove() {
     setBusy(true);
@@ -943,6 +1026,7 @@ function TourEditor({ tour, onClose, onSave }) {
     >
       <form onSubmit={submit}>
         <ErrorBox error={error} />
+        {prefill && <div className="catalog-source"><ShieldCheck size={18} /><div><strong>Kiểm tra và bổ sung trước khi lưu</strong><p>Đã lấy nội dung tham khảo {prefill.code}. Xác nhận giá, nhập ngày đi, sức chứa, khách đã giữ chỗ và lịch trình từng ngày. Tour chưa được công khai.</p></div></div>}
         <Field label="Tên tour">
           <input name="title" defaultValue={t.title} required maxLength="120" />
         </Field>
@@ -2026,6 +2110,11 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 </span>
               )}
               {nav === "tours" && !readOnly && (
+                <Button variant="ghost" disabled={!data?.catalog?.tours.length} onClick={() => setEditor({ type: "catalog" })}>
+                  <Compass size={17} />Danh mục Én Việt
+                </Button>
+              )}
+              {nav === "tours" && !readOnly && (
                 <Button onClick={() => setEditor({ type: "tour" })}>
                   <Plus size={17} />
                   Tạo tour
@@ -2230,6 +2319,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       {editor?.type === "tour" && !readOnly && (
         <TourEditor
           tour={editor.tour}
+          prefill={editor.prefill}
           onClose={() => setEditor(null)}
           onSave={async () => {
             await reload();
@@ -2246,6 +2336,9 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             notify("Đã giao công việc.");
           }}
         />
+      )}
+      {editor?.type === "catalog" && !readOnly && data?.catalog && (
+        <CatalogPicker catalog={data.catalog} onClose={() => setEditor(null)} onUse={prefill => setEditor({ type: "tour", prefill })} />
       )}
       {help && (
         <Help

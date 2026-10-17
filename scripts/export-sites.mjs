@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 const target = resolve(process.argv[2] || '');
 assert.ok(process.argv[2] && target !== process.cwd(), 'Pass the prepared Sites checkout path.');
 const put = (path, text) => { mkdirSync(resolve(target, path, '..'), { recursive: true }); writeFileSync(join(target, path), text); };
+// One approved source for local and hosted catalogs; no fictional inventory is seeded.
+put('lib/catalog.mjs', 'export const referenceCatalog = '+readFileSync('catalog/enviet-tours.json','utf8').trim()+';\n');
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')

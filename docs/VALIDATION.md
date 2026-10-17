@@ -35,3 +35,10 @@
 - 30 kiểm tra đã đạt, gồm dữ liệu CSV rỗng/sai/cắt, email trùng và QA, mốc consent/feedback, mức trả 0, không nhận email là người đã xác minh, không xuất dữ liệu nhận diện/nội dung tự do vào báo cáo, không ghi đè bản gốc.
 - Chạy trên CSV thật tại thời điểm rà: 0 phản hồi, 0 tương tác; không tạo kết quả khảo sát. Không có tài khoản QA mới được tạo trên cloud trong đợt này.
 - 20 request đọc public đồng thời trả 200; không phải 20 người khảo sát và không được dùng làm bằng chứng SLA.
+
+## Danh mục tour được chủ dự án cung cấp — 17/10/2026
+
+- Nhập 13 nội dung tour Én Việt, có mã nguồn, tuyến đi, thời lượng, giá tham khảo, điểm nổi bật và ngày ghi nhận. 1 tour giữ giá “Liên hệ”. Không tạo ngày đi hoặc tồn chỗ không có nguồn; không seed tour vận hành hay công việc.
+- Rà 13 ảnh nguồn: loại 5 ảnh sai/không phù hợp; 8 ảnh còn lại gắn nhãn minh họa. Có trạng thái thay thế khi ảnh thiếu hoặc tải lỗi.
+- 33/33 kiểm tra đạt trên SQLite và libSQL. Bao gồm danh mục chỉ đọc, nguồn/giá chưa xác định, không trộn vào tour đã công khai của không gian khác và từ chối yêu cầu đặt chỗ vào mã tham khảo.
+- Build Vite, Pages gateway và Sites backend đạt. UI local đạt trên 320/390/768/1440 px; đã thử mở chi tiết, tìm mã tour, dùng nội dung có/không có giá và xác nhận các trường ngày/sức chứa/khách/lịch trình vẫn trống, chưa công khai. Các luồng tour/tư vấn/công việc/phản hồi/reviewer hiện có tiếp tục đạt.

@@ -30,9 +30,10 @@ test('empty export produces null statistics and never invents a price or decisio
 test('test/system accounts are excluded and email normalization prevents duplicate counts',()=>{
  const s=summary([response(),response({email:' TESTER@SAMPLE.INVALID ',portal:1,created:'2026-10-17T03:00:00.000Z'}),response({email:'ui-qa@example.test'}),response({email:'reviewer@sample.invalid',role:'reviewer'})]);
  assert.equal(s.matchedResponses,1);assert.equal(s.scores.portal.mean,1);
- assert.deepEqual(s.excluded,{invalid:0,qa:1,system:1,duplicateEmail:1,incompleteFlow:0});
+ assert.deepEqual(s.excluded,{invalid:0,qa:1,system:1,duplicateEmail:1});
+ assert.equal(s.incompleteFlow,0);
 });
-test('only actions after consent and before the saved feedback qualify a response',()=>{
+test('only actions after consent and before saved feedback qualify the log-matched subset',()=>{
  for(const created of ['2026-10-17T00:30:00.000Z','2026-10-17T02:30:00.000Z'])assert.equal(summary([response()],flow(undefined,created)).matchedResponses,0);
  assert.equal(summary([response()],flow().slice(1)).matchedResponses,0);
  assert.equal(summary([response()]).matchedResponses,1);
@@ -43,12 +44,14 @@ test('latest invalid answer is flagged rather than replaced by an older favorabl
  assert.throws(()=>summarize(csv(eventHeaders,flow()),csv(eventHeaders,flow())),/Sai loại tệp/);
   assert.equal(summary([response({created:'2026-02-30T02:00:00.000Z'})]).validResponses,0);
 });
-test('median includes zero and incomplete responses are not used for feature validation',()=>{
- const responses=[response({email:'a@sample.invalid',price:0}),response({email:'b@sample.invalid',price:100}),response({email:'c@sample.invalid',price:1000000})];
+test('main statistics keep valid incomplete-flow feedback and report the logged subset separately',()=>{
+ const responses=[response({email:'a@sample.invalid',price:0}),response({email:'b@sample.invalid',price:100}),response({email:'c@sample.invalid',price:1000000,portal:1,intent:'no'})];
  const s=summary(responses,[...flow('a@sample.invalid'),...flow('b@sample.invalid')]);
  assert.equal(s.validResponses,3);assert.equal(s.matchedResponses,2);
- assert.equal(s.willingnessToPay.median,50);assert.equal(s.willingnessToPay.zero,1);
- assert.equal(s.excluded.incompleteFlow,1);
+ assert.equal(s.willingnessToPay.median,100);assert.equal(s.willingnessToPay.zero,1);
+ assert.equal(s.scores.portal.n,3);assert.equal(s.matchedScores.portal.n,2);
+ assert.equal(s.scores.portal.mean,3);assert.equal(s.matchedScores.portal.mean,4);assert.equal(s.intent.no,1);
+ assert.equal(s.incompleteFlow,1);
 });
 test('20 email records never become a claim of 20 independently verified people',()=>{
  const rows=Array.from({length:20},(_,i)=>response({email:'tester'+i+'@sample.invalid'}));

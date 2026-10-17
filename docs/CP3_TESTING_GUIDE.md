@@ -38,7 +38,7 @@ Lệnh tạo `summary.md` và `summary.json`, chỉ gồm số liệu tổng h�
 
 - Kiểm tra định dạng CSV, cột bắt buộc và giá trị; chọn phản hồi mới nhất theo email đã chuẩn hóa.
 - Loại tài khoản hệ thống và email thuộc `example.test`, `example.com`, `example.invalid`; ghi số bản ghi bị loại để nhóm kiểm tra. QA dùng email khác phải được nhóm đối chiếu thủ công.
-- Đối chiếu đủ bốn loại thao tác từ sau lúc đồng ý đến trước/lúc gửi phản hồi. Thiếu một thao tác thì không dùng phản hồi đó cho bảng đánh giá tính năng.
+- Đối chiếu đủ bốn loại thao tác từ sau lúc đồng ý đến trước/lúc gửi phản hồi. Thống kê chính giữ mọi phản hồi hợp lệ; nhóm đủ log có bảng riêng. Thiếu log không chứng minh chưa xem demo và không tự loại tư cách tester theo PDF.
 - Tổng hợp n, phân bố điểm, điểm trung bình, số chấm 4–5, vai trò/quy mô, ý định dùng và trung vị mức sẵn sàng trả có tính cả 0.
 - Nếu chưa có dữ liệu, xuất trạng thái chưa có dữ liệu; không tự tạo điểm, giá tối ưu hoặc quyết định sản phẩm.
 

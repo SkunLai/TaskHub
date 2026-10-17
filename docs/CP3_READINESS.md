@@ -26,7 +26,7 @@ Chủ dự án xác nhận đợt này chỉ làm FE/BE và bàn giao. Không l�
 | Giá | Form thu willingness-to-pay đơn giản, cho phép 0; tool tổng hợp mô tả dữ liệu thật | Chưa chốt chiến lược/giá. 500.000 VND/tháng ở CP2 là giả định, không phải giá đã kiểm chứng. Không có Price Map/Van Westendorp. |
 | MVP testing | Consent, email tự nhập, vai trò/quy mô, logs, đánh giá tính năng, ý định dùng, giá và ý kiến mở | Chưa xác minh email/20 người thật. Form thu ý định sản phẩm chung, không suy diễn thành ý định từng tính năng. |
 | RAW data | Xuất interactions/feedback CSV có email theo quyền quản trị/reviewer | Nhóm phải xuất bản gốc, đối chiếu người thật và cấp quyền phụ lục; không đưa raw data lên repo public. |
-| Tổng hợp dữ liệu | `npm run research:report` kiểm tra CSV, loại QA/trùng email, đối chiếu đủ thao tác trước feedback, tổng hợp điểm/ý định/mức trả | Báo cáo chỉ có tổng hợp, không xác minh người thật, chọn giá, tự mã hóa ý kiến mở hoặc tự kết luận Iterate/Persevere. |
+| Tổng hợp dữ liệu | `npm run research:report` kiểm tra CSV, loại QA/trùng email, tổng hợp mọi phản hồi hợp lệ và báo riêng tập đủ log trước feedback | Không tự loại người xem demo vì thiếu log. Báo cáo không xác minh người thật, chọn giá, tự mã hóa ý kiến mở hoặc tự kết luận Iterate/Persevere. |
 | Demo và reviewer | Kịch bản demo trực tiếp, tài khoản reviewer chỉ xem/xuất | Nhóm cung cấp dữ liệu demo được duyệt, chuyển thông tin reviewer qua kênh riêng và cấp quyền phụ lục cho giảng viên. |
 
 Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [khảo sát và tổng hợp CSV](CP3_TESTING_GUIDE.md), [chạy trên máy](../README.md), [vận hành public](PAGES_DEPLOYMENT.md).

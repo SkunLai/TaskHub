@@ -9,6 +9,7 @@ const put = (path, text) => { mkdirSync(resolve(target, path, '..'), { recursive
 // One approved source for local and hosted catalogs; no fictional inventory is seeded.
 put('lib/catalog.mjs', 'export const referenceCatalog = '+readFileSync('catalog/enviet-tours.json','utf8').trim()+';\n');
 put('lib/operations.mjs',readFileSync('server/operations.mjs','utf8'));
+put('lib/feature-feedback.mjs',readFileSync('server/feature-feedback.mjs','utf8'));
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')
@@ -119,19 +120,10 @@ const taskStart=api.indexOf('      await transaction(db, async () => {',api.inde
 const taskEnd=api.indexOf('      return json(res, { id }, 201);',taskStart);
 assert.ok(taskStart>0 && taskEnd>taskStart);
 api=api.slice(0,taskStart)+`      await db.batch([
-        ['INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)',[id,u.workspace,tour.id,title,assignee,due,priority,'todo',now()]],
+        ['INSERT INTO tasks(id,workspace,tour_id,title,assignee,due,priority,status,created) VALUES (?,?,?,?,?,?,?,?,?)',[id,u.workspace,tour.id,title,assignee,due,priority,'todo',now()]],
         ...eventStatement(u,'task_created',id),
       ]);
 `+api.slice(taskEnd);
-const statusStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('const taskMatch'));
-const statusEnd=api.indexOf('      return json(res, { ok: true });',statusStart);
-assert.ok(statusStart>0 && statusEnd>statusStart);
-api=api.slice(0,statusStart)+`      const result=await db.batch([
-        ['UPDATE tasks SET status=? WHERE id=? AND workspace=?',[status,taskMatch[1],u.workspace]],
-        ...eventStatement(u,'task_status_changed',status,true),
-      ]);
-      if(!result[0].changes) fail('Không tìm thấy công việc.',404);
-`+api.slice(statusEnd);
 const feedbackStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('if (p === "/api/feedback"'));
 const feedbackEnd=api.indexOf('      return json(res, { ok: true });',feedbackStart);
 assert.ok(feedbackStart>0 && feedbackEnd>feedbackStart);
@@ -211,6 +203,9 @@ put('app/api/[...path]/route.ts', `import {handleApi} from '../../../lib/route.m
 let ui=readFileSync('src/main.jsx','utf8').replaceAll('\r\n','\n').replace('import { createRoot } from "react-dom/client";\n','').replace('import "./styles.css";\n','').replace('function App() {','export default function App() {').replace('useState(location.pathname)','useState(typeof location === "undefined" ? "/" : location.pathname)').replace('createRoot(document.getElementById("root")).render(<App />);','');
 put('app/TaskHub.jsx','"use client";\n'+ui);
 put('app/operations-ui.jsx',readFileSync('src/operations-ui.jsx','utf8'));
+put('app/operations-polish.css',readFileSync('src/operations-polish.css','utf8'));
+put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
+put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
 put('app/globals.css',readFileSync('src/styles.css','utf8'));

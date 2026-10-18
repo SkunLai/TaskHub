@@ -39,7 +39,12 @@ import {
 import "./styles.css";
 import { createOperationsUI } from "./operations-ui.jsx";
 import { startInteractions, flushInteractions } from "./interactions.mjs";
+import { createExperienceUI } from "./experience-ui.jsx";
 
+const todayVN = () => {
+  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(p=>[p.type,p.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+};
 const money = (n) => new Intl.NumberFormat("vi-VN").format(n) + " ₫";
 const date = (n) =>
   new Date(n + "T12:00:00").toLocaleDateString("vi-VN", {
@@ -105,7 +110,7 @@ async function api(path, method = "GET", data) {
     } catch {
       throw Error("Không kết nối được hệ thống.");
     }
-    if (!r.ok) throw Error(body.message || "Không thể thực hiện thao tác.");
+    if (!r.ok) throw Object.assign(Error(body.message || "Không thể thực hiện thao tác."),{status:r.status});
     return body;
   } catch (error) {
     if (error.name === "AbortError")
@@ -238,11 +243,12 @@ function Button({ children, variant = "", ...props }) {
 function Badge({ children, tone = "" }) {
   return <span className={"badge " + tone}>{children}</span>;
 }
-function Modal({ title, subtitle, onClose, children, wide = false }) {
+function Modal({ title, subtitle, onClose, children, wide = false, busy = false }) {
+  const blocked=useRef(busy);blocked.current=busy;
   useEffect(() => {
     const before = document.activeElement;
     const handler = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !blocked.current) onClose();
       if (e.key === "Tab") {
         const focusable = [
           ...document.querySelectorAll(
@@ -274,12 +280,13 @@ function Modal({ title, subtitle, onClose, children, wide = false }) {
     <div
       className="overlay"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && !blocked.current) onClose();
       }}
     >
       <section
         role="dialog"
         aria-modal="true"
+        aria-busy={busy}
         aria-label={title}
         className={"modal " + (wide ? "wide" : "")}
       >
@@ -288,7 +295,7 @@ function Modal({ title, subtitle, onClose, children, wide = false }) {
             <h2>{title}</h2>
             {subtitle && <p>{subtitle}</p>}
           </div>
-          <button className="icon-btn" aria-label="Đóng" onClick={onClose}>
+          <button className="icon-btn" aria-label="Đóng" disabled={busy} onClick={onClose}>
             <X />
           </button>
         </header>
@@ -478,6 +485,7 @@ function Auth({ mode, setMode, onClose, onUser }) {
 
 function TourCard({ tour, onOpen, internal = false, onSeats, onTask }) {
   const remaining = tour.capacity - tour.reserved;
+  const departed = tour.departure < todayVN();
   return (
     <article className={"tour-card" + (internal ? " internal-tour" : "")} data-track-entity={tour.id}>
       <button
@@ -504,7 +512,7 @@ function TourCard({ tour, onOpen, internal = false, onSeats, onTask }) {
         <div className="tour-meta">
           <span>
             <Users size={15} />
-            {remaining > 0 ? `Còn ${remaining} chỗ` : "Đã đủ khách"}
+            {departed ? "Đã khởi hành" : remaining > 0 ? `Còn ${remaining} chỗ` : "Đã đủ khách"}
           </span>
           <strong>
             {money(tour.price)}
@@ -824,8 +832,8 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
             </div>
             <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
             <p>
-              Điều hành và Sales dùng chung lịch, số chỗ và công việc. Khách
-              hàng tra cứu tour trên một cổng riêng.
+              Tập trung lịch, số chỗ và công việc để người điều hành theo dõi. Khách
+              hàng tra cứu thông tin đã công khai trên một cổng riêng.
             </p>
           </div>
           <Button
@@ -843,16 +851,11 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
         <span>Quản lý tour · Cổng khách hàng · Công việc</span>
       </footer>
       {reference && <CatalogDetails tour={reference} source={data.catalog.source} onClose={() => setReference(null)} />}
-      {selected && (
-        <TourDetails
-          tour={
-            (data?.tours || []).find((t) => t.id === selected.id) || selected
-          }
-          workspace={workspace}
-          onClose={() => setSelected(null)}
-          notify={notify}
-        />
-      )}
+      {selected && ((data?.tours || []).some(t=>t.id===selected.id)?(
+        <TourDetails key={selected.id} tour={data.tours.find(t=>t.id===selected.id)} workspace={workspace} onClose={()=>setSelected(null)} notify={notify}/>
+      ):(
+        <Modal title="Tour đã ngừng công khai" onClose={()=>setSelected(null)}><p>Thông tin tour vừa được người điều hành ẩn hoặc xóa. Danh sách đã cập nhật; tour này không nhận yêu cầu tư vấn mới.</p><Button onClick={()=>setSelected(null)}>Về danh sách tour<ArrowLeft size={16}/></Button></Modal>
+      ))}
     </div>
   );
 }
@@ -862,8 +865,11 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
     [busy, setBusy] = useState(false),
     [sent, setSent] = useState(false),
     [error, setError] = useState("");
+  const departed = tour.departure < todayVN();
+  const unavailable = departed || tour.reserved >= tour.capacity;
   async function submit(e) {
     e.preventDefault();
+    if(unavailable){setError('Tour không còn nhận yêu cầu mới. Chọn lịch khởi hành khác.');return;}
     setBusy(true);
     setError("");
     const f = new FormData(e.target);
@@ -887,6 +893,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
       title={tour.title}
       subtitle={tour.destination + " · " + tour.duration}
       onClose={onClose}
+      busy={busy}
       wide
     >
       <div className="detail-cover">
@@ -918,6 +925,8 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
       </p>
       {readOnly ? (
         <p className="workspace-notice">Chế độ xem dành cho người đánh giá.</p>
+      ) : unavailable ? (
+        <div className="tour-expired-notice"><Clock size={18}/><span>{departed?'Tour đã khởi hành, không tiếp nhận yêu cầu tư vấn mới.':'Tour đã đủ số khách, chưa tiếp nhận yêu cầu mới.'} Vui lòng chọn hành trình hoặc ngày khởi hành khác.</span></div>
       ) : sent ? (
         <div className="success">
           <CheckCircle2 size={20} />
@@ -974,10 +983,11 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
   );
 }
 
-function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
+function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave, onRefresh }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [confirmDelete, setConfirmDelete] = useState(false);
+    [confirmDelete, setConfirmDelete] = useState(false),[conflict,setConflict]=useState(false);
+  async function refresh(){setBusy(true);try{await onRefresh();setConflict(false);setError('');setConfirmDelete(false);}catch(e){setError(e.message);}finally{setBusy(false);}}
   const t = tour || {
     title: "",
     destination: "",
@@ -1003,7 +1013,7 @@ function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
       await api("/tours/" + tour.id, "DELETE", { version: tour.version });
       await onSave();
       onClose();
-    } catch (e) { setError(e.message); }
+    } catch (e) { setError(e.message);setConflict(e.status===409); }
     finally { setBusy(false); }
   }
   async function submit(e) {
@@ -1024,21 +1034,25 @@ function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
       await onSave();
       onClose();
     } catch (e) {
-      setError(e.message);
+      setError(e.message);setConflict(e.status===409);
     } finally {
       setBusy(false);
     }
   }
   return (
     <Modal
+      busy={busy}
       title={tour ? "Cập nhật hành trình" : "Tạo hành trình mới"}
       subtitle="Thông tin công khai được dùng trực tiếp trên cổng tour."
       onClose={onClose}
       wide
     >
-      <form onSubmit={submit}>
+      <form key={tour?`${tour.id}:${tour.version}`:'new-tour'} onSubmit={submit}>
         <ErrorBox error={error} />
+        {conflict&&<div className="conflict-recovery"><p>Bản đang sửa đã cũ. Nội dung bạn nhập vẫn giữ tại đây. Chọn Nạp bản mới sẽ thay biểu mẫu bằng dữ liệu vừa lưu trên hệ thống; hãy sao chép phần cần giữ trước.</p><Button type="button" variant="ghost" disabled={busy} onClick={refresh}>Nạp bản mới<RefreshCw size={16}/></Button></div>}
+        <p className="tour-form-note">Xác nhận thông tin hành trình, số khách và nội dung bên dưới. Lưu tour nháp trước, kiểm tra rồi mới công khai.</p>
         {prefill && <div className="catalog-source"><ShieldCheck size={18} /><div><strong>Kiểm tra và bổ sung trước khi lưu</strong><p>Đã lấy nội dung tham khảo {prefill.code}. Xác nhận giá, nhập ngày đi, sức chứa, khách đã giữ chỗ và lịch trình từng ngày. Tour chưa được công khai.</p></div></div>}
+        <div className="form-section-label">Thông tin hành trình</div>
         <Field label="Tên tour">
           <input name="title" defaultValue={t.title} required maxLength="120" />
         </Field>
@@ -1098,6 +1112,7 @@ function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
             />
           </Field>
         </div>
+        <div className="form-section-label">Nội dung cho khách hàng</div>
         <Field label="Mô tả ngắn">
           <textarea
             name="description"
@@ -1153,82 +1168,24 @@ function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
     </Modal>
   );
 }
-function TaskEditor({ tours, defaultTourId, onClose, onSave }) {
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-  async function submit(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      await api("/tasks", "POST", Object.fromEntries(new FormData(e.target)));
-      await onSave();
-      onClose();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <Modal
-      title="Giao một công việc"
-      subtitle="Rõ người phụ trách, rõ thời hạn, gắn với đúng tour."
-      onClose={onClose}
-    >
-      <form onSubmit={submit}>
-        <ErrorBox error={error} />
-        <Field label="Công việc">
-          <input
-            name="title"
-            required
-            maxLength="160"
-            placeholder="Ví dụ: Chốt danh sách khách"
-          />
-        </Field>
-        {!tours.length && <p className="workspace-notice">Tạo một tour trong Quản lý tour trước khi giao công việc.</p>}
-        <Field label="Tour liên quan">
-          <select name="tour_id" defaultValue={defaultTourId} required>
-            {tours.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field
-          label="Người phụ trách"
-          hint="Tên do bạn nhập để theo dõi. Hệ thống chưa tạo tài khoản hoặc gửi thông báo cho người được giao."
-        >
-          <input
-            name="assignee"
-            required
-            maxLength="80"
-            placeholder="Nhập tên người phụ trách"
-          />
-        </Field>
-        <div className="form-grid">
-          <Field label="Hạn hoàn thành">
-            <input
-              name="due"
-              type="date"
-              required
-            />
-          </Field>
-          <Field label="Ưu tiên">
-            <select name="priority">
-              <option value="normal">Bình thường</option>
-              <option value="high">Cao</option>
-            </select>
-          </Field>
-        </div>
-        <Button disabled={busy || !tours.length} variant="full">
-          {busy ? "Đang lưu…" : "Giao công việc"}
-          <Plus size={17} />
-        </Button>
-      </form>
-    </Modal>
-  );
+function TaskEditor({ tours, task, defaultTourId, onClose, onSave, onRefresh }) {
+  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[conflict,setConflict]=useState(false),[confirmDelete,setConfirmDelete]=useState(false);
+  async function save(e){e.preventDefault();setBusy(true);setError('');try{const body=Object.fromEntries(new FormData(e.target));if(task)body.version=task.version;await api(task?'/tasks/'+task.id:'/tasks',task?'PUT':'POST',body);await onSave();onClose();}catch(e){setError(e.message);setConflict(e.status===409);}finally{setBusy(false);}}
+  async function remove(){setBusy(true);try{await api('/tasks/'+task.id,'DELETE',{version:task.version});await onSave();onClose();}catch(e){setError(e.message);setConflict(e.status===409);}finally{setBusy(false);}}
+  async function refresh(){setBusy(true);try{await onRefresh();setConflict(false);setError('');setConfirmDelete(false);}catch(e){setError(e.message);}finally{setBusy(false);}}
+  return <Modal title={task?'Cập nhật công việc':'Giao một công việc'} subtitle="Gắn với tour, rõ người phụ trách và thời hạn." onClose={onClose} busy={busy}>
+    <form key={task?`${task.id}:${task.version}`:'new-task'} onSubmit={save}><ErrorBox error={error}/>
+      {conflict&&<div className="conflict-recovery"><p>Công việc đã đổi từ một màn hình khác. Chọn Nạp bản mới sẽ thay nội dung đang nhập; sao chép phần cần giữ trước.</p><Button type="button" variant="ghost" onClick={refresh} disabled={busy}>Nạp bản mới<RefreshCw size={15}/></Button></div>}
+      <Field label="Công việc"><input name="title" defaultValue={task?.title||''} required maxLength="160" placeholder="Nhập nội dung công việc"/></Field>
+      {!tours.length&&<p className="workspace-notice">Tạo một tour trong Quản lý tour trước khi giao công việc.</p>}
+      <Field label="Tour liên quan"><select name="tour_id" defaultValue={task?.tour_id||defaultTourId||''} required><option value="" disabled>Chọn tour</option>{tours.map(t=><option key={t.id} value={t.id}>{t.title}</option>)}</select></Field>
+      <Field label="Người phụ trách" hint="Tên nhập để theo dõi; chưa tạo tài khoản hoặc gửi thông báo cho người này."><input name="assignee" defaultValue={task?.assignee||''} required maxLength="80" placeholder="Nhập tên người phụ trách"/></Field>
+      <div className="form-grid"><Field label="Hạn hoàn thành"><input name="due" type="date" defaultValue={task?.due||''} required/></Field><Field label="Ưu tiên"><select name="priority" defaultValue={task?.priority||'normal'}><option value="normal">Bình thường</option><option value="high">Cao</option></select></Field></div>
+      {task&&<Field label="Trạng thái"><select name="status" defaultValue={task.status}>{Object.entries(statuses).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></Field>}
+      {confirmDelete&&<div className="delete-confirm" role="alert"><strong>Xóa công việc này?</strong><p>Tour và các công việc khác được giữ nguyên.</p><Button type="button" variant="danger" disabled={busy} onClick={remove}>Xác nhận xóa công việc</Button><Button type="button" variant="ghost" disabled={busy} onClick={()=>setConfirmDelete(false)}>Giữ công việc</Button></div>}
+      <div className="modal-actions">{task&&!confirmDelete&&<Button type="button" variant="danger" disabled={busy} onClick={()=>setConfirmDelete(true)}>Xóa công việc</Button>}<Button type="button" variant="ghost" disabled={busy} onClick={onClose}>Hủy</Button><Button disabled={busy||!tours.length}>{busy?'Đang lưu…':task?'Lưu công việc':'Giao công việc'}<Check size={16}/></Button></div>
+    </form>
+  </Modal>;
 }
 
 function Dashboard({
@@ -1389,7 +1346,7 @@ function Dashboard({
           </div>
           {data.tours
             .filter(
-              (t) => t.departure >= new Date().toLocaleDateString("sv-SE"),
+              (t) => t.departure >= todayVN(),
             )
             .sort((a, b) => a.departure.localeCompare(b.departure))
             .slice(0, 3)
@@ -1417,7 +1374,7 @@ function Dashboard({
               </button>
             ))}
           {!data.tours.some(
-            (t) => t.departure >= new Date().toLocaleDateString("sv-SE"),
+            (t) => t.departure >= todayVN(),
           ) && (
             <Empty title="Chưa có lịch khởi hành sắp tới">
               Các tour đã qua ngày khởi hành vẫn nằm trong Quản lý tour.
@@ -1436,13 +1393,14 @@ function Dashboard({
   );
 }
 
-function Tasks({ data, onNew, onChange, readOnly = false }) {
+function Tasks({ data, onNew, onChange, onEdit, pendingId, readOnly = false }) {
   const [query, setQuery] = useState(""),
-    [filter, setFilter] = useState("");
+    [filter, setFilter] = useState(""),[dueFilter,setDueFilter]=useState('all');
   const tours = Object.fromEntries(data.tours.map((t) => [t.id, t.title]));
   const visible = data.tasks.filter(
     (t) =>
       (!filter || t.tour_id === filter) &&
+      (dueFilter==='all'||(dueFilter==='overdue'&&t.status!=='done'&&t.due<todayVN())||(dueFilter==='today'&&t.due===todayVN())||(dueFilter==='high'&&t.priority==='high')) &&
       (t.title + " " + t.assignee)
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
@@ -1471,7 +1429,9 @@ function Tasks({ data, onNew, onChange, readOnly = false }) {
             </option>
           ))}
         </select>
+        <select aria-label="Lọc hạn và ưu tiên" value={dueFilter} onChange={e=>setDueFilter(e.target.value)}><option value="all">Mọi thời hạn</option><option value="overdue">Việc quá hạn</option><option value="today">Đến hạn hôm nay</option><option value="high">Ưu tiên cao</option></select>
       </div>
+      <div className="task-filter-count">{visible.length} / {data.tasks.length} công việc · {data.tasks.filter(t=>t.status!=='done'&&t.due<todayVN()).length} quá hạn {Boolean(query||filter||dueFilter!=='all')&&<button className="text-btn" onClick={()=>{setQuery('');setFilter('');setDueFilter('all');}}>Xóa bộ lọc công việc</button>}</div>
       <div className="kanban">
         {Object.entries(statuses).map(([status, label]) => (
           <section className={"kanban-column " + status} key={status}>
@@ -1487,9 +1447,10 @@ function Tasks({ data, onNew, onChange, readOnly = false }) {
             {visible
               .filter((t) => t.status === status)
               .map((t) => (
-                <article className="task-card" key={t.id}>
+                <article className="task-card" key={t.id} data-track-entity={t.id}>
                   <div className="task-label">{tours[t.tour_id]}</div>
-                  <h3>{t.title}</h3>
+                  <h3>{readOnly?t.title:<button className="task-title" aria-label={'Sửa '+t.title} data-track="task:edit" onClick={()=>onEdit(t)}>{t.title}</button>}</h3>
+                  {t.status!=='done'&&t.due<todayVN()&&<span className="task-overdue">Quá hạn</span>}
                   <div className="task-card-meta">
                     <Badge tone={t.priority === "high" ? "orange" : "gray"}>
                       {t.priority === "high" ? "Ưu tiên cao" : "Bình thường"}
@@ -1506,7 +1467,7 @@ function Tasks({ data, onNew, onChange, readOnly = false }) {
                     <span>{t.assignee}</span>
                   </div>
                   <select
-                    disabled={readOnly}
+                    disabled={readOnly||pendingId===t.id}
                     aria-label={"Trạng thái " + t.title}
                     value={t.status}
                     onChange={(e) => onChange(t, e.target.value)}
@@ -1535,357 +1496,6 @@ function Tasks({ data, onNew, onChange, readOnly = false }) {
   );
 }
 
-function Feedback({ data, notify, reload }) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  const f = data.feedback || {};
-  async function submit(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    const b = Object.fromEntries(new FormData(e.target));
-    for (const k of ["portal", "operations", "sync", "ease", "price"])
-      b[k] = Number(b[k]);
-    try {
-      await api("/feedback", "POST", b);
-      await reload();
-      notify("Đã lưu phản hồi. Cảm ơn bạn đã thử TaskHub!");
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  const actions = new Set(data.completedActions);
-  return (
-    <div className="feedback-layout">
-      <aside className="panel testing-guide">
-        <Badge tone="blue">ĐÁNH GIÁ SAU TRẢI NGHIỆM</Badge>
-        <h2>
-          Hãy thử trước, <br />
-          rồi kể cho chúng em.
-        </h2>
-        <p>
-          Phản hồi dựa trên những gì bạn vừa sử dụng giúp nhóm chọn đúng điều
-          cần cải thiện.
-        </p>
-        {trialSteps.map((step, i) => (
-          <div className="test-step" key={step.nav}>
-            <span className={stepDone(step, actions) ? "completed" : ""}>
-              {stepDone(step, actions) ? <Check size={16} /> : i + 1}
-            </span>
-            <div>
-              <strong>{step.title}</strong>
-              <small>{step.description}</small>
-            </div>
-          </div>
-        ))}
-        <div className="soft-note">
-          <ShieldCheck size={18} />
-          <p>
-            Không có đáp án đúng hay sai. Câu trả lời tiêu cực cũng rất hữu ích.
-            Bạn tự nhập dữ liệu trong không gian dùng thử riêng.
-          </p>
-        </div>
-      </aside>
-      <form className="panel feedback-form" onSubmit={submit}>
-        <div className="panel-header">
-          <div>
-            <h3>Trải nghiệm của bạn</h3>
-            <p>Đánh giá sau khi dùng MVP.</p>
-          </div>
-          {data.feedback && <Badge tone="blue">Đã lưu</Badge>}
-        </div>
-        <ErrorBox error={error} />
-        {[
-          ["portal", "Cổng thông tin tour có hữu ích cho bạn?"],
-          ["operations", "Giao việc gắn với tour có hữu ích cho bạn?"],
-          ["sync", "Dữ liệu lịch / số chỗ dùng chung có hữu ích?"],
-          ["ease", "Bạn thấy thao tác trên MVP dễ đến đâu?"],
-        ].map(([key, label]) => (
-          <fieldset className="rating" key={key}>
-            <legend>{label}</legend>
-            <div>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <label key={n}>
-                  <input
-                    type="radio"
-                    name={key}
-                    value={n}
-                    defaultChecked={f[key] === n}
-                    required
-                  />
-                  <span>{n}</span>
-                </label>
-              ))}
-            </div>
-            <small>
-              {key === "ease"
-                ? "1 = Rất khó · 5 = Rất dễ"
-                : "1 = Không hữu ích · 5 = Rất hữu ích"}
-            </small>
-          </fieldset>
-        ))}
-        <Field label="Bạn có muốn dùng sản phẩm này trong công việc?">
-          <select name="intent" defaultValue={f.intent || ""} required>
-            <option value="" disabled>
-              Chọn câu trả lời
-            </option>
-            <option value="yes">Có</option>
-            <option value="maybe">Có thể, cần cải thiện thêm</option>
-            <option value="no">Không</option>
-          </select>
-        </Field>
-        <Field
-          label="Mức tối đa bạn sẵn sàng trả / doanh nghiệp / tháng (VND)"
-          hint="Có thể nhập 0 nếu không muốn trả. Đây là ý kiến khảo sát, không phải giá đã chốt."
-        >
-          <input
-            name="price"
-            type="number"
-            min="0"
-            max="100000000"
-            defaultValue={f.price ?? ""}
-            required
-            placeholder="Ví dụ: 0 hoặc 300000"
-          />
-        </Field>
-        <Field label="Điều bạn thích (không bắt buộc)">
-          <textarea
-            name="liked"
-            maxLength="1500"
-            rows="2"
-            defaultValue={f.liked || ""}
-          />
-        </Field>
-        <Field label="Điều gây khó chịu hoặc cần sửa (không bắt buộc)">
-          <textarea
-            name="disliked"
-            maxLength="1500"
-            rows="3"
-            defaultValue={f.disliked || ""}
-          />
-        </Field>
-        <Button disabled={busy} variant="full">
-          {busy
-            ? "Đang lưu…"
-            : data.feedback
-              ? "Cập nhật phản hồi"
-              : "Gửi phản hồi"}
-          <Send size={17} />
-        </Button>
-      </form>
-    </div>
-  );
-}
-
-function Research({ notify }) {
-  const [data, setData] = useState(null),
-    [error, setError] = useState("");
-  const load = () =>
-    api("/research")
-      .then((result) => {
-        setData(result);
-        setError("");
-      })
-      .catch((e) => setError(e.message));
-  useEffect(() => {
-    load();
-  }, []);
-  const avg = (k) =>
-    data?.feedback.length
-      ? (
-          data.feedback.reduce((sum, f) => sum + f[k], 0) / data.feedback.length
-        ).toFixed(1)
-      : "—";
-  return (
-    <>
-      <ErrorBox error={error} />
-      <div className="research-banner">
-        <div>
-          <Badge tone="blue">PHẢN HỒI ĐÃ GHI NHẬN</Badge>
-          <h2>Học từ những người đã thử.</h2>
-          <p>
-            Tài khoản quản trị và dữ liệu tour mẫu không được tính là người khảo
-            sát.
-          </p>
-        </div>
-        <Button variant="ghost" onClick={load}>
-          <RefreshCw size={16} />
-          Làm mới
-        </Button>
-      </div>
-      <div className="stat-grid">
-        <div className="stat-card">
-          <span>Đã tạo không gian dùng thử</span>
-          <strong>{data?.participants ?? "—"}</strong>
-          <small>Email do người tham gia tự nhập</small>
-        </div>
-        <div className="stat-card">
-          <span>Phản hồi đã hoàn thành</span>
-          <strong>
-            {data?.feedback.length ?? "—"}
-            <small> / 20</small>
-          </strong>
-          <small>Mỗi tài khoản có một phản hồi</small>
-        </div>
-        <div className="stat-card">
-          <span>Tương tác được ghi nhận</span>
-          <strong>{data?.events ?? "—"}</strong>
-          <small>Không gồm lần tải lại tự động</small>
-        </div>
-        <div className="stat-card">
-          <span>Độ dễ sử dụng trung bình</span>
-          <strong>
-            {avg("ease")}
-            <small> / 5</small>
-          </strong>
-          <small>Chưa có dữ liệu thì không tính điểm</small>
-        </div>
-      </div>
-      <div className="research-readiness">
-        <div>
-          <strong>
-            {data?.readyToReview ?? "—"} tài khoản có phản hồi và đủ thao tác
-            thử
-          </strong>
-          <p>
-            Đã sửa tour, mở cổng khách hàng, tạo việc và đổi trạng thái trước
-            khi gửi phản hồi. Nhóm cần xác nhận từng người thật để chốt mẫu tối
-            thiểu 20 cá nhân.
-          </p>
-        </div>
-        <span className="badge blue">Mục tiêu tuyển: trên 20 người</span>
-      </div>
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <h3>Dữ liệu phục vụ CP3</h3>
-            <p>Email nằm trong bản xuất dành cho nhóm / giảng viên.</p>
-          </div>
-          <div className="button-row">
-            <a className="btn ghost" href="/api/export/events">
-              <Download size={16} />
-              Tương tác CSV
-            </a>
-            <a className="btn" href="/api/export/feedback">
-              <Download size={16} />
-              Phản hồi CSV
-            </a>
-          </div>
-        </div>
-        <div className="research-scores">
-          {[
-            ["portal", "Cổng thông tin tour"],
-            ["operations", "Giao việc nội bộ"],
-            ["sync", "Lịch & số chỗ dùng chung"],
-          ].map(([key, label]) => (
-            <div key={key}>
-              <span>{label}</span>
-              <strong>
-                {avg(key)}
-                <small> / 5</small>
-              </strong>
-            </div>
-          ))}
-        </div>
-        {data?.feedback.length ? (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Người tham gia</th>
-                  <th>Vai trò</th>
-                  <th>Thao tác thử</th>
-                  <th>Muốn sử dụng</th>
-                  <th>Mức sẵn sàng trả / tháng</th>
-                  <th>Cần cải thiện</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.feedback.map((f) => (
-                  <tr key={f.user_id}>
-                    <td>{f.name}</td>
-                    <td>{roleNames[f.role] || f.role}</td>
-                    <td>
-                      <Badge tone={f.has_test_flow ? "blue" : "orange"}>
-                        {f.has_test_flow ? "Đủ thao tác" : "Cần đối chiếu"}
-                      </Badge>
-                    </td>
-                    <td>
-                      {{ yes: "Có", maybe: "Có thể", no: "Không" }[f.intent]}
-                    </td>
-                    <td>{money(f.price)}</td>
-                    <td>{f.disliked || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <Empty title="Chưa có phản hồi thực">
-            Mời người tham gia tạo không gian dùng thử, trải nghiệm và gửi phản
-            hồi. Nhóm vẫn cần kiểm tra ai đã thực sự dùng MVP.
-          </Empty>
-        )}
-      </section>
-      <div className="portal-notice">
-        <AlertCircle size={18} />
-        <p>
-          20 tài khoản hoặc email khác nhau chưa chứng minh 20 cá nhân độc lập.
-          Nhóm cần đối chiếu người tham gia và lịch sử thao tác khi chốt mẫu.
-          Giá khảo sát chưa phải kết quả Van Westendorp.
-        </p>
-      </div>
-    </>
-  );
-}
-
-function Help({ user, onClose, onDelete }) {
-  return (
-    <Modal title="Bắt đầu cùng TaskHub" onClose={onClose}>
-      <div className="help-content">
-        <h3>Ba thao tác để thử MVP</h3>
-        <p>
-          1. Quản lý tour: tạo tour bằng thông tin bạn nhập. Chọn công khai nếu muốn xem trên cổng khách hàng; sau đó sửa lịch hoặc số chỗ để kiểm tra cập nhật.
-        </p>
-        <p>
-          2. Mở cổng tour: kiểm tra thay đổi. Cổng đọc cùng cơ sở dữ liệu và cập
-          nhật mỗi 5 giây khi đang mở.
-        </p>
-        <p>
-          3. Công việc: giao việc gắn với tour rồi chuyển sang Đang thực hiện /
-          Hoàn thành.
-        </p>
-        <h3>Những gì bản này có</h3>
-        <p>
-          Thông tin tour, lịch/số chỗ dùng chung, giao việc, yêu cầu tư vấn và
-          phản hồi dùng thử. Chưa có thanh toán, tự gửi email, tài khoản nhân
-          viên được giao việc, nhập Excel hoặc đối soát B2B đầy đủ.
-        </p>
-        <h3>Hỗ trợ</h3>
-        <p>
-          Ghi vấn đề trong mục Phản hồi MVP để nhóm TaskHub xem. Bản học phần
-          chưa có cam kết SLA.
-        </p>
-        {!["admin", "reviewer"].includes(user.role) && (
-          <>
-            <h3>Dữ liệu của bạn</h3>
-            <p>
-              Không gian dùng thử riêng. Xóa tài khoản sẽ xóa tour, công việc,
-              lịch sử và phản hồi của bạn trên hệ thống. Nếu nhóm đã xuất CSV,
-              cần yêu cầu nhóm xóa bản xuất riêng.
-            </p>
-            <Button variant="danger" onClick={onDelete}>
-              Xóa tài khoản và dữ liệu dùng thử
-            </Button>
-          </>
-        )}
-      </div>
-    </Modal>
-  );
-}
-
 function Workspace({ user, onLogout, onPortal, notify }) {
   const pending = useRef(0);
   const latest = useRef(0);
@@ -1896,8 +1506,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     [editor, setEditor] = useState(null),
     [help, setHelp] = useState(false),
     [menu, setMenu] = useState(false),
-    [query, setQuery] = useState(""),
-    [last, setLast] = useState("");
+    [query, setQuery] = useState(""),[tourFilter,setTourFilter]=useState('all'),
+    [last, setLast] = useState(""),[pendingTask,setPendingTask]=useState(''),[pendingLead,setPendingLead]=useState(''),[leadQuery,setLeadQuery]=useState(''),[leadStatus,setLeadStatus]=useState('');
   const [mobile, setMobile] = useState(
     () => matchMedia("(max-width: 650px)").matches,
   );
@@ -1932,6 +1542,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       setData(d);
       setError("");
       setLast(new Date().toLocaleTimeString("vi-VN"));
+      return d;
     } finally {
       pending.current -= 1;
     }
@@ -1945,40 +1556,45 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     return () => clearInterval(timer);
   }, [reload]);
   async function changeTask(t, status) {
+    setPendingTask(t.id);
     try {
-      await api("/tasks/" + t.id, "PATCH", { status });
+      await api("/tasks/" + t.id, "PATCH", { status,version:t.version });
       await reload();
       notify("Đã cập nhật trạng thái công việc.");
     } catch (e) {
-      notify(e.message, "error");
-    }
+      notify(e.message, "error");if(e.status===409)await reload().catch(()=>{});
+    } finally{setPendingTask('');}
   }
   async function changeLead(i, status) {
+    setPendingLead(i.id);
     try {
       await api("/inquiries/" + i.id, "PATCH", { status });
       await reload();
       notify("Đã cập nhật yêu cầu.");
     } catch (e) {
       notify(e.message, "error");
-    }
+    }finally{setPendingLead('');}
   }
+  async function refreshEditor(){const d=await reload();if(!d)throw Error('Chưa tải được bản mới. Thử lại sau.');setEditor(current=>{if(!current)return current;const kind=current.type==='task'?'tasks':current.type==='pooling'?'pooling':'tours';const record=current.task||current.pool||current.tour;if(!record)return current;const found=d[kind].find(r=>r.id===record.id);if(!found){notify('Bản ghi đã bị xóa.','error');return null;}return {...current,[current.task?'task':current.pool?'pool':'tour']:found};});return d;}
+  const visibleLeads=(data?.inquiries||[]).filter(i=>(!leadStatus||i.status===leadStatus)&&(i.name+' '+i.email+' '+i.tour_title).toLocaleLowerCase('vi').includes(leadQuery.toLocaleLowerCase('vi')));
   const current = navItems.find((i) => i[0] === nav);
   const minimumReserved = id => (data?.pooling || []).filter(p => p.tour_id === id && p.status === "confirmed").reduce((sum,p) => sum+p.seats,0);
   const visibleTours =
     data?.tours.filter((t) =>
+      (tourFilter==='all'||(tourFilter==='published'&&t.published)||(tourFilter==='draft'&&!t.published)||(tourFilter==='past'&&t.departure<todayVN())||(tourFilter==='upcoming'&&t.departure>=todayVN()))&&
       (t.title + " " + t.destination)
         .toLocaleLowerCase("vi")
         .includes(query.toLocaleLowerCase("vi")),
     ) || [];
   const descriptions = {
     dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
-    tours: "Một lần cập nhật. Cả đội ngũ và khách hàng cùng nhìn thấy.",
+    tours: "Dữ liệu điều hành và cổng khách hàng cùng một nguồn.",
     tasks: "Rõ người phụ trách. Đúng thời hạn. Không bỏ sót.",
     pooling: "Một nơi xác nhận khách ghép và theo dõi số tiền còn phải thu.",
     inbox: "Tiếp nhận yêu cầu ngay cả ngoài giờ làm việc.",
     research: ["admin", "reviewer"].includes(user.role)
       ? "Theo dõi phản hồi và xuất dữ liệu cho nhóm."
-      : "Chia sẻ trải nghiệm sau khi thử ba tính năng cốt lõi.",
+      : "Đánh giá đúng những tính năng bạn đã tự dùng hoặc xem demo.",
   };
   return (
     <div className="app-shell">
@@ -2207,6 +1823,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                         onChange={(e) => setQuery(e.target.value)}
                       />
                     </label>
+                    <select aria-label="Lọc trạng thái tour" value={tourFilter} onChange={e=>setTourFilter(e.target.value)}><option value="all">Tất cả tour</option><option value="published">Đang công khai</option><option value="draft">Bản nháp</option><option value="upcoming">Chưa khởi hành</option><option value="past">Đã khởi hành</option></select>
                     <span className="muted">
                       {visibleTours.length} / {data.tours.length} hành trình
                     </span>
@@ -2231,13 +1848,13 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                           : "Chưa có hành trình"
                       }
                     >
-                      {query
+                      {query||tourFilter!=='all'
                         ? "Thử từ khóa khác hoặc xóa bộ lọc."
                         : "Tạo một tour để bắt đầu."}
-                      {query && (
+                      {(query||tourFilter!=='all') && (
                         <button
                           className="text-btn"
-                          onClick={() => setQuery("")}
+                          onClick={() => {setQuery("");setTourFilter('all');}}
                         >
                           Xóa bộ lọc
                         </button>
@@ -2252,6 +1869,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   data={data}
                   onNew={() => setEditor({ type: "task" })}
                   onChange={changeTask}
+                  onEdit={task=>setEditor({type:'task',task})}
+                  pendingId={pendingTask}
                 />
               )}{" "}
               {nav === "pooling" && <Pooling data={data} readOnly={readOnly} onNew={() => setEditor({ type: "pooling" })} onPayment={pool => setEditor({ type: "pooling", pool })} reload={reload} notify={notify} />}
@@ -2264,7 +1883,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                     </h3>
                     <Badge tone="gray">Chưa giữ chỗ tự động</Badge>
                   </div>
-                  {data.inquiries.length ? (
+                  <div className="filter-bar inquiry-filters"><label className="search"><Search size={17}/><input aria-label="Tìm yêu cầu tư vấn" value={leadQuery} onChange={e=>setLeadQuery(e.target.value)} placeholder="Tên, email hoặc tour…"/></label><select aria-label="Lọc trạng thái tư vấn" value={leadStatus} onChange={e=>setLeadStatus(e.target.value)}><option value="">Mọi trạng thái</option><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="closed">Đã đóng</option></select></div>
+                  {visibleLeads.length ? (
                     <div className="table-wrap">
                       <table>
                         <thead>
@@ -2277,7 +1897,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {data.inquiries.map((i) => (
+                          {visibleLeads.map((i) => (
                             <tr key={i.id}>
                               <td>
                                 <strong>{i.name}</strong>
@@ -2288,7 +1908,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                               <td>{i.note || "—"}</td>
                               <td>
                                 <select
-                                  disabled={readOnly}
+                                  disabled={readOnly||pendingLead===i.id}
                                   aria-label={
                                     "Trạng thái yêu cầu của " + i.name
                                   }
@@ -2308,10 +1928,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                       </table>
                     </div>
                   ) : (
-                    <Empty title="Chưa có yêu cầu mới">
-                      Mở cổng khách hàng, chọn tour và gửi yêu cầu tư vấn để thử
-                      luồng tiếp nhận.
-                    </Empty>
+                    <Empty title={leadQuery||leadStatus?'Không có yêu cầu phù hợp':'Chưa có yêu cầu mới'}>{leadQuery||leadStatus?<><span>Thử từ khóa hoặc trạng thái khác.</span><button className="text-btn" onClick={()=>{setLeadQuery('');setLeadStatus('');}}>Xóa bộ lọc tư vấn</button></>:'Yêu cầu khách gửi từ tour đã công khai sẽ được lưu tại đây.'}</Empty>
                   )}
                 </section>
               )}
@@ -2344,6 +1961,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           prefill={editor.prefill}
           minimumReserved={minimumReserved(editor.tour?.id)}
           onClose={() => setEditor(null)}
+          onRefresh={refreshEditor}
           onSave={async () => {
             await reload();
             notify("Đã lưu tour. Cổng khách hàng sẽ cập nhật dữ liệu mới.");
@@ -2354,10 +1972,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         <TaskEditor
           tours={data.tours}
           defaultTourId={editor.tour?.id}
+          task={editor.task}
+          onRefresh={refreshEditor}
           onClose={() => setEditor(null)}
           onSave={async () => {
             await reload();
-            notify("Đã giao công việc.");
+            notify(editor.task?'Đã cập nhật công việc.':'Đã giao công việc.');
           }}
         />
       )}
@@ -2365,11 +1985,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         <CatalogPicker catalog={data.catalog} onClose={() => setEditor(null)} onUse={prefill => setEditor({ type: "tour", prefill })} />
       )}
       {editor?.type === "import" && !readOnly && <ImportTours onClose={() => setEditor(null)} onSave={async count => {await reload();notify(`Đã nhập ${count} tour dưới dạng bản nháp.`);}} />}
-      {editor?.type === "seats" && !readOnly && <SeatEditor tour={editor.tour} minimumReserved={minimumReserved(editor.tour.id)} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã cập nhật số khách. Portal sẽ đồng bộ số chỗ.");}} />}
-      {editor?.type === "pooling" && !readOnly && <PoolingEditor tours={data.tours} pool={editor.pool} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã lưu phiếu ghép tour.");}} />}
+      {editor?.type === "seats" && !readOnly && <SeatEditor onRefresh={refreshEditor} tour={editor.tour} minimumReserved={minimumReserved(editor.tour.id)} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã cập nhật số khách. Portal sẽ đồng bộ số chỗ.");}} />}
+      {editor?.type === "pooling" && !readOnly && <PoolingEditor onRefresh={refreshEditor} tours={data.tours} pool={editor.pool} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã lưu phiếu ghép tour.");}} />}
       {help && (
         <Help
           user={user}
+          onNav={nav=>nav==='portal'?onPortal():setNav(nav)}
           onClose={() => setHelp(false)}
           onDelete={async () => {
             if (
@@ -2393,6 +2014,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
 }
 
 const { ImportTours, SeatEditor, PoolingEditor, Pooling } = createOperationsUI({Modal,Button,Field,ErrorBox,Empty,Badge,api,money,date});
+const {FeatureFeedback: Feedback,Research,Help}=createExperienceUI({Modal,Button,Field,ErrorBox,Empty,Badge,api,money,date,roleNames});
 
 function App() {
   const [user, setUser] = useState(null),

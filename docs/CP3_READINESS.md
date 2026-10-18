@@ -26,7 +26,7 @@ Chủ dự án xác nhận đợt này chỉ làm FE/BE và bàn giao. Không l�
 | Special Features/AI-proof | Có thể demo dữ liệu tour và việc dùng chung với cổng khách hàng | Nhóm phải đối chiếu CP1, giải thích lợi thế và nguy cơ thay thế; code không chứng minh độc nhất thị trường. |
 | Support | Hướng dẫn trong app, Phản hồi MVP, README và tài liệu bàn giao | Chưa được cung cấp kênh công khai/người trực hoặc mức dịch vụ. Không tự thêm SLA. |
 | Giá | Form thu willingness-to-pay đơn giản, cho phép 0; tool tổng hợp mô tả dữ liệu thật | Chưa chốt chiến lược/giá. 500.000 VND/tháng ở CP2 là giả định, không phải giá đã kiểm chứng. Không có Price Map/Van Westendorp. |
-| MVP testing | Consent, email tự nhập, vai trò/quy mô, logs, đánh giá tính năng, ý định dùng, giá và ý kiến mở | Chưa xác minh email/20 người thật. Form thu ý định sản phẩm chung, không suy diễn thành ý định từng tính năng. |
+| MVP testing | Consent, email tự nhập, vai trò/quy mô, log và form 6 nhóm tính năng với tự dùng/xem demo/chưa thử, quan trọng/dễ dùng/ý định theo tính năng, giá tùy chọn và ý kiến mở | Chưa xác minh email/20 người thật. Phản hồi phiên bản cũ giữ riêng, không tự chuyển thang đo. |
 | RAW data | Xuất interactions/feedback CSV có email theo quyền quản trị/reviewer | Nhóm phải xuất bản gốc, đối chiếu người thật và cấp quyền phụ lục; không đưa raw data lên repo public. |
 | Nút/menu | `ui_click`/`ui_change` cho tài khoản người thử đã đồng ý; mã điều khiển, khu vực, thời gian thiết bị/server; chống ghi trùng lô gửi lại | Không ghi nội dung gõ/mật khẩu. Mất mạng/đóng trình duyệt đột ngột có thể thiếu log; admin/reviewer không tính. |
 | Bộ câu hỏi cho An | 12 câu, 6 nhóm tính năng; đánh giá quan trọng, ý định dùng và dễ dùng theo từng tính năng; Sheet raw để trống | Chưa phải kết quả khảo sát hoặc bằng chứng đã có 20 người. |
@@ -38,6 +38,7 @@ Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [khảo sát
 ## Kiểm chứng ngày 17–18/10
 
 - 40 kiểm tra Node/API, gateway và công cụ tổng hợp đạt trên SQLite và libSQL ở đợt 18/10, gồm B2B giữ/hoàn chỗ, đối soát, nhập tệp và quyền/giới hạn log. UI kiểm tra thêm XLSX thật, thao tác nhanh và luồng B2B. Không dùng QA làm khảo sát.
+- Bản 0.4 nâng lên 58 kiểm tra, thêm sửa/xóa việc có phiên bản, khảo sát 6 tính năng/CSV, khóa tư vấn tour đã khởi hành và audit B2B. Hướng dẫn mới có lối mở từng chức năng và bảng P1–P3/S-1–S-4 ngay trong app.
 - Đã tải CSV thật từ hệ thống bằng quyền quản trị và chạy tool: 0 dòng phản hồi, 0 dòng tương tác, không có kết quả để kết luận. Raw và báo cáo được giữ riêng dưới `work/research/2026-10-17/`, không commit.
 - Ngày 17/10, 20 lần đọc đồng thời cổng công khai lúc đó trống đều trả 200. Mẫu đo từ máy/mạng này: trung vị 643,5 ms; p95 1.093 ms. Đây là một mẫu request, không phải 20 người, phép đo tải đại diện hoặc cam kết hiệu năng.
 - Ngày 18/10, API D1 và UI production qua Pages đạt thêm luồng B2B/Excel, thao tác nhanh, log click đã lưu, quyền reviewer và màn hình desktop/mobile; không có lỗi JavaScript trong các luồng đã thử.

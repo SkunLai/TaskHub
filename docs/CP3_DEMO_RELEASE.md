@@ -2,7 +2,7 @@
 
 - Web: https://taskhub-travel.pages.dev/
 - Nhánh làm việc của nhóm: `build`; `dev` giữ để chủ repo duyệt.
-- Mốc demo: Git tag `demo-cp3-2026-10-18`. Không di chuyển tag sau khi đã tạo; sửa lỗi tiếp theo phải có mốc mới.
+- Mốc demo 0.4: Git tag `demo-cp3-0.4-2026-10-18`. Mốc 0.3 `demo-cp3-2026-10-18` được giữ làm bản dự phòng. Không di chuyển tag đã tạo.
 - Bảng đối chiếu: [P1–P3 và S-1–S-4](CP2_FEATURE_MAP.md).
 - Câu hỏi bàn giao An: [khảo sát sau dùng thử](CP3_SURVEY_QUESTIONS.md).
 
@@ -29,7 +29,7 @@
 ```powershell
 git clone https://github.com/skunlainro3-glitch/TaskHub.git
 cd TaskHub
-git switch --detach demo-cp3-2026-10-18
+git switch --detach demo-cp3-0.4-2026-10-18
 npm ci
 Copy-Item .env.example .env
 npm run dev

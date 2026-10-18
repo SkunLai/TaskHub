@@ -61,3 +61,12 @@
 - Hoàn thiện kịch bản lời dẫn theo P1–P3, ba vòng tập, checklist trình bày và bảng thông tin demo cần nhóm duyệt. Chưa đánh dấu Tuấn đã tập hoặc dữ liệu demo đã được duyệt khi chưa có xác nhận thực tế.
 - Chủ dự án yêu cầu chưa gửi giảng viên: không gửi email, thông tin đăng nhập hoặc cấp quyền mới. Bản hướng dẫn bàn giao giữ lại cho lúc anh yêu cầu tiếp.
 - Đợt này chỉ bổ sung công cụ offline và tài liệu, không thay giao diện/API/schema/dữ liệu production; tag demo đã phát hành được giữ nguyên.
+
+## Rà soát toàn bộ web và tài liệu nhóm bản 0.4 — 18/10/2026
+
+- Đọc CP3_Task mới, requirements/rubric và phạm vi first release trong CP2. Giữ ba chức năng cốt lõi cùng các phần Task2 đã phân công; không tự điền thông tin kinh doanh còn thiếu.
+- 58/58 kiểm tra đạt trên SQLite và libSQL. Thêm khảo sát 6 tính năng với self/demo/untried, giá thiếu khác 0, quyền xuất CSV và giữ phản hồi cũ; task CRUD có phiên bản; lịch sử B2B nguyên tử, rollback khi audit lỗi, tách khỏi research; chặn tư vấn tour đã khởi hành theo ngày Việt Nam.
+- Build FE, Pages và Sites đạt. Migration 0002 chỉ tạo feature_feedback, pooling_audit và thêm tasks.version; migration 0000/0001 không đổi. Cả ba migration đã chạy thành công trên D1 QA riêng được xác nhận trống.
+- UI local đạt tạo/sửa/xóa việc và bộ lọc, tour rút công khai rồi khôi phục, lịch sử B2B, form 6 tính năng, giá chưa biết/null rồi cập nhật 0, 3 CSV reviewer, XLSX thật và log nút/menu. Không có lỗi JavaScript/tràn ngang trong các luồng kiểm tra ở 320/390/768/1440px.
+- Kiểm tra riêng tour editor, đổi số khách, task editor và đối soát: sau 409 giữ giá trị nháp, nút Nạp bản mới lấy đúng dữ liệu/version mới và có thể lưu lại. Hướng dẫn mới có đủ 6 nhóm chức năng, lối mở trực tiếp và bảng P1–P3/S-1–S-4.
+- Tài khoản QA được xóa sau từng lần thử. Kết quả production và mã deployment được ghi tiếp sau khi phát hành; chưa dùng QA làm bằng chứng người thử thật.

@@ -23,6 +23,24 @@ page.on("pageerror", (e) => {
 const base = process.env.TEST_URL || "http://127.0.0.1:5173";
 const em = "ui-" + Date.now() + "@example.test";
 let registered = false;
+const screenshot = (options) => page.screenshot({ animations: "disabled", ...options });
+const workspace = async () => {
+  const response = await context.request.get(base + "/api/workspace");
+  assert.equal(response.status(), 200);
+  return response.json();
+};
+const noOverflow = async (label, widths = [320, 390]) => {
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${label} overflows at ${width}px`);
+  }
+};
+const chooseFeedbackMode = async (feature, mode) => {
+  const radio = page.locator(`input[name="mode:${feature}"][value="${mode}"]`);
+  // The visible label is the touch target; its styled span covers the native radio.
+  await radio.locator('..').click();
+  assert.ok(await radio.isChecked());
+};
 try {
   await page.goto(base);
   await page.locator('.catalog-card').last().waitFor();
@@ -36,7 +54,7 @@ try {
   await page.getByRole('button',{name:'Xong',exact:true}).click();
   await page.getByLabel('Tìm tour',{exact:true}).fill('');
   assert.equal(await page.getByText('TaskHub Travel',{exact:true}).count(),0);
-  await page.screenshot({ path: "work/portal-desktop.png", fullPage: true });
+  await screenshot({ path: "work/portal-desktop.png", fullPage: true });
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 844 });
     assert.ok(
@@ -80,14 +98,16 @@ try {
   await page.getByLabel('Vai trò hiện tại',{exact:true}).selectOption('operations');
   await page.getByLabel('Quy mô doanh nghiệp',{exact:true}).selectOption('10to30');
   await page.locator('input[name="consent"]').check();
+  const signupResponse = page.waitForResponse(response => response.url().endsWith('/api/register') && response.request().method() === 'POST');
   await page
     .getByRole("button", { name: "Bắt đầu trải nghiệm", exact: true })
     .click();
+  assert.equal((await signupResponse).status(), 201);
+  registered = true;
   await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
   await page
     .getByRole("heading", { name: "Bắt đầu trong 3 bước", exact: true })
     .waitFor();
-  registered = true;
   console.log("Signup passed");
   await page.getByText("Hành trình đang mở", { exact: true }).waitFor();
   let pending = 0,
@@ -115,7 +135,7 @@ try {
   // Drain delayed handlers before later navigation can cancel/handle their routes.
   await page.unrouteAll({ behavior: "wait" });
   console.log("Slow connection passed: no background request pile-up");
-  await page.screenshot({ path: "work/dashboard-desktop.png", fullPage: true });
+  await screenshot({ path: "work/dashboard-desktop.png", fullPage: true });
   await page.getByRole("button", { name: "Quản lý tour", exact: true }).click();
   await page.getByRole('heading',{name:'Chưa có hành trình',exact:true}).waitFor();
   await page.getByRole('button',{name:'Tạo tour',exact:true}).click();
@@ -168,9 +188,24 @@ try {
   await page
     .getByRole("button", { name: qaTour.title, exact: true })
     .click();
+  // The open detail must follow the shared source if an operator withdraws a tour.
+  const beforeWithdrawal = (await workspace()).tours.find((tour) => tour.title === qaTour.title);
+  const withdraw = await context.request.put(base + "/api/tours/" + beforeWithdrawal.id, {
+    headers: { "X-TaskHub": "1" },
+    data: { ...beforeWithdrawal, published: false },
+  });
+  assert.equal(withdraw.status(), 200);
+  await page.getByText("Tour đã ngừng công khai", { exact: true }).waitFor({ timeout: 20000 });
+  assert.equal(await page.getByRole("button", { name: "Yêu cầu tư vấn", exact: true }).count(), 0);
+  const withdrawn = (await workspace()).tours.find((tour) => tour.id === beforeWithdrawal.id);
+  const republish = await context.request.put(base + "/api/tours/" + withdrawn.id, {
+    headers: { "X-TaskHub": "1" },
+    data: { ...withdrawn, published: true },
+  });
+  assert.equal(republish.status(), 200);
   await page
     .getByRole("button", { name: "Yêu cầu tư vấn", exact: true })
-    .click();
+    .click({ timeout: 20000 });
   await page.getByLabel("Tên", { exact: true }).fill("Khách minh họa");
   await page.getByLabel("Email", { exact: true }).fill("customer@example.test");
   await page.locator('input[name="consent"]').check();
@@ -198,6 +233,7 @@ try {
   await page
     .getByLabel("Công việc", { exact: true })
     .fill("Công việc kiểm thử UI");
+  await page.getByLabel("Tour liên quan", { exact: true }).selectOption({ label: qaTour.title });
   await page
     .getByLabel("Người phụ trách", { exact: true })
     .fill("Nhân viên mẫu");
@@ -214,8 +250,39 @@ try {
     .locator(".kanban-column.done")
     .getByRole("heading", { name: "Công việc kiểm thử UI" })
     .waitFor();
-  await page.screenshot({ path: "work/tasks-desktop.png", fullPage: true });
-  console.log("Tasks passed");
+  await page.getByRole("button", { name: "Sửa Công việc kiểm thử UI", exact: true }).click();
+  await page.getByRole("heading", { name: "Cập nhật công việc", exact: true }).waitFor();
+  await page.getByLabel("Công việc", { exact: true }).fill("Công việc kiểm thử UI đã cập nhật");
+  await page.getByLabel("Người phụ trách", { exact: true }).fill("Người phụ trách đã đổi");
+  await page.getByLabel("Hạn hoàn thành", { exact: true }).fill("2026-12-19");
+  await page.getByLabel("Ưu tiên", { exact: true }).selectOption("high");
+  await page.getByRole("button", { name: "Lưu công việc", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: "Sửa Công việc kiểm thử UI đã cập nhật", exact: true }).waitFor();
+  const updatedTask = (await workspace()).tasks.find((task) => task.title === "Công việc kiểm thử UI đã cập nhật");
+  assert.equal(updatedTask.assignee, "Người phụ trách đã đổi");
+  assert.equal(updatedTask.due, "2026-12-19");
+  assert.equal(updatedTask.priority, "high");
+  assert.equal(updatedTask.status, "done", "Editing task details preserves its completed status");
+  await page.getByLabel("Lọc hạn và ưu tiên", { exact: true }).selectOption("high");
+  assert.equal(await page.locator(".task-card").count(), 1);
+  await page.getByLabel("Lọc hạn và ưu tiên", { exact: true }).selectOption("overdue");
+  assert.equal(await page.locator(".task-card").count(), 0, "Completed tasks are excluded from overdue work");
+  await page.getByLabel("Lọc hạn và ưu tiên", { exact: true }).selectOption("all");
+  await page.getByRole("button", { name: "Giao công việc", exact: true }).click();
+  await page.getByLabel("Công việc", { exact: true }).fill("Công việc kiểm thử để xóa");
+  await page.getByLabel("Tour liên quan", { exact: true }).selectOption({ label: qaTour.title });
+  await page.getByLabel("Người phụ trách", { exact: true }).fill("Người kiểm thử xóa");
+  await page.getByLabel("Hạn hoàn thành", { exact: true }).fill(qaTour.departure);
+  await page.getByRole("dialog").getByRole("button", { name: "Giao công việc", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page.getByRole("button", { name: "Sửa Công việc kiểm thử để xóa", exact: true }).click();
+  await page.getByRole("button", { name: "Xóa công việc", exact: true }).click();
+  await page.getByRole("button", { name: "Xác nhận xóa công việc", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  assert.equal((await workspace()).tasks.some((task) => task.title === "Công việc kiểm thử để xóa"), false);
+  await screenshot({ path: "work/tasks-desktop.png", fullPage: true });
+  console.log("Tasks passed: create/status, edit title/assignee/due, and confirmed deletion");
   await page.getByRole('button',{name:'Ghép tour B2B',exact:true}).click();
   await page.getByRole('button',{name:'Tạo phiếu ghép',exact:true}).first().click();
   await page.getByLabel('Tour ghép',{exact:true}).selectOption({index:1});
@@ -232,25 +299,66 @@ try {
     await page.getByRole('button',{name:'Lưu đối soát',exact:true}).click();
     await page.getByRole('dialog').waitFor({state:'hidden'});
   }
-  await page.screenshot({path:'work/pooling-desktop.png',fullPage:true});
-  for(const width of [320,390]) {await page.setViewportSize({width,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'B2B mobile overflow');}
-  await page.screenshot({path:'work/pooling-mobile.png',fullPage:true});
+  await page.getByRole('button',{name:'Lịch sử phiếu',exact:true}).click();
+  const historyDialog=page.getByRole('dialog');
+  await historyDialog.getByRole('heading',{name:'Lịch sử phiếu ghép',exact:true}).waitFor();
+  assert.equal(await historyDialog.getByRole('list',{name:'Các thay đổi của phiếu ghép',exact:true}).locator('li').count(),4);
+  await historyDialog.getByText('Xác nhận giữ chỗ',{exact:true}).waitFor();
+  await historyDialog.getByText('Điều chỉnh tổng đã thu',{exact:true}).first().waitFor();
+  await noOverflow('B2B history');
+  await screenshot({path:'work/pooling-history-mobile.png',fullPage:true});
+  await historyDialog.getByRole('button',{name:'Đóng',exact:true}).click();
+  await page.setViewportSize({width:1440,height:1050});
+  await screenshot({path:'work/pooling-desktop.png',fullPage:true});
+  await noOverflow('B2B');
+  await screenshot({path:'work/pooling-mobile.png',fullPage:true});
   await page.setViewportSize({width:1440,height:1050});
   await page.getByRole('button',{name:'Hủy phiếu',exact:true}).click();
   await page.getByRole('button',{name:'Xác nhận hủy phiếu',exact:true}).click();
   await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Lịch sử phiếu',exact:true}).click();
+  await page.getByRole('dialog').getByText('Hủy phiếu',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('dialog').getByRole('list',{name:'Các thay đổi của phiếu ghép',exact:true}).locator('li').count(),5);
+  await page.getByRole('dialog').getByRole('button',{name:'Đóng',exact:true}).click();
   console.log('B2B UI passed: create, seat confirmation, payment reconciliation and cancellation');
   await page.getByRole("button", { name: "Phản hồi MVP", exact: true }).click();
-  for (const k of ["portal", "operations", "sync", "ease"])
-    await page.locator(`input[name="${k}"][value="4"]`).check();
-  await page.locator('select[name="intent"]').selectOption("maybe");
-  await page.locator('input[name="price"]').fill("0");
-  await page.getByRole("button", { name: "Gửi phản hồi", exact: true }).click();
-  await page.getByText("Đã lưu", { exact: true }).waitFor();
+  assert.equal(await page.getByRole('region',{name:/^Đánh giá /}).count(),6);
+  assert.equal(await page.locator('select[name="price_status"]').inputValue(),'declined');
+  for (const feature of ["portal", "operations", "sync"]) {
+    await chooseFeedbackMode(feature,'self');
+    await page.locator(`select[name="result:${feature}"]`).selectOption('completed');
+    await page.locator(`select[name="importance:${feature}"]`).selectOption('4');
+    await page.locator(`select[name="ease:${feature}"]`).selectOption('4');
+    await page.locator(`select[name="intent:${feature}"]`).selectOption('maybe');
+  }
+  await chooseFeedbackMode('pooling','demo');
+  await page.locator('select[name="importance:pooling"]').selectOption('5');
+  await page.locator('select[name="intent:pooling"]').selectOption('yes');
+  assert.equal(await page.locator('select[name="ease:pooling"]').count(),0,'Demo-only feedback must not ask for a self-use ease rating');
+  for(const feature of ['import','quick_actions'])
+    assert.equal(await page.locator(`input[name="mode:${feature}"][value="untried"]`).isChecked(),true);
+  await page.locator('select[name="price_status"]').selectOption('undecided');
+  await page.getByRole('button',{name:'Gửi đánh giá',exact:true}).click();
+  await page.getByRole('button',{name:'Cập nhật phản hồi',exact:true}).waitFor();
+  let savedFeedback=(await workspace()).featureFeedback;
+  assert.equal(savedFeedback.price_status,'undecided');
+  assert.equal(savedFeedback.price,null,'An unknown price remains missing, not zero');
+  assert.equal(savedFeedback.entries.length,6);
+  assert.deepEqual(savedFeedback.entries.find(entry=>entry.feature==='pooling'),{feature:'pooling',mode:'demo',result:'viewed',importance:5,ease:null,intent:'yes'});
+  assert.equal(savedFeedback.entries.find(entry=>entry.feature==='import').importance,null);
+  await page.locator('select[name="price_status"]').selectOption('provided');
+  await page.locator('input[name="price"]').fill('0');
+  const savedResponse=page.waitForResponse(response=>response.url().endsWith('/api/feedback/features')&&response.request().method()==='POST');
+  await page.getByRole('button',{name:'Cập nhật phản hồi',exact:true}).click();
+  assert.equal((await savedResponse).status(),200);
+  savedFeedback=(await workspace()).featureFeedback;
+  assert.equal(savedFeedback.price_status,'provided');
+  assert.equal(savedFeedback.price,0,'Explicit zero remains a valid willingness-to-pay answer');
+  await noOverflow('Feature feedback');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(250);
-  await page.screenshot({ path: "work/feedback-mobile.png", fullPage: true });
+  await screenshot({ path: "work/feedback-mobile.png", fullPage: true });
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -269,7 +377,7 @@ try {
   await page.getByRole("button", { name: "Tổng quan", exact: true }).click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(250);
-  await page.screenshot({ path: "work/dashboard-mobile.png", fullPage: true });
+  await screenshot({ path: "work/dashboard-mobile.png", fullPage: true });
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -289,7 +397,7 @@ try {
   await page
     .getByRole("button", { name: "Cổng khách hàng", exact: true })
     .click();
-  await page.screenshot({ path: "work/portal-mobile.png", fullPage: true });
+  await screenshot({ path: "work/portal-mobile.png", fullPage: true });
   assert.ok(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -337,15 +445,20 @@ try {
     for (const control of await statuses.all())
       assert.ok(await control.isDisabled());
     assert.equal(await review.getByRole('button',{name:'Giao công việc',exact:true}).count(),0);
+    assert.equal(await review.getByRole('button',{name:/^Sửa /}).count(),0);
+    assert.equal(await review.getByRole('button',{name:'Xóa công việc',exact:true}).count(),0);
     await review
       .getByRole("button", { name: "Phản hồi MVP", exact: true })
       .click();
     await review
       .getByRole("link", { name: "Tương tác CSV", exact: true })
       .waitFor();
+    await review.getByRole('link',{name:'Người thử CSV',exact:true}).waitFor();
+    await review.getByRole('link',{name:'Đánh giá tính năng CSV',exact:true}).waitFor();
     await review.screenshot({
       path: "work/reviewer-desktop.png",
       fullPage: true,
+      animations: "disabled",
     });
     await reviewerContext.close();
     assert.deepEqual(errors, []);
@@ -378,10 +491,10 @@ try {
   assert.deepEqual(errors, []);
   console.log('Consented participant UI clicks were saved; no browser errors');
   console.log(
-    "UI PASS: signup, tour sync, inquiry, task create/status, feedback; desktop and mobile no overflow; no page errors.",
+    "UI PASS: signup, live tour withdrawal/recovery, inquiry, task CRUD/status, B2B audit, feature feedback and XLSX import; desktop/mobile no overflow; no page errors.",
   );
 } catch (e) {
-  await page.screenshot({ path: "work/ui-failure.png", fullPage: true });
+  await screenshot({ path: "work/ui-failure.png", fullPage: true });
   console.log(
     "Failure headings:",
     await page.locator("h1,h2").allTextContents(),

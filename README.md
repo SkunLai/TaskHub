@@ -24,7 +24,7 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.
 
-## Phạm vi bản 0.3
+## Phạm vi bản 0.4
 
 | CP2 / CP3                         | MVP chạy được                                                                                     | Cách kiểm tra                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -34,12 +34,14 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 | Giảm thao tác nhập tour | Nhập XLSX/CSV có xem trước; chọn nội dung có nguồn và đổi số chỗ/giao việc ngay trên thẻ | Nhập tệp thành bản nháp, kiểm tra portal sau khi công khai |
 | Lịch / số chỗ dùng chung          | API điều hành và portal dùng cùng SQLite; portal đọc lại mỗi 5 giây khi tab đang hiển thị         | Sửa số khách hoặc ngày, kiểm tra portal        |
 | Tránh cập nhật sai                | Kiểm tra số khách không vượt sức chứa; phiên bản tour để từ chối ghi đè bản cũ                    | Thử vượt sức chứa hoặc sửa đồng thời ở hai tab |
-| CP3: người dùng thử thật          | Đăng ký tự nguyện; lịch sử thao tác; đánh giá 3 tính năng, độ dễ dùng, ý định và mức sẵn sàng trả | Tester dùng MVP rồi gửi phản hồi               |
+| CP3: người dùng thử thật          | Đăng ký tự nguyện; log thao tác; đánh giá riêng 6 nhóm tính năng, tách tự dùng/xem demo/chưa thử và mức phí tùy chọn | Tester chọn đúng trải nghiệm rồi gửi phản hồi |
 | CP3: dữ liệu gốc                  | Quản trị xuất `taskhub-interactions.csv` và `taskhub-feedback.csv` có email                       | Phản hồi MVP → tải CSV                         |
 
 Đã bổ sung **B2B tối giản** (phiếu ghép, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV), nhập **XLSX/CSV** tối đa 20 tour/đợt, chọn nội dung tour trong hai lần chạm và đổi số chỗ/giao việc ngay trên thẻ. Xem [bảng P1–P3/S-1–S-4](docs/CP2_FEATURE_MAP.md) và [bản demo cố định](docs/CP3_DEMO_RELEASE.md).
 
 Đợt hoàn thiện file tiến độ bổ sung [bộ tập demo](docs/CP3_REHEARSAL.md), [quy trình hoàn tất 8 việc](docs/CP3_CLOSEOUT.md) và `npm run survey:report` để tổng hợp riêng 6 nhóm tính năng từ hai CSV raw của An. Giảng viên chưa được gửi/cấp quyền mới theo yêu cầu chủ dự án.
+
+Bản 0.4 thêm sửa/xóa công việc có phiên bản, lọc việc quá hạn, lịch sử đối soát B2B theo người/thời gian/số trước-sau, nạp lại khi xung đột và hướng dẫn mở trực tiếp từng luồng. Tour đã qua ngày khởi hành theo giờ Việt Nam không nhận tư vấn mới; tour vừa rút công khai sẽ khóa form đang mở. Xem [báo cáo rà soát và thông tin nhóm cần bổ sung](docs/WEB_REVIEW_2026-10-18.md).
 
 B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot, Google login/xác minh email, gửi email tự động và reset mật khẩu chưa được xây. Người phụ trách là tên nhập, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó.
 

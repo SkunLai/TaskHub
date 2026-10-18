@@ -39,7 +39,11 @@ export async function createPooling(db,u,b) {
   if(note.length>1000)fail('Ghi chú tối đa 1.000 ký tự.');
   if(!await db.prepare('SELECT id FROM tours WHERE id=? AND workspace=?').get(b.tour_id,u.workspace))fail('Tour không tồn tại.',404);
   const id=randomUUID(),at=now();
-  await db.batch([['INSERT INTO pooling(id,workspace,tour_id,partner,seats,unit_price,paid,status,note,version,created,updated) VALUES (?,?,?,?,?,?,0,?,?,1,?,?)',[id,u.workspace,b.tour_id,partner,seats,price,'pending',note,at,at]],...event(u,'pooling_created',id)]);
+  await db.batch([
+    ['INSERT INTO pooling(id,workspace,tour_id,partner,seats,unit_price,paid,status,note,version,created,updated) VALUES (?,?,?,?,?,?,0,?,?,1,?,?)',[id,u.workspace,b.tour_id,partner,seats,price,'pending',note,at,at]],
+    ['INSERT INTO pooling_audit(id,workspace,pooling_id,actor_id,action,paid_before,paid_after,status_before,status_after,created) VALUES (?,?,?,?,?,?,?,?,?,?)',[randomUUID(),u.workspace,id,u.id,'pooling_created',0,0,'','pending',at]],
+    ...event(u,'pooling_created',id),
+  ]);
   return {id};
 }
 
@@ -64,8 +68,15 @@ export async function updatePooling(db,u,id,b) {
     sql="UPDATE pooling SET paid=?,version=version+1,updated=? WHERE id=? AND workspace=? AND version=? AND status='confirmed'";
     args=[paid,now(),id,u.workspace,version];action='pooling_reconciled';
   } else fail('Thao tác không hợp lệ.');
-  // Versioned UPDATE + seat triggers execute in the same atomic statement.
-  const result=await db.batch([[sql,args],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,action,id,now()]]])]);
+  const paidAfter=b.action==='payment'?b.paid:row.paid;
+  const statusAfter=b.action==='confirm'?'confirmed':b.action==='cancel'?'cancelled':row.status;
+  // Keep this audit immediately after the UPDATE: changes() must describe that
+  // versioned write. The research event then follows only a successful audit.
+  const result=await db.batch([
+    [sql,args],
+    ['INSERT INTO pooling_audit(id,workspace,pooling_id,actor_id,action,paid_before,paid_after,status_before,status_after,created) SELECT ?,?,?,?,?,?,?,?,?,? WHERE changes()=1',[randomUUID(),u.workspace,id,u.id,action,row.paid,paidAfter,row.status,statusAfter,now()]],
+    ...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,action,id,now()]]]),
+  ]);
   if(!result[0].changes)fail('Phiếu hoặc tour đã thay đổi. Tải lại trước khi tiếp tục.',409);
   return {ok:true};
 }

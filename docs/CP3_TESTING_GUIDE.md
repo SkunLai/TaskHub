@@ -1,6 +1,6 @@
 # Thực hiện khảo sát MVP và chuẩn bị dữ liệu CP3
 
-Ngày rà soát: 17/10/2026. Tài liệu vận hành cho nhóm; không phải kết quả khảo sát.
+Ngày rà soát: 18/10/2026, bản 0.4. Tài liệu vận hành cho nhóm; không phải kết quả khảo sát.
 
 ## Tuyển và hướng dẫn người thử
 
@@ -8,8 +8,8 @@ Ngày rà soát: 17/10/2026. Tài liệu vận hành cho nhóm; không phải k�
 2. Gửi link https://taskhub-travel.pages.dev/. Mỗi người tự đăng ký bằng email, tự chọn vai trò/quy mô và đọc lời đồng ý. Email hiện chưa được xác minh; nhóm đối chiếu người tham gia thực tế.
 3. Người thử tự nhập thông tin tour, chọn công khai, lưu; mở lại tour đổi lịch hoặc số khách đã giữ chỗ. Không cần thông tin khách hàng thật. Không gian của mỗi người tách biệt.
 4. Mở Cổng khách hàng để xem thông tin vừa thay đổi. Trở lại Công việc, tạo việc gắn với tour và đổi trạng thái.
-5. Mở Phản hồi MVP, đánh giá tính hữu ích của ba chức năng, độ dễ dùng, ý định sử dụng, mức sẵn sàng trả và ý kiến mở. Không hướng người thử chấm tích cực. Sau khi dùng bổ sung, người thử có thể cập nhật phản hồi.
-6. Trong phỏng vấn bổ sung, hỏi rõ từng tính năng có được dùng trong công việc không, vì sao và điểm không thích. Form hiện thu điểm hữu ích riêng từng tính năng và ý định dùng sản phẩm chung; không diễn giải ý định chung thành cam kết dùng từng tính năng.
+5. Cho xem/thử thêm B2B, nhập Excel và thao tác nhanh nếu phù hợp. Mở Phản hồi MVP, chọn Tự dùng/Xem demo cho các tính năng thực sự tiếp xúc; giữ Chưa thử cho mục còn lại. Chỉ người tự thao tác chấm độ dễ dùng. Quan trọng và ý định được hỏi theo từng tính năng; giá tùy chọn và 0 hợp lệ.
+6. Không hướng người thử chấm tích cực. Hỏi lý do, khó khăn và điểm không thích; sau khi trải nghiệm bổ sung, người thử có thể cập nhật. Giữ các loại câu hỏi cũ/mới riêng khi phân tích, không biến điểm hữu ích cũ thành điểm quan trọng mới.
 
 Bộ câu hỏi bổ sung cho An: [12 câu đánh giá sau thử](CP3_SURVEY_QUESTIONS.md). Google Sheet gồm đánh giá theo từng tính năng (kể cả B2B, Excel và thao tác nhanh), tách tự dùng với xem demo. Không yêu cầu người chưa thử chấm điểm hoặc gán “chưa thử” thành 0. Dữ liệu ở Sheet và form trong app cần đối chiếu theo email và đợt thử; không tự nhập đè lên nhau.
 
@@ -17,7 +17,7 @@ Nhóm tự chuẩn bị và duyệt dữ liệu tour dùng cho trình diễn n�
 
 ## Xuất và giữ bản gốc
 
-Quản trị hoặc reviewer: đăng nhập → Phản hồi MVP → tải Phản hồi CSV và Tương tác CSV. Lưu nguyên bản theo từng đợt, cùng thời điểm xuất; không chỉnh trực tiếp tệp gốc. Bản gốc có email cần giữ trong thư mục giới hạn truy cập để đưa vào phụ lục cuối slide theo yêu cầu. Không đưa tệp gốc lên GitHub public.
+Quản trị hoặc reviewer: đăng nhập → Phản hồi MVP → tải **Người thử CSV**, **Đánh giá tính năng CSV** và **Tương tác CSV**. Hai CSV khảo sát mới dùng schema của Sheet và lệnh `survey:report`; phản hồi phiên bản trước có bản xuất riêng cho `research:report`. Lưu nguyên bản theo từng đợt, cùng thời điểm xuất; không chỉnh trực tiếp tệp gốc. Bản gốc có email cần giữ trong thư mục giới hạn truy cập để đưa vào phụ lục. Không đưa raw lên GitHub public.
 
 Lưu trên máy, ví dụ:
 
@@ -48,7 +48,7 @@ Số phản hồi đủ thao tác không xác minh 20 người độc lập, th�
 
 ## Sau khi có dữ liệu thật
 
-Nhóm đối chiếu bản gốc, loại QA/trùng/người chưa thử và xác nhận người tham gia. Đọc ý kiến mở trong bản có quyền truy cập, mã hóa các vấn đề lặp lại; chọn ví dụ đã bỏ thông tin nhận diện để trình bày. So sánh ba tính năng, nêu cỡ mẫu và giới hạn.
+Nhóm đối chiếu bản gốc, loại QA/trùng và xác nhận người tham gia. Đọc ý kiến mở trong bản có quyền truy cập, mã hóa các vấn đề lặp lại; chọn ví dụ đã bỏ thông tin nhận diện để trình bày. So sánh từng tính năng với cỡ mẫu tự dùng/xem demo riêng; chưa thử không được tính thành điểm 0.
 
 Thành viên phụ trách giá bổ sung chi phí và căn cứ cạnh tranh trước khi chốt mức bán. Nhóm quyết định Iterate/Persevere dựa trên bằng chứng, nêu thay đổi hoặc lý do giữ sản phẩm; không để công cụ tự kết luận thay nhóm.
 

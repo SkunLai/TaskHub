@@ -1,6 +1,6 @@
 # P1–P3 và S-1–S-4 — bản demo 18/10/2026
 
-Web: https://taskhub-travel.pages.dev/ · Mốc code: `demo-cp3-2026-10-18` trên nhánh `build`.
+Web: https://taskhub-travel.pages.dev/ · Mốc code 0.4: `demo-cp3-0.4-2026-10-18` trên nhánh `build`. Mốc 0.3 cũ giữ nguyên.
 
 ## Pain → tính năng → cách chứng minh
 
@@ -15,8 +15,8 @@ Web: https://taskhub-travel.pages.dev/ · Mốc code: `demo-cp3-2026-10-18` trê
 | Giải pháp | Mức hoàn thành của MVP | Còn thiếu để giải pháp đầy đủ |
 | --- | --- | --- |
 | **S-1 — Public Tour Portal** | Đã có luồng cốt lõi: tra cứu ngoài giờ, lịch/giá/chỗ, yêu cầu tư vấn. Có 13 nội dung tour Én Việt tham khảo, tách biệt với lịch khởi hành đã xác nhận. | Booking/thanh toán tự động, chatbot và các tình huống cần con người. |
-| **S-2 — Điều hành tập trung** | Đã có tour/lịch/chỗ, giao việc, nhập XLSX/CSV, chọn nội dung có sẵn và thao tác nhanh đổi chỗ/giao việc. | Tài khoản và quyền từng nhân viên, thông báo; quản lý nhà cung cấp và net price/markup toàn bộ tour. Giá net B2B hiện chỉ nằm trên từng phiếu ghép. |
-| **S-3 — Tour-pooling và đối soát B2B** | **Đã có bản tối giản để demo P3:** tạo phiếu → xác nhận → giữ chỗ an toàn → ghi nhận thu/còn phải thu → xuất CSV/hủy hoàn chỗ. | Đối tác tự xác nhận, hồ sơ/hợp đồng, hóa đơn và thanh toán/hoàn tiền thực tế; không gọi đây là B2B hoàn chỉnh. |
+| **S-2 — Điều hành tập trung** | Đã có tour/lịch/chỗ, tạo/sửa/xóa việc có kiểm tra phiên bản, lọc quá hạn/ưu tiên, nhập XLSX/CSV và thao tác nhanh trên thẻ. | Tài khoản và quyền từng nhân viên, thông báo; quản lý nhà cung cấp và net price/markup toàn bộ tour. Giá net B2B hiện chỉ nằm trên từng phiếu ghép. |
+| **S-3 — Tour-pooling và đối soát B2B** | **Đã có bản tối giản để demo P3:** tạo phiếu → xác nhận → giữ chỗ → ghi nhận thu/còn phải thu → lịch sử ai/lúc nào/số trước-sau → CSV/hủy hoàn chỗ. | Đối tác tự xác nhận, hồ sơ/hợp đồng, hóa đơn và thanh toán/hoàn tiền thực tế; không gọi đây là B2B hoàn chỉnh. |
 | **S-4 — Điều chỉnh chiến lược thu phí** | Đã có thu willingness-to-pay và công cụ tổng hợp; bộ câu hỏi đánh giá từng tính năng được bàn giao cho An. | Tối thiểu 20 cá nhân thật, phân tích mẫu, phỏng vấn người quyết định, paid pilot và chốt giá/Iterate–Persevere. Không có kết luận thị trường từ dữ liệu QA. |
 
 ## Các thao tác gần 1–2 chạm

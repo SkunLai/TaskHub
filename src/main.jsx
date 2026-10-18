@@ -745,6 +745,12 @@ function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
               {error ? "Chưa thể cập nhật" : `Cập nhật ${last || "…"}`}
             </span>
           </div>
+          {workspace === "agency" && (
+            <div className="portal-notice" role="note">
+              <ShieldCheck size={18} />
+              <p><strong>Không gian trình diễn TaskHub</strong><br />Dữ liệu giả lập phục vụ trình diễn, không phải thông tin mở bán thực tế. Lịch, giá và số chỗ của các tour từ điều hành dùng để kiểm thử; yêu cầu gửi tại đây không tạo đặt tour hoặc thanh toán.</p>
+            </div>
+          )}
           <div className="filter-bar">
             <label className="search">
               <Search size={18} />
@@ -865,6 +871,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
     [busy, setBusy] = useState(false),
     [sent, setSent] = useState(false),
     [error, setError] = useState("");
+  const simulated = workspace === "agency";
   const departed = tour.departure < todayVN();
   const unavailable = departed || tour.reserved >= tour.capacity;
   async function submit(e) {
@@ -881,7 +888,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
         consent: f.get("consent") === "on",
       });
       setSent(true);
-      notify(result.message);
+      notify(simulated ? "Đã lưu yêu cầu thử nghiệm. Không phát sinh đặt tour hoặc thanh toán." : result.message);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -910,6 +917,12 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
         </span>
         <strong>{money(tour.price)} / khách</strong>
       </div>
+      {simulated && (
+        <div className="portal-notice" role="note">
+          <ShieldCheck size={18} />
+          <p><strong>Dữ liệu giả lập phục vụ trình diễn, không phải thông tin mở bán thực tế.</strong> Mọi yêu cầu tại đây chỉ phục vụ thử nghiệm, không đặt tour, giữ chỗ hoặc tạo thanh toán.</p>
+        </div>
+      )}
       <p className="detail-description">{tour.description}</p>
       <h3>Lịch trình dự kiến</h3>
       <div className="itinerary">
@@ -930,11 +943,11 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
       ) : sent ? (
         <div className="success">
           <CheckCircle2 size={20} />
-          Đã gửi yêu cầu. Đây chưa phải xác nhận đặt tour.
+          {simulated ? "Đã lưu yêu cầu thử nghiệm. Không phát sinh đặt tour hoặc thanh toán." : "Đã gửi yêu cầu. Đây chưa phải xác nhận đặt tour."}
         </div>
       ) : booking ? (
         <form onSubmit={submit}>
-          <h3>Gửi yêu cầu tư vấn</h3>
+          <h3>{simulated ? "Gửi yêu cầu thử nghiệm" : "Gửi yêu cầu tư vấn"}</h3>
           <ErrorBox error={error} />
           <div className="form-grid">
             <Field label="Tên">
@@ -960,13 +973,13 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
           <label className="checkbox">
             <input name="consent" type="checkbox" required />
             <span>
-              Tôi đồng ý để nhóm dùng thông tin này liên hệ tư vấn và kiểm thử
-              MVP, lưu tối đa khoảng 6 tháng. Thông tin không được công khai. Có
-              thể yêu cầu nhóm xóa; với bản dùng thử, hãy dùng dữ liệu giả.
+              {simulated
+                ? "Tôi đồng ý để nhóm lưu thông tin này phục vụ kiểm thử MVP tối đa khoảng 6 tháng. Thông tin không được công khai và có thể yêu cầu nhóm xóa. Hãy dùng dữ liệu giả, không nhập thông tin khách hàng thật."
+                : "Tôi đồng ý để nhóm dùng thông tin này liên hệ tư vấn và kiểm thử MVP, lưu tối đa khoảng 6 tháng. Thông tin không được công khai. Có thể yêu cầu nhóm xóa; với bản dùng thử, hãy dùng dữ liệu giả."}
             </span>
           </label>
           <Button disabled={busy}>
-            {busy ? "Đang gửi…" : "Gửi yêu cầu tư vấn"}
+            {busy ? "Đang gửi…" : simulated ? "Gửi yêu cầu thử nghiệm" : "Gửi yêu cầu tư vấn"}
             <Send size={16} />
           </Button>
         </form>
@@ -975,7 +988,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
           disabled={tour.reserved >= tour.capacity}
           onClick={() => setBooking(true)}
         >
-          Yêu cầu tư vấn
+          {simulated ? "Gửi yêu cầu thử nghiệm" : "Yêu cầu tư vấn"}
           <ArrowRight size={17} />
         </Button>
       )}
@@ -1715,7 +1728,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           <div className="topbar-right">
             <Badge tone="blue">
               <span className="live-dot" />
-              Bản dùng thử
+              {user.workspace === "agency" ? "Dữ liệu giả lập" : "Bản dùng thử"}
             </Badge>
             <button className="text-btn" onClick={onPortal}>
               <Globe size={16} />
@@ -1770,9 +1783,11 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             <ShieldCheck size={16} />
             <span>
               {["admin", "reviewer"].includes(user.role)
-                ? readOnly
-                  ? "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu."
-                  : "Chỉ công khai tour sau khi đã kiểm tra thông tin."
+                ? user.workspace === "agency"
+                  ? "Dữ liệu giả lập phục vụ trình diễn, không phải thông tin mở bán thực tế." + (readOnly ? " Người đánh giá chỉ có quyền xem." : " Tour, công việc và phiếu B2B tại đây phục vụ kiểm thử.")
+                  : readOnly
+                    ? "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu."
+                    : "Chỉ công khai tour sau khi đã kiểm tra thông tin."
                 : "Không gian dùng thử riêng. Tự nhập dữ liệu để trải nghiệm; không nhập thông tin khách hàng thật."}
             </span>
             <span className={"sync-time " + (error ? "stale" : "")}>

@@ -26,6 +26,7 @@ try {
   for(const r of race)if(r.status===201 && r.cookie)cookies.push(r.cookie);
   assert.deepEqual(race.map(r=>r.status).sort(),[201,409]);
   const ac=a.cookie, bc=b.cookie;
+  assert.equal((await req('/interactions','POST',{events:[null]},ac)).status,400,'Malformed click records are validation errors, not system failures');
   const aw=await req('/workspace','GET',null,ac), bw=await req('/workspace','GET',null,bc);
   assert.deepEqual(aw.body.tours,[]);assert.deepEqual(aw.body.tasks,[]);assert.deepEqual(bw.body.tours,[]);
   assert.equal((await req('/tours','POST',qaTour,ac)).status,201);

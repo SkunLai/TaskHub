@@ -31,6 +31,6 @@ Nguồn và cách xử lý bộ giả lập ở [bàn giao dữ liệu](OWNER_DE
 
 ## Kiểm thử
 
-66 kiểm tra tự động đã đạt trên SQLite và libSQL. Build FE, Pages và Sites đã đạt. UI local đã đạt tìm/lọc lịch/chỗ, kết nối chậm/lỗi, task CRUD, B2B/lịch sử, phản hồi sáu tính năng, XLSX chậm/khóa đóng và reviewer; không lỗi JavaScript hoặc tràn ngang trong các màn hình đã thử. Kết quả public và mã triển khai được ghi tiếp ở [VALIDATION.md](VALIDATION.md) sau phát hành.
+66 kiểm tra tự động đã đạt trên SQLite và libSQL. Build FE, Pages và Sites đã đạt. API và UI public sau triển khai đã đạt tìm/lọc lịch/chỗ, kết nối chậm/lỗi, task CRUD, B2B/lịch sử, phản hồi sáu tính năng, XLSX chậm/khóa đóng và reviewer; không lỗi JavaScript hoặc tràn ngang trong các màn hình đã thử. Dữ liệu demo giữ nguyên, tài khoản QA đã xóa. Mã triển khai và bằng chứng ở [VALIDATION.md](VALIDATION.md).
 
 Code cập nhật trên `build`; `dev` và các tag demo đã phát hành được giữ nguyên. Nguồn phát hành hiện tại được truy vết qua `cloud/site.json` và `cloud/pages/deployment.json`.

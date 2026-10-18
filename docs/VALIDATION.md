@@ -91,3 +91,6 @@
 - Full UI local đạt network recovery/slow polling, tour ẩn khi đang mở, task CRUD, B2B/history, khảo sát sáu tính năng, reviewer và nhập XLSX thành nháp. Lần nhập cố ý bị giữ response để kiểm modal không đóng khi Escape/nền/nút Đóng; tiếp tục response vẫn nhập đúng một lần.
 - Build Vite, Pages và Sites đạt. Không thêm dependency ứng dụng, schema hoặc migration. Source cloud dùng các module chung mới qua exporter, không sửa riêng hai bản logic.
 - Chi tiết thay đổi và thông tin nhóm còn cần cung cấp: [rà soát 19/10](WEB_REVIEW_2026-10-19.md). Kết quả production được ghi tiếp sau phát hành.
+- Đã phát hành Sites version 8 (`appgdep_6ad507f051688191a18bd61376671ed2`) và Pages (`0ed61021-f452-475e-a3b9-8969fd3329a2`); health production trả `0.4.1`. Secrets revision 2, D1 và các migration cũ giữ nguyên.
+- Sau khi cả FE/BE mới đều live, production API và full browser regression đã đạt lại, gồm log sai trả 400, các luồng lõi, bộ lọc lịch/chỗ, reviewer và nhập XLSX cố ý giữ response để kiểm khóa đóng. Không có lỗi JavaScript/tràn ngang trong màn hình kiểm tra; tài khoản QA đã xóa.
+- Readback sau rollout vẫn đúng 3 tour, 3 phiếu chờ `paid=0`, 2 việc và số khách 22/30, 18/25, 12/20. Bộ đếm nghiên cứu sau dọn QA vẫn 0 participants, 0 feedback, 0 events, 0 readyToReview; không đưa bộ tester mẫu vào dữ liệu nghiên cứu.

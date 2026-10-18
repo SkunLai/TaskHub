@@ -3484,6 +3484,56 @@ td small {
 .catalog-picker-row strong { line-height: 1.5; font-size: 14px; }
 .catalog-picker-row span span { font-size: 12px; color: #536e8d; }
 .catalog-picker-row > svg { flex-shrink: 0; }
+.catalog-picker-detail { display: flex; align-items: center; flex: 1; min-width: 0; gap: 14px; background: transparent; color: inherit; border: 0; text-align: left; cursor: pointer; padding: 0; }
+.catalog-picker-detail > span { display: grid; gap: 7px; }
+.catalog-picker-detail svg { flex-shrink: 0; }
+.tour-quick-actions { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #e1ebf6; margin-top: 14px; }
+.tour-quick-actions .btn { flex: 1; padding: 10px 8px; font-size: 12px; }
+.internal-tour .cover-button { height: 145px; }
+.pooling-notice, .import-guide { display: flex; align-items: flex-start; gap: 14px; padding: 20px; background: #edf5ff; border: 1px solid #d6e6f8; border-radius: 14px; color: #264f7b; margin-bottom: 20px; }
+.pooling-notice > svg, .import-guide > svg { flex-shrink: 0; }
+.pooling-notice strong, .import-guide strong { font-size: 15px; }
+.pooling-notice p, .import-guide p { margin: 8px 0 0; font-size: 13px; line-height: 1.75; color: #536e8d; }
+.pool-stats { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 15px; margin-bottom: 20px; }
+.pool-stats > div { padding: 20px; border: 1px solid #dce7f4; border-radius: 13px; background: #fff; }
+.pool-stats span, .pool-card-facts span { display: block; color: #536e8d; font-size: 12px; margin-bottom: 9px; }
+.pool-stats strong { font-size: clamp(19px,2.3vw,27px); color: #173d69; overflow-wrap: anywhere; }
+.pool-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.pool-list { display: grid; gap: 16px; }
+.pool-card { padding: 23px; background: #fff; border: 1px solid #dce7f4; border-radius: 15px; }
+.pool-card-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.pool-card-heading > div { min-width: 0; }
+.pool-card-heading strong { color: #173d69; font-size: 17px; overflow-wrap: anywhere; }
+.pool-card-heading p { font-size: 13px; color: #536e8d; line-height: 1.7; margin: 7px 0 0; }
+.pool-card-heading .badge { flex-shrink: 0; }
+.pool-card-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 18px; padding: 20px 0; }
+.pool-card-facts strong { font-size: 15px; color: #24486f; overflow-wrap: anywhere; }
+.pool-note { font-size: 13px; line-height: 1.7; color: #536e8d; margin: 0 0 14px; white-space: pre-wrap; }
+.pool-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; border-top: 1px solid #e1ebf6; padding-top: 16px; }
+.pool-card-actions small { font-size: 12px; color: #536e8d; }
+.pool-payment-summary { display: grid; gap: 10px; padding: 16px; background: #eff6fe; border-radius: 12px; margin-bottom: 20px; color: #24486f; }
+.pool-payment-summary span { font-size: 13px; }
+.import-guide + .btn { margin-bottom: 18px; }
+.import-result { border-radius: 12px; padding: 16px; margin: 15px 0; font-size: 14px; background: #edf6ff; color: #24486f; border: 1px solid #d4e5f8; }
+.import-result.invalid { background: #fff7f1; color: #815435; border-color: #f0dac7; }
+.import-result p { font-size: 13px; line-height: 1.7; margin: 7px 0 0; }
+.import-errors { max-height: 150px; overflow-y: auto; font-size: 13px; color: #815435; line-height: 1.8; padding-left: 20px; }
+.import-preview { border: 1px solid #dce7f4; border-radius: 12px; padding: 0 16px; }
+.import-preview > div { display: grid; gap: 6px; padding: 14px 0; border-bottom: 1px solid #e6eef8; }
+.import-preview > div:last-child { border-bottom: 0; }
+.import-preview strong { font-size: 14px; color: #24486f; }
+.import-preview span, .import-preview p { font-size: 12px; line-height: 1.6; color: #536e8d; }
+@media(max-width:650px) {
+  .pool-stats { grid-template-columns: 1fr; gap: 10px; }
+  .pool-stats > div { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 16px; }
+  .pool-stats span { margin: 0; }
+  .pool-card { padding: 17px; }
+  .pool-card-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .pool-card-heading { flex-wrap: wrap; }
+  .pool-toolbar { flex-wrap: wrap; }
+  .catalog-picker-row { align-items: flex-start; flex-direction: column; }
+  .catalog-picker-row > .btn { width: 100%; }
+}
 @media(max-width: 650px) {
   .catalog-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
   .catalog-card .cover-button { height: 195px; }

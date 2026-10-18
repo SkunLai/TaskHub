@@ -15,3 +15,7 @@ Theo yêu cầu chủ dự án: không tự đưa thông tin kinh doanh chưa đ
 Chưa có bằng chứng hoàn tất khảo sát CP3 với 20 cá nhân. Nhóm còn phải tuyển người thật, phân tích phản hồi, chốt giá và quyết định Iterate/Persevere, hoàn thiện BMC/slide và thủ tục nộp/thuyết trình. Việc cải thiện web không thay cho các đầu việc này.
 
 Dữ liệu giả để kiểm thử chỉ nằm trong `tests/fixtures.mjs` và các tài khoản QA tạm thời; không được seed vào ứng dụng hoặc tính vào kết quả khảo sát. Xóa tour yêu cầu xác nhận và kiểm tra phiên bản/quyền sở hữu; reviewer không được xóa.
+
+## Bổ sung theo yêu cầu — 18/10/2026
+
+B2B là sổ ghép tour nội bộ: người quản lý nhập đối tác, số khách và giá net; xác nhận giữ chỗ, ghi nhận số thu và xuất đối soát. Không tự tạo đối tác, thỏa thuận, giao dịch hoặc số công nợ. Nhập Excel tạo tour nháp sau khi kiểm tra; mẫu tải xuống chỉ có tiêu đề cột. Log UI chỉ ghi mã điều khiển, khu vực và thời gian cho người dùng đã đồng ý; không ghi nội dung nhập, mật khẩu hoặc tên tệp. Google Sheet khảo sát có câu hỏi/hướng dẫn và tab raw trống, không có tester hoặc điểm đánh giá điền sẵn.

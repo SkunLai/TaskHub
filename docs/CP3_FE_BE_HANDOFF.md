@@ -1,6 +1,6 @@
 # Bàn giao FE/BE TaskHub cho CP3
 
-Ngày rà soát: 17/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu hỗ trợ kiểm thử và tài liệu demo. Không điền thay slide, BMC, quyết định giá hoặc kết luận khảo sát của thành viên khác.
+Ngày rà soát: 18/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu hỗ trợ kiểm thử, tài liệu demo và bộ câu hỏi/Sheet bàn giao An theo yêu cầu chủ dự án. Không điền thay kết quả khảo sát, slide, BMC hoặc quyết định giá.
 
 - Web: https://taskhub-travel.pages.dev/
 - Code nhóm làm việc: https://github.com/skunlainro3-glitch/TaskHub/tree/build
@@ -10,9 +10,10 @@ Ngày rà soát: 17/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu h
 
 | Nhu cầu | Luồng đã có | Giới hạn phải trình bày đúng |
 | --- | --- | --- |
-| Thông tin tour tập trung | Tạo, sửa, xóa tour; nhập lịch trình, giá, sức chứa và số khách giữ chỗ; chủ động công khai | Không tự lấy dữ liệu từ đối tác. Tour mới trống và chưa công khai. |
+| Thông tin tour tập trung | Tạo/sửa/xóa tour, lịch/giá/chỗ; 13 nội dung Én Việt đã được chủ dự án cung cấp; chọn nhanh hoặc nhập XLSX/CSV tối đa 20 tour/đợt | Không tự đoán ngày/sức chứa. Tour nhập mới là bản nháp; nguồn Én Việt không cập nhật tự động. |
 | Khách tra cứu ngoài giờ | Cổng tour công khai, tìm/lọc, xem lịch trình/giá/số chỗ, gửi yêu cầu tư vấn | Yêu cầu không giữ chỗ, xác nhận booking, thanh toán hoặc tự gửi email. Không có chatbot. |
 | Theo dõi điều hành | Công việc gắn tour, tên phụ trách, hạn, ưu tiên và trạng thái | Chưa có tài khoản từng nhân viên, thông báo giao việc hoặc không gian cộng tác nhiều nhân viên. Tên người phụ trách do người dùng nhập. |
+| Ghép tour B2B | Phiếu đối tác, xác nhận giữ chỗ, ghi nhận thu/còn phải thu, hủy hoàn chỗ và CSV; kiểm tra sức chứa/phiên bản | Sổ nội bộ; chưa có đối tác đăng nhập, duyệt hai phía, hóa đơn hoặc xử lý thanh toán/hoàn tiền. |
 | Dữ liệu phục vụ CP3 | Consent, vai trò/quy mô tự khai, lịch sử thao tác, feedback, CSV có quyền xem, công cụ tổng hợp offline | Không xác minh email, người thật hay mẫu đại diện. Không tạo người thử hoặc kết luận thị trường. |
 
 ## 2. Specs — Có thể chứng minh bằng hệ thống
@@ -28,17 +29,19 @@ FE React/Vite; local Node.js 24 + SQLite. Public dùng Cloudflare Pages và gate
 
 ## 3. Interface và Packaging
 
-Web tiếng Việt, xanh dương nhạt, responsive; đã kiểm tra ở 320/390/768/1440 px. Điều hành có Tổng quan, Quản lý tour, Công việc, Yêu cầu tư vấn và Phản hồi MVP; hướng dẫn dùng thử nằm ngay tổng quan. Cổng khách hàng tách luồng đăng nhập/điều hành. Nội dung kinh doanh phải do nhóm/người quản lý cung cấp; không có tour, giá, nhân sự hoặc lời chứng thực tự tạo.
+Web tiếng Việt, xanh dương nhạt, responsive; đã kiểm tra ở 320/390/768/1440 px. Điều hành có Tổng quan, Quản lý tour, Công việc, Ghép tour B2B, Yêu cầu tư vấn và Phản hồi MVP; hướng dẫn dùng thử nằm ngay tổng quan. Cổng khách hàng tách luồng đăng nhập/điều hành. Nội dung kinh doanh phải do nhóm/người quản lý cung cấp; không có tour, giá, nhân sự hoặc lời chứng thực tự tạo.
 
 ## 4. Chứng minh liên hệ với CP2 khi demo
 
 | Pain trong CP2 | Thao tác trình diễn | Bằng chứng và điều chưa giải quyết |
 | --- | --- | --- |
-| P1: thông tin phân tán, khó theo dõi tiến độ | Tạo tour, cập nhật lịch/số chỗ, giao và đổi trạng thái việc | Tour và công việc nằm cùng workspace. Chưa tích hợp Zalo/Excel hoặc nhiều tài khoản nhân viên. |
+| P1: thông tin phân tán, khó theo dõi tiến độ | Chọn nội dung/nhập Excel; đổi số chỗ nhanh; giao và đổi trạng thái việc | Tour và công việc cùng workspace. Chưa tích hợp Zalo hoặc nhiều tài khoản nhân viên. |
 | P2: khách hỏi ngoài giờ | Mở cổng khách hàng, tìm/xem tour, gửi yêu cầu và xem ở điều hành | Khách đọc dữ liệu đã công khai. Chưa đo số khách giữ được hoặc doanh thu tăng. |
-| P3: sai lệch khi ghép tour giữa doanh nghiệp | Chỉ trình bày nền tảng lịch/số chỗ chung hiện có | Chưa có đối soát công nợ, phân quyền đối tác hoặc xác nhận dịch vụ B2B đầy đủ. Không tuyên bố đã hoàn thành toàn bộ giải pháp P3. |
+| P3: sai lệch khi ghép tour giữa doanh nghiệp | Tạo phiếu B2B → xác nhận chỗ → ghi nhận thu/còn phải thu → xuất CSV/hủy hoàn chỗ | Đã có bản tối giản; chưa có đối tác tự duyệt hoặc xác nhận dịch vụ hai phía. Không tuyên bố B2B hoàn chỉnh. |
 
 PDF yêu cầu chứng minh MVP đáp ứng giải pháp CP2 khi demo trực tiếp. Nhóm cần giải thích giới hạn phạm vi bản đầu; không dùng giao diện hiện tại làm bằng chứng B2B đã hoàn chỉnh.
+
+Bảng đầy đủ [P1–P3/S-1–S-4](CP2_FEATURE_MAP.md); [kịch bản và tag demo cố định](CP3_DEMO_RELEASE.md); [câu hỏi cho An](CP3_SURVEY_QUESTIONS.md).
 
 ## 5. Kịch bản demo trực tiếp
 
@@ -67,6 +70,8 @@ Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình di
 - [x] Form dùng thử, consent, phản hồi, interaction logs, quyền xuất CSV, reviewer chỉ xem.
 - [x] Công cụ tổng hợp CSV có kiểm tra dữ liệu, phân biệt QA/trùng/chưa đủ thao tác; không xuất email/nội dung tự do vào báo cáo tổng hợp.
 - [x] Hướng dẫn tuyển người thử, xuất bản gốc, tạo báo cáo và demo trực tiếp.
+- [x] B2B tối giản, nhập XLSX/CSV, thao tác nhanh trên thẻ tour; ghi log nút/menu cho người tham gia đồng ý.
+- [x] Bảng P1–P3/S-1–S-4, kịch bản demo và Google Sheet 12 câu hỏi bàn giao An; các tab raw để trống.
 - [ ] Nhóm cung cấp dữ liệu demo được duyệt, thông tin hỗ trợ và GitHub username nếu cần quyền push.
 - [ ] Ít nhất 20 cá nhân thử thật, đối chiếu mẫu và phụ lục dữ liệu có email theo quyền xem.
 - [ ] Nhóm chuyển thông tin reviewer và cấp quyền phụ lục cho Thanhntl2@fpt.edu.vn; có tài khoản không đồng nghĩa giảng viên đã nhận được quyền truy cập.

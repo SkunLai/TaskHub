@@ -1,5 +1,5 @@
 import { connectDatabase } from "./connection.mjs";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 export async function openDatabase(dir = process.env.DATA_DIR || "./data") {
@@ -15,6 +15,8 @@ export async function openDatabase(dir = process.env.DATA_DIR || "./data") {
     CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,action TEXT NOT NULL,entity TEXT NOT NULL,created TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS feedback(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,portal INTEGER NOT NULL,operations INTEGER NOT NULL,sync INTEGER NOT NULL,ease INTEGER NOT NULL,intent TEXT NOT NULL,price INTEGER NOT NULL,liked TEXT NOT NULL,disliked TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS tours_workspace ON tours(workspace); CREATE INDEX IF NOT EXISTS events_user ON events(user_id);`);
+  await db.exec(`CREATE TABLE IF NOT EXISTS pooling(id TEXT PRIMARY KEY,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,tour_id TEXT NOT NULL REFERENCES tours(id) ON DELETE CASCADE,partner TEXT NOT NULL,seats INTEGER NOT NULL CHECK(seats>0 AND seats<=1000),unit_price INTEGER NOT NULL CHECK(unit_price>=0 AND unit_price<=1000000000),paid INTEGER NOT NULL DEFAULT 0 CHECK(paid>=0 AND paid<=seats*unit_price),status TEXT NOT NULL CHECK(status IN ('pending','confirmed','cancelled')),note TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 1,created TEXT NOT NULL,updated TEXT NOT NULL); CREATE INDEX IF NOT EXISTS pooling_workspace ON pooling(workspace); CREATE INDEX IF NOT EXISTS pooling_tour ON pooling(tour_id);`);
+  await db.exec(readFileSync(new URL('./pooling-triggers.sql',import.meta.url),'utf8'));
   if (!db.remote)
     await db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
   return db;

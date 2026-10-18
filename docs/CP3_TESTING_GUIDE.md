@@ -11,6 +11,8 @@ Ngày rà soát: 17/10/2026. Tài liệu vận hành cho nhóm; không phải k�
 5. Mở Phản hồi MVP, đánh giá tính hữu ích của ba chức năng, độ dễ dùng, ý định sử dụng, mức sẵn sàng trả và ý kiến mở. Không hướng người thử chấm tích cực. Sau khi dùng bổ sung, người thử có thể cập nhật phản hồi.
 6. Trong phỏng vấn bổ sung, hỏi rõ từng tính năng có được dùng trong công việc không, vì sao và điểm không thích. Form hiện thu điểm hữu ích riêng từng tính năng và ý định dùng sản phẩm chung; không diễn giải ý định chung thành cam kết dùng từng tính năng.
 
+Bộ câu hỏi bổ sung cho An: [12 câu đánh giá sau thử](CP3_SURVEY_QUESTIONS.md). Google Sheet gồm đánh giá theo từng tính năng (kể cả B2B, Excel và thao tác nhanh), tách tự dùng với xem demo. Không yêu cầu người chưa thử chấm điểm hoặc gán “chưa thử” thành 0. Dữ liệu ở Sheet và form trong app cần đối chiếu theo email và đợt thử; không tự nhập đè lên nhau.
+
 Nhóm tự chuẩn bị và duyệt dữ liệu tour dùng cho trình diễn nếu cần. Tài liệu này không cung cấp danh mục tour, giá, lịch trình hoặc tên nhân sự giả để đưa lên web.
 
 ## Xuất và giữ bản gốc

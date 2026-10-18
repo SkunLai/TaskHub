@@ -1,0 +1,27 @@
+{
+  "version": "CP3-2026.10.18",
+  "web": "https://taskhub-travel.pages.dev/",
+  "consent": "Nhóm TaskHub thu email, vai trò, quy mô doanh nghiệp, phản hồi và thao tác thử MVP để đánh giá CP3. Tham gia tự nguyện; bạn có thể dừng. Dữ liệu chỉ dành cho nhóm và giảng viên, không công khai email; lưu tối đa khoảng 6 tháng. Không nhập dữ liệu khách hàng thật. Có thể xóa tài khoản/dữ liệu trong Hướng dẫn của MVP; với bản khảo sát/CSV đã xuất, liên hệ người mời khảo sát để yêu cầu xóa. Bạn đồng ý tham gia không?",
+  "features": [
+    ["portal", "Cổng tour công khai", "Tìm/lọc, mở chi tiết một tour có lịch xác nhận, gửi yêu cầu tư vấn.", "Tư vấn không phải booking; danh mục Én Việt tham khảo chưa nhận đặt chỗ."],
+    ["operations", "Giao việc theo tour", "Tạo việc từ thẻ tour, nhập người phụ trách/hạn, đổi trạng thái.", "Chưa có tài khoản riêng hay thông báo cho người được giao."],
+    ["sync", "Lịch và số chỗ dùng chung", "Đổi số khách ở điều hành; mở portal cùng không gian, đối chiếu chỗ còn lại.", "Polling 5 giây khi tab hiển thị; không phải đồng bộ tức thời hoặc SLA."],
+    ["pooling", "Ghép tour và đối soát B2B", "Tạo phiếu, xác nhận số khách ghép, ghi nhận thu; thử hủy sau khi đối soát về 0.", "Sổ nội bộ nhập thỏa thuận; chưa có đối tác tự duyệt hoặc thanh toán qua hệ thống."],
+    ["import", "Nhập tour Excel/CSV", "Dùng tệp do nhóm duyệt; xem trước/lỗi và nhập thành bản nháp.", "Tối đa 20 tour/đợt; thiếu dữ liệu phải sửa tệp, không tự đoán ngày/chỗ."],
+    ["quick_actions", "Thao tác nhanh trên thẻ tour", "Chọn Dùng tour trong danh mục, Đổi số chỗ hoặc Giao việc ngay trên thẻ.", "Các trường nghiệp vụ vẫn cần nhập; không phải mọi form chỉ có hai chạm."]
+  ],
+  "questions": [
+    ["Q1", "Bạn đồng ý tự nguyện tham gia theo thông báo dữ liệu không?", "Một lựa chọn: Đồng ý / Không đồng ý", "Bắt buộc. Không đồng ý: dừng, không thu các câu sau.", "Dùng nguyên thông báo đồng ý trong tab Hướng dẫn."],
+    ["Q2", "Email bạn dùng khi thử TaskHub là gì?", "Email", "Bắt buộc sau khi đồng ý; đối chiếu với tài khoản nếu có.", "Email tự khai, không đồng nghĩa cá nhân đã được xác minh."],
+    ["Q3", "Vai trò hiện tại của bạn là gì?", "Một lựa chọn: Điều hành / Sales-Marketing / Quản lý-Chủ doanh nghiệp / Khác", "Bắt buộc; Khác được ghi rõ.", "Đối chiếu phân khúc CP2, không tự gán vai trò."],
+    ["Q4", "Quy mô đơn vị bạn đang làm việc?", "Một lựa chọn: 1–9 / 10–30 / 31–50 / Trên 50 / Không áp dụng", "Bắt buộc.", "Nêu giới hạn mẫu nếu nhiều người ngoài phân khúc 10–50 nhân sự."],
+    ["Q5", "Bạn đã tự dùng hoặc xem trình diễn những chức năng nào?", "Nhiều lựa chọn theo tab Tính năng; ghi riêng Tự dùng / Xem demo cho từng chức năng.", "Bắt buộc; chỉ đánh giá chức năng đã tiếp xúc.", "Phân biệt người tự thao tác với người xem demo, không tự loại người xem demo."],
+    ["Q6", "Với từng chức năng đã tự thử, bạn hoàn thành thao tác đến đâu?", "Ma trận: Tự hoàn thành / Cần trợ giúp / Chưa hoàn thành / Chỉ xem demo / Chưa thử", "Bắt buộc theo chức năng đã chọn.", "Ghi kết quả quan sát trong Raw_features; không gọi một lần bấm là hoàn thành cả luồng."],
+    ["Q7", "Chức năng này quan trọng thế nào đối với công việc của bạn?", "Ma trận 1–5: 1 Không quan trọng, 5 Rất quan trọng; thêm Không áp dụng/Chưa thử.", "Theo từng chức năng đã chọn.", "Core feature validation; không gộp người chưa thử vào điểm 0."],
+    ["Q8", "Bạn có dự định dùng chức năng này trong công việc không?", "Ma trận: Có / Cân nhắc / Không / Không áp dụng-Chưa thử", "Theo từng chức năng đã chọn.", "Ý định theo từng tính năng, tách khỏi ý định dùng chung sản phẩm."],
+    ["Q9", "Bạn thấy thao tác với chức năng này dễ hay khó?", "Ma trận 1–5: 1 Rất khó, 5 Rất dễ; thêm Chưa tự thử.", "Chỉ lấy điểm dễ dùng từ người đã tự thao tác.", "Người chỉ xem demo không được gán điểm dễ dùng như người đã tự dùng."],
+    ["Q10", "Điều gì hữu ích nhất trong những chức năng bạn vừa trải nghiệm?", "Trả lời mở", "Không bắt buộc.", "Giữ nguyên ý kiến gốc trong bản có quyền xem; bỏ email/tên khi trích dẫn lên slide."],
+    ["Q11", "Bạn gặp khó khăn, lỗi hoặc điểm không thích nào? Hãy nêu thao tác cụ thể.", "Trả lời mở", "Không bắt buộc; khuyến khích mô tả cả trường hợp không gặp lỗi.", "Không đặt câu hỏi dẫn dắt rằng sản phẩm chắc chắn hữu ích."],
+    ["Q12", "Nếu đơn vị quyết định sử dụng, mức phí tháng bạn sẵn sàng đề xuất là bao nhiêu VND?", "Số nguyên từ 0; thêm Không quyết định ngân sách/Chưa xác định.", "Không bắt buộc; 0 là câu trả lời hợp lệ.", "Không gợi sẵn 500.000 VND, không gọi đây là nghiên cứu Van Westendorp hoặc giá đã kiểm chứng."]
+  ]
+}

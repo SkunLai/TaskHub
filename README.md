@@ -35,7 +35,9 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 | CP3: người dùng thử thật          | Đăng ký tự nguyện; lịch sử thao tác; đánh giá 3 tính năng, độ dễ dùng, ý định và mức sẵn sàng trả | Tester dùng MVP rồi gửi phản hồi               |
 | CP3: dữ liệu gốc                  | Quản trị xuất `taskhub-interactions.csv` và `taskhub-feedback.csv` có email                       | Phản hồi MVP → tải CSV                         |
 
-CP2 mục 6.2 giới hạn bản đầu ở cổng tour, lịch/số chỗ và giao việc. Đối soát B2B đầy đủ, net price/markup, thanh toán, chatbot, Excel import, Google login/xác minh email và gửi email tự động **chưa được xây**. Người phụ trách là tên nhập trong demo, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó. Chưa có reset mật khẩu. Đây là các giới hạn cần nói rõ khi demo.
+Đã bổ sung **B2B tối giản** (phiếu ghép, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV), nhập **XLSX/CSV** tối đa 20 tour/đợt, chọn nội dung tour trong hai lần chạm và đổi số chỗ/giao việc ngay trên thẻ. Xem [bảng P1–P3/S-1–S-4](docs/CP2_FEATURE_MAP.md) và [bản demo cố định](docs/CP3_DEMO_RELEASE.md).
+
+B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot, Google login/xác minh email, gửi email tự động và reset mật khẩu chưa được xây. Người phụ trách là tên nhập, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó.
 
 Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có tiền giao dịch thật. Tour, giá, lịch và người phụ trách phải do người quản lý nhập; bản cài mới không tự tạo dữ liệu kinh doanh. Giá SaaS chưa chốt; 500.000 VND/tháng trong CP2 là giả định, không dùng làm kết quả khảo sát. MVP thu mức sẵn sàng trả đơn giản, **không** triển khai mô hình Van Westendorp.
 

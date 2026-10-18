@@ -10,6 +10,16 @@ const client = (path, options = {}) => new Request(base + path, {
 });
 const noFetch = () => { throw Error('Upstream must not be called.'); };
 
+test('Pages allows the bounded bulk import body while keeping other API routes small',async()=>{
+  const payload='x'.repeat(40000);
+  const response=await handlePages(client('/api/tours/import',{method:'POST',body:payload}),env,async(url,init)=>{
+    assert.equal(new URL(url).pathname,'/api/tours/import');assert.equal(Buffer.byteLength(init.body),40000);return Response.json({ok:true});
+  });
+  assert.equal(response.status,200);
+  assert.equal((await handlePages(client('/api/tours/import',{method:'POST',body:'x'.repeat(262145)}),env,noFetch)).status,413);
+  assert.equal((await handlePages(client('/api/tours',{method:'POST',body:payload}),env,noFetch)).status,413);
+});
+
 test('Pages rejects cross-origin writes before forwarding, including a null origin', async () => {
   for (const origin of ['https://attacker.example', 'null', base + '.attacker.example']) {
     const response = await handlePages(client('/api/login', { method: 'POST', headers: { Origin: origin, 'X-TaskHub': '1' }, body: '{}' }), env, noFetch);

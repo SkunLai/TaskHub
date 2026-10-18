@@ -1,5 +1,6 @@
 import http from "node:http";
 import { referenceCatalog } from "./catalog.mjs";
+import { importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { isIP } from "node:net";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { resolve, extname } from "node:path";
@@ -221,14 +222,14 @@ function json(res, value, status = 200) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(value));
 }
-async function body(req) {
+async function body(req, maximum = 32768) {
   if (!(req.headers["content-type"] || "").startsWith("application/json"))
     fail("Yêu cầu phải có định dạng JSON.", 415);
   const chunks = [];
   let bytes = 0;
   for await (const chunk of req) {
     bytes += chunk.length;
-    if (bytes > 32768) fail("Dữ liệu quá lớn.", 413);
+    if (bytes > maximum) fail("Dữ liệu quá lớn.", 413);
     chunks.push(chunk);
   }
   try {
@@ -307,7 +308,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.2.0" });
+      return json(res, { ok: true, version: "0.3.0" });
     }
     if (
       p.startsWith("/api/") &&
@@ -460,7 +461,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/workspace" && method === "GET") {
       const u = await required(req);
-      const [tasks, tours, inquiries, activity, actionRows, feedback] =
+      const [tasks, tours, inquiries, activity, actionRows, feedback, pooling] =
         await Promise.all([
           db
             .prepare(
@@ -484,6 +485,7 @@ export const server = http.createServer(async (req, res) => {
             .prepare("SELECT DISTINCT action FROM events WHERE user_id=?")
             .all(u.id),
           db.prepare("SELECT * FROM feedback WHERE user_id=?").get(u.id),
+          db.prepare("SELECT p.*,t.title AS tour_title,t.departure AS departure FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created DESC").all(u.workspace),
         ]);
       const completedActions = actionRows.map((e) => e.action);
       return json(res, {
@@ -493,8 +495,31 @@ export const server = http.createServer(async (req, res) => {
         activity,
         completedActions,
         catalog: referenceCatalog,
+        pooling,
         feedback: feedback || null,
       });
+    }
+    if (p === "/api/tours/import" && method === "POST") {
+      const u=await required(req); limited(req,'tour-import',20);
+      return json(res,await importTours(db,u,await body(req,262144),tourInput));
+    }
+    if (p === "/api/interactions" && method === "POST") {
+      const u=await required(req); limited(req,'interactions',120);
+      return json(res,await recordInteractions(db,u,await body(req)));
+    }
+    if (p === "/api/pooling/export" && method === "GET") {
+      const u=await required(req);
+      const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,p.seats*p.unit_price-p.paid AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
+      return download(res,rows,'taskhub-pooling');
+    }
+    if (p === "/api/pooling" && method === "POST") {
+      const u=await required(req);
+      return json(res,await createPooling(db,u,await body(req)),201);
+    }
+    const poolMatch=p.match(/^\/api\/pooling\/([^/]+)$/);
+    if(poolMatch && method==='PATCH') {
+      const u=await required(req);
+      return json(res,await updatePooling(db,u,poolMatch[1],await body(req)));
     }
     if (p === "/api/events" && method === "POST") {
       const u = await required(req),
@@ -721,6 +746,7 @@ export const server = http.createServer(async (req, res) => {
     });
     res.end(method === "HEAD" ? undefined : readFileSync(file));
   } catch (e) {
+    e = operationError(e);
     if (!e.status) console.error("API error:", e.message);
     if (!res.headersSent)
       json(

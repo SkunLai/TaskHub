@@ -33,8 +33,12 @@ import {
   Copy,
   Globe,
   Mail,
+  Handshake,
+  Upload,
 } from "lucide-react";
 import "./styles.css";
+import { createOperationsUI } from "./operations-ui.jsx";
+import { startInteractions, flushInteractions } from "./interactions.mjs";
 
 const money = (n) => new Intl.NumberFormat("vi-VN").format(n) + " ₫";
 const date = (n) =>
@@ -80,6 +84,7 @@ const navItems = [
   ["dashboard", "Tổng quan", LayoutDashboard],
   ["tours", "Quản lý tour", Compass],
   ["tasks", "Công việc", ListTodo],
+  ["pooling", "Ghép tour B2B", Handshake],
   ["inbox", "Yêu cầu tư vấn", Inbox],
   ["research", "Phản hồi MVP", BarChart3],
 ];
@@ -431,7 +436,8 @@ function Auth({ mode, setMode, onClose, onUser }) {
               <ShieldCheck size={20} />
               <p>
                 Nhóm TaskHub thu email, vai trò, quy mô, phản hồi và lịch sử
-                thao tác trong MVP để đánh giá CP3. Dữ liệu lưu tối đa khoảng 6
+                thao tác trong MVP, gồm nút/menu và thời gian bấm, để đánh giá CP3.
+                Không ghi nội dung bạn gõ hoặc mật khẩu. Dữ liệu lưu tối đa khoảng 6
                 tháng, nhóm và giảng viên được xem; email không xuất hiện trên
                 cổng tour công khai. Không nhập thông tin khách hàng thật trong
                 không gian dùng thử. Bạn có thể xóa dữ liệu của mình tại mục
@@ -470,13 +476,14 @@ function Auth({ mode, setMode, onClose, onUser }) {
   );
 }
 
-function TourCard({ tour, onOpen, internal = false }) {
+function TourCard({ tour, onOpen, internal = false, onSeats, onTask }) {
   const remaining = tour.capacity - tour.reserved;
   return (
-    <article className="tour-card">
+    <article className={"tour-card" + (internal ? " internal-tour" : "")} data-track-entity={tour.id}>
       <button
         className="cover-button"
         aria-label={"Xem " + tour.title}
+        data-track="tour:cover"
         onClick={() => onOpen(tour)}
       >
         <Landscape theme={tour.theme} />
@@ -489,7 +496,7 @@ function TourCard({ tour, onOpen, internal = false }) {
         <div className="eyebrow">
           {tour.duration} <span>•</span> KHỞI HÀNH {date(tour.departure)}
         </div>
-        <button className="card-title" onClick={() => onOpen(tour)}>
+        <button className="card-title" data-track="tour:open" onClick={() => onOpen(tour)}>
           {tour.title}
           <ArrowUpRight size={19} />
         </button>
@@ -521,6 +528,10 @@ function TourCard({ tour, onOpen, internal = false }) {
             </Badge>
           </div>
         )}
+        {(onSeats || onTask) && <div className="tour-quick-actions">
+          {onSeats && <Button variant="ghost" data-track="tour:seats" onClick={() => onSeats(tour)}><Users size={15} />Đổi số chỗ</Button>}
+          {onTask && <Button variant="ghost" data-track="tour:task" onClick={() => onTask(tour)}><Plus size={15} />Giao việc</Button>}
+        </div>}
       </div>
     </article>
   );
@@ -537,7 +548,7 @@ function CatalogImage({ tour }) {
 
 function CatalogCard({ tour, onOpen }) {
   return (
-    <article className="tour-card catalog-card">
+    <article className="tour-card catalog-card" data-track-entity={tour.id}>
       <button className="cover-button" aria-label={"Xem " + tour.title} onClick={() => onOpen(tour)}>
         <CatalogImage tour={tour} />
         <span className="cover-pill"><MapPin size={12} />{tour.destination}</span>
@@ -589,9 +600,10 @@ function CatalogPicker({ catalog, onClose, onUse }) {
   if (selected) return <CatalogDetails tour={selected} source={catalog.source} onClose={() => setSelected(null)} onUse={tour => onUse({ ...tour, capturedOn: catalog.source.capturedOn })} />;
   return <Modal title="Danh mục tour Én Việt" subtitle="Chọn nội dung có sẵn, sau đó bổ sung dữ liệu vận hành." onClose={onClose} wide>
     <label className="search catalog-search"><Search size={18} /><input aria-label="Tìm trong danh mục" placeholder="Tên tour, mã hoặc điểm đến…" value={query} onChange={e => setQuery(e.target.value)} /></label>
-    <div className="catalog-picker-list">{tours.map(t => <button className="catalog-picker-row" key={t.id} onClick={() => setSelected(t)}>
-      <span><small>{t.code} · {t.destination}</small><strong>{t.title}</strong><span>{t.duration} · {t.price === null ? "Giá: Liên hệ" : money(t.price)}</span></span><ChevronRight size={19} />
-    </button>)}</div>
+    <div className="catalog-picker-list">{tours.map(t => <div className="catalog-picker-row" key={t.id}>
+      <button className="catalog-picker-detail" data-track="catalog:detail" onClick={() => setSelected(t)}><span><small>{t.code} · {t.destination}</small><strong>{t.title}</strong><span>{t.duration} · {t.price === null ? "Giá: Liên hệ" : money(t.price)}</span></span><ChevronRight size={19} /></button>
+      <Button variant="ghost" data-track="catalog:use" aria-label={"Dùng " + t.code} onClick={() => onUse({ ...t, capturedOn: catalog.source.capturedOn })}>Dùng tour</Button>
+    </div>)}</div>
     {!tours.length && <p className="muted">Không tìm thấy tour. Thử từ khóa khác.</p>}
   </Modal>;
 }
@@ -962,7 +974,7 @@ function TourDetails({ tour, workspace, onClose, notify, readOnly = false }) {
   );
 }
 
-function TourEditor({ tour, prefill, onClose, onSave }) {
+function TourEditor({ tour, prefill, minimumReserved = 0, onClose, onSave }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [confirmDelete, setConfirmDelete] = useState(false);
@@ -1075,11 +1087,11 @@ function TourEditor({ tour, prefill, onClose, onSave }) {
               required
             />
           </Field>
-          <Field label="Khách đã giữ chỗ">
+          <Field label="Khách đã giữ chỗ" hint={minimumReserved ? `Bao gồm ${minimumReserved} khách ghép đã xác nhận; không được thấp hơn mức này.` : undefined}>
             <input
               name="reserved"
               type="number"
-              min="0"
+              min={minimumReserved}
               max="1000"
               defaultValue={t.reserved}
               required
@@ -1122,7 +1134,7 @@ function TourEditor({ tour, prefill, onClose, onSave }) {
         {tour && confirmDelete && (
           <div className="delete-confirm" role="alert">
             <strong>Xóa tour này?</strong>
-            <p>Công việc và yêu cầu tư vấn gắn với tour cũng sẽ bị xóa. Thao tác này không thể hoàn tác. Để chỉ ẩn khỏi cổng khách hàng, hãy bỏ chọn công khai rồi lưu.</p>
+            <p>Công việc và yêu cầu tư vấn gắn với tour cũng sẽ bị xóa. Nếu còn phiếu ghép B2B, hãy hoàn tất đối soát và hủy phiếu trước. Để chỉ ẩn khỏi cổng khách hàng, bỏ chọn công khai rồi lưu.</p>
             <Button type="button" variant="danger" disabled={busy} onClick={remove}>Xác nhận xóa tour</Button>
             <Button type="button" variant="ghost" disabled={busy} onClick={() => setConfirmDelete(false)}>Giữ lại tour</Button>
           </div>
@@ -1141,7 +1153,7 @@ function TourEditor({ tour, prefill, onClose, onSave }) {
     </Modal>
   );
 }
-function TaskEditor({ tours, onClose, onSave }) {
+function TaskEditor({ tours, defaultTourId, onClose, onSave }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   async function submit(e) {
@@ -1176,7 +1188,7 @@ function TaskEditor({ tours, onClose, onSave }) {
         </Field>
         {!tours.length && <p className="workspace-notice">Tạo một tour trong Quản lý tour trước khi giao công việc.</p>}
         <Field label="Tour liên quan">
-          <select name="tour_id" required>
+          <select name="tour_id" defaultValue={defaultTourId} required>
             {tours.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.title}
@@ -1951,6 +1963,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     }
   }
   const current = navItems.find((i) => i[0] === nav);
+  const minimumReserved = id => (data?.pooling || []).filter(p => p.tour_id === id && p.status === "confirmed").reduce((sum,p) => sum+p.seats,0);
   const visibleTours =
     data?.tours.filter((t) =>
       (t.title + " " + t.destination)
@@ -1961,6 +1974,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
     tours: "Một lần cập nhật. Cả đội ngũ và khách hàng cùng nhìn thấy.",
     tasks: "Rõ người phụ trách. Đúng thời hạn. Không bỏ sót.",
+    pooling: "Một nơi xác nhận khách ghép và theo dõi số tiền còn phải thu.",
     inbox: "Tiếp nhận yêu cầu ngay cả ngoài giờ làm việc.",
     research: ["admin", "reviewer"].includes(user.role)
       ? "Theo dõi phản hồi và xuất dữ liệu cho nhóm."
@@ -2009,6 +2023,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               key={id}
               className={nav === id ? "active" : ""}
               aria-current={nav === id ? "page" : undefined}
+              data-track={"nav:" + id}
               onClick={() => {
                 setNav(id);
                 setMenu(false);
@@ -2110,6 +2125,9 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 </span>
               )}
               {nav === "tours" && !readOnly && (
+                <Button variant="ghost" onClick={() => setEditor({ type: "import" })}><Upload size={17} />Nhập Excel</Button>
+              )}
+              {nav === "tours" && !readOnly && (
                 <Button variant="ghost" disabled={!data?.catalog?.tours.length} onClick={() => setEditor({ type: "catalog" })}>
                   <Compass size={17} />Danh mục Én Việt
                 </Button>
@@ -2129,6 +2147,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   Giao công việc
                 </Button>
               )}
+              {nav === "pooling" && !readOnly && <Button disabled={!data?.tours.length} onClick={() => setEditor({ type: "pooling" })}><Plus size={17} />Tạo phiếu ghép</Button>}
             </div>
           </div>
           <div className="workspace-notice">
@@ -2198,6 +2217,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                         key={t.id}
                         tour={t}
                         onOpen={(tour) => setEditor({ type: "tour", tour })}
+                        onSeats={readOnly ? undefined : tour => setEditor({ type: "seats", tour })}
+                        onTask={readOnly ? undefined : tour => setEditor({ type: "task", tour })}
                         internal
                       />
                     ))}
@@ -2233,6 +2254,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   onChange={changeTask}
                 />
               )}{" "}
+              {nav === "pooling" && <Pooling data={data} readOnly={readOnly} onNew={() => setEditor({ type: "pooling" })} onPayment={pool => setEditor({ type: "pooling", pool })} reload={reload} notify={notify} />}
               {nav === "inbox" && (
                 <section className="panel">
                   <div className="panel-header">
@@ -2302,7 +2324,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour</span>
+            <span>TaskHub · Điều hành tour · Bản 18.10</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>
@@ -2320,6 +2342,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         <TourEditor
           tour={editor.tour}
           prefill={editor.prefill}
+          minimumReserved={minimumReserved(editor.tour?.id)}
           onClose={() => setEditor(null)}
           onSave={async () => {
             await reload();
@@ -2330,6 +2353,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       {editor?.type === "task" && !readOnly && (
         <TaskEditor
           tours={data.tours}
+          defaultTourId={editor.tour?.id}
           onClose={() => setEditor(null)}
           onSave={async () => {
             await reload();
@@ -2340,6 +2364,9 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       {editor?.type === "catalog" && !readOnly && data?.catalog && (
         <CatalogPicker catalog={data.catalog} onClose={() => setEditor(null)} onUse={prefill => setEditor({ type: "tour", prefill })} />
       )}
+      {editor?.type === "import" && !readOnly && <ImportTours onClose={() => setEditor(null)} onSave={async count => {await reload();notify(`Đã nhập ${count} tour dưới dạng bản nháp.`);}} />}
+      {editor?.type === "seats" && !readOnly && <SeatEditor tour={editor.tour} minimumReserved={minimumReserved(editor.tour.id)} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã cập nhật số khách. Portal sẽ đồng bộ số chỗ.");}} />}
+      {editor?.type === "pooling" && !readOnly && <PoolingEditor tours={data.tours} pool={editor.pool} onClose={() => setEditor(null)} onSave={async () => {await reload();notify("Đã lưu phiếu ghép tour.");}} />}
       {help && (
         <Help
           user={user}
@@ -2364,6 +2391,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     </div>
   );
 }
+
+const { ImportTours, SeatEditor, PoolingEditor, Pooling } = createOperationsUI({Modal,Button,Field,ErrorBox,Empty,Badge,api,money,date});
 
 function App() {
   const [user, setUser] = useState(null),
@@ -2394,6 +2423,7 @@ function App() {
     loadSession();
     return () => window.removeEventListener("popstate", handler);
   }, [loadSession]);
+  useEffect(() => startInteractions(user), [user?.id]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => setToast(null), 5500);
@@ -2402,6 +2432,7 @@ function App() {
   const notify = (text, tone = "success") => setToast({ text, tone });
   const logout = async () => {
     try {
+      await flushInteractions();
       await api("/logout", "POST", {});
       setUser(null);
       navigate("/");

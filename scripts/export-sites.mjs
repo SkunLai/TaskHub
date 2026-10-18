@@ -8,6 +8,7 @@ assert.ok(process.argv[2] && target !== process.cwd(), 'Pass the prepared Sites 
 const put = (path, text) => { mkdirSync(resolve(target, path, '..'), { recursive: true }); writeFileSync(join(target, path), text); };
 // One approved source for local and hosted catalogs; no fictional inventory is seeded.
 put('lib/catalog.mjs', 'export const referenceCatalog = '+readFileSync('catalog/enviet-tours.json','utf8').trim()+';\n');
+put('lib/operations.mjs',readFileSync('server/operations.mjs','utf8'));
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')
@@ -192,7 +193,8 @@ export async function handleApi(request) {
     // Drain the bounded Fetch body even when the API rejects before parsing it.
     // Leaving a rejected POST body unread can reset the local proxy connection.
     const chunks=[];let bytes=0;
-    if(request.body)for await(const chunk of request.body){bytes+=chunk.length;if(bytes>32768)return Response.json({message:'Dữ liệu quá lớn.'},{status:413});chunks.push(Buffer.from(chunk));}
+    const maximum=new URL(request.url).pathname==='/api/tours/import'?262144:32768;
+    if(request.body)for await(const chunk of request.body){bytes+=chunk.length;if(bytes>maximum)return Response.json({message:'Dữ liệu quá lớn.'},{status:413});chunks.push(Buffer.from(chunk));}
     const req={url:request.url,method:request.method,headers,socket:{remoteAddress:clientAddress},
       async *[Symbol.asyncIterator]() { for(const chunk of chunks)yield chunk; }
     };
@@ -208,6 +210,9 @@ export async function handleApi(request) {
 put('app/api/[...path]/route.ts', `import {handleApi} from '../../../lib/route.mjs';\nexport const dynamic='force-dynamic';\nexport const GET=handleApi;export const POST=handleApi;export const PUT=handleApi;export const PATCH=handleApi;export const DELETE=handleApi;export const HEAD=handleApi;\n`);
 let ui=readFileSync('src/main.jsx','utf8').replaceAll('\r\n','\n').replace('import { createRoot } from "react-dom/client";\n','').replace('import "./styles.css";\n','').replace('function App() {','export default function App() {').replace('useState(location.pathname)','useState(typeof location === "undefined" ? "/" : location.pathname)').replace('createRoot(document.getElementById("root")).render(<App />);','');
 put('app/TaskHub.jsx','"use client";\n'+ui);
+put('app/operations-ui.jsx',readFileSync('src/operations-ui.jsx','utf8'));
+put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
+put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
 put('app/globals.css',readFileSync('src/styles.css','utf8'));
 for(const [file,relative] of [['app/page.tsx','./TaskHub'],['app/app/page.tsx','../TaskHub'],['app/portal/[workspace]/page.tsx','../../TaskHub']]) put(file,`import TaskHub from '${relative}';\nexport default function Page(){return <TaskHub/>;}\n`);
 put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'TaskHub · Điều hành tour, cùng một nhịp',description:'TaskHub hỗ trợ doanh nghiệp lữ hành quản lý tour, lịch/số chỗ và công việc.',icons:{icon:'/favicon.svg'}};\nexport default function Layout({children}:{children:React.ReactNode}){return <html lang="vi"><body>{children}</body></html>;}\n`);

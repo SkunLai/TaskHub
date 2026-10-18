@@ -37,3 +37,11 @@ export const feedback = sqliteTable('feedback', {
 export const rateLimits = sqliteTable('rate_limits', {
   key: requiredText('key'),bucket: requiredInteger('bucket'),n: requiredInteger('n'),
 },t=>[primaryKey({columns:[t.key,t.bucket]}),index('rate_limit_expiry').on(t.bucket)]);
+export const pooling = sqliteTable('pooling', {
+  id:text('id').primaryKey(),workspace:requiredText('workspace').references(()=>workspaces.id,{onDelete:'cascade'}),
+  tour_id:requiredText('tour_id').references(()=>tours.id,{onDelete:'cascade'}),partner:requiredText('partner'),seats:requiredInteger('seats'),
+  unit_price:requiredInteger('unit_price'),paid:requiredInteger('paid').default(0),status:requiredText('status'),note:requiredText('note'),
+  version:requiredInteger('version').default(1),created:requiredText('created'),updated:requiredText('updated'),
+},t=>[index('pooling_workspace').on(t.workspace),index('pooling_tour').on(t.tour_id),
+  check('pool_seats',sql`${t.seats}>0 AND ${t.seats}<=1000`),check('pool_price',sql`${t.unit_price}>=0 AND ${t.unit_price}<=1000000000`),
+  check('pool_paid',sql`${t.paid}>=0 AND ${t.paid}<=${t.seats}*${t.unit_price}`),check('pool_status',sql`${t.status} IN ('pending','confirmed','cancelled')`)]);

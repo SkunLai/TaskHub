@@ -11,7 +11,7 @@ Nguồn do chủ dự án cung cấp: https://dulichenvietcs.netlify.app/. Ghi n
 ## Dùng trong điều hành
 
 1. Đăng nhập → Quản lý tour → **Danh mục Én Việt**.
-2. Tìm tên, mã hoặc điểm đến → mở chi tiết → **Dùng nội dung tour**.
+2. Tìm tên, mã hoặc điểm đến → **Dùng tour** ngay trên dòng kết quả. Từ màn hình quản lý, mở danh mục rồi dùng nội dung là hai lần chạm; mở chi tiết để đọc thêm khi cần.
 3. Kiểm tra giá; bổ sung ngày đi chính xác, sức chứa, số khách đã giữ chỗ và lịch trình từng ngày; lưu. Chỉ chọn công khai sau khi xác nhận các thông tin này.
 
 Nội dung có nguồn được điền sẵn vào tên, điểm đến, thời lượng, giá tham khảo và mô tả. Ngày đi, sức chứa, khách đã giữ chỗ và lịch trình từng ngày để trống vì nguồn chưa cung cấp. Checkbox công khai mặc định tắt. Không tạo tour vận hành hoặc công việc tự động, không ghi đè dữ liệu hiện có của bất kỳ tài khoản nào.

@@ -49,7 +49,7 @@ export async function handlePages(request, env, fetchUpstream = fetch) {
     let bytes = 0;
     if (request.body) for await (const chunk of request.body) {
       bytes += chunk.length;
-      if (bytes > 32768) return jsonError('Dữ liệu quá lớn.', 413);
+      if (bytes > (url.pathname === '/api/tours/import' ? 262144 : 32768)) return jsonError('Dữ liệu quá lớn.', 413);
       chunks.push(Buffer.from(chunk));
     }
     try {

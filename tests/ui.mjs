@@ -2,6 +2,8 @@ import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { qaTour } from "./fixtures.mjs";
+import { importColumns } from "../src/import-tours.mjs";
+import { xlsxFixture } from "./xlsx-fixture.mjs";
 mkdirSync("work", { recursive: true });
 const browser = await chromium.launch({
   headless: true,
@@ -124,7 +126,7 @@ try {
   for (const [code,price] of [['EVG-TQ11',''],['EVG-TQ01','28990000']]) {
     await page.getByRole('button',{name:'Danh mục Én Việt',exact:true}).click();
     await page.getByLabel('Tìm trong danh mục').fill(code);
-    await page.locator('.catalog-picker-row').click();
+    await page.locator('.catalog-picker-detail').click();
     await page.getByRole('button',{name:'Dùng nội dung tour',exact:true}).click();
     assert.equal(await page.locator('input[name="price"]').inputValue(),price);
     for (const name of ['departure','capacity','reserved'])
@@ -134,6 +136,10 @@ try {
     assert.ok((await page.locator('textarea[name="description"]').inputValue()).includes('https://dulichenvietcs.netlify.app/'));
     await page.getByRole('button',{name:'Hủy',exact:true}).click();
   }
+  await page.getByRole('button',{name:'Danh mục Én Việt',exact:true}).click();
+  await page.getByRole('button',{name:'Dùng EVG-TQ01',exact:true}).click();
+  assert.equal(await page.locator('input[name="price"]').inputValue(),'28990000');
+  await page.getByRole('button',{name:'Hủy',exact:true}).click();
   await page.getByRole('button',{name:'Tạo tour',exact:true}).click();
   for(const name of ['title','destination','departure','duration','price','capacity','reserved'])
     await page.locator(`input[name="${name}"]`).fill(String(qaTour[name]));
@@ -143,11 +149,11 @@ try {
   await page.getByRole('button',{name:'Lưu hành trình',exact:true}).click();
   await page.getByRole('dialog').waitFor({state:'hidden'});
   await page
-    .getByRole("button", { name: qaTour.title, exact: true })
+    .getByRole("button", { name: "Đổi số chỗ", exact: true })
     .click();
   await page.getByLabel("Khách đã giữ chỗ").fill("24");
   await page
-    .getByRole("button", { name: "Lưu hành trình", exact: true })
+    .getByRole("button", { name: "Lưu số khách", exact: true })
     .click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page
@@ -210,6 +216,30 @@ try {
     .waitFor();
   await page.screenshot({ path: "work/tasks-desktop.png", fullPage: true });
   console.log("Tasks passed");
+  await page.getByRole('button',{name:'Ghép tour B2B',exact:true}).click();
+  await page.getByRole('button',{name:'Tạo phiếu ghép',exact:true}).first().click();
+  await page.getByLabel('Tour ghép',{exact:true}).selectOption({index:1});
+  await page.getByLabel('Tên đối tác',{exact:true}).fill('Đối tác kiểm thử UI');
+  await page.getByLabel('Số khách ghép',{exact:true}).fill('3');
+  await page.getByLabel('Giá net thỏa thuận / khách (VND)',{exact:true}).fill('100000');
+  await page.getByRole('dialog').getByRole('button',{name:'Tạo phiếu ghép',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Xác nhận ghép',exact:true}).click();
+  await page.locator('.pool-card').getByText('Đã xác nhận',{exact:true}).waitFor();
+  for(const amount of ['150000','0']) {
+    await page.getByRole('button',{name:'Ghi nhận thu',exact:true}).click();
+    await page.getByLabel('Tổng tiền đã ghi nhận thu (VND)',{exact:true}).fill(amount);
+    await page.getByRole('button',{name:'Lưu đối soát',exact:true}).click();
+    await page.getByRole('dialog').waitFor({state:'hidden'});
+  }
+  await page.screenshot({path:'work/pooling-desktop.png',fullPage:true});
+  for(const width of [320,390]) {await page.setViewportSize({width,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'B2B mobile overflow');}
+  await page.screenshot({path:'work/pooling-mobile.png',fullPage:true});
+  await page.setViewportSize({width:1440,height:1050});
+  await page.getByRole('button',{name:'Hủy phiếu',exact:true}).click();
+  await page.getByRole('button',{name:'Xác nhận hủy phiếu',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'hidden'});
+  console.log('B2B UI passed: create, seat confirmation, payment reconciliation and cancellation');
   await page.getByRole("button", { name: "Phản hồi MVP", exact: true }).click();
   for (const k of ["portal", "operations", "sync", "ease"])
     await page.locator(`input[name="${k}"][value="4"]`).check();
@@ -334,6 +364,19 @@ try {
   await page.getByRole('button',{name:'Xác nhận xóa tour',exact:true}).click();
   await page.getByRole('dialog').waitFor({state:'hidden'});
   await page.getByRole('heading',{name:'Chưa có hành trình',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Nhập Excel',exact:true}).click();
+  const imported={...qaTour,title:'Excel UI QA'};
+  await page.getByLabel('Tệp tour Excel hoặc CSV').setInputFiles({name:'qa-tour.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:xlsxFixture([importColumns,importColumns.map(k=>imported[k])])});
+  await page.getByText('1 / 1 dòng hợp lệ',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Nhập 1 tour',exact:true}).click();
+  await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'Excel UI QA',exact:true}).waitFor();
+  await page.locator('.tour-card').getByText('Bản nháp',{exact:true}).waitFor();
+  console.log('XLSX browser import passed; new tour stays unpublished');
+  const loggedWorkspace=await (await context.request.get(base+'/api/workspace')).json();
+  assert.ok(loggedWorkspace.completedActions.includes('ui_click'),'Participant button/menu clicks must reach the server');
+  assert.deepEqual(errors, []);
+  console.log('Consented participant UI clicks were saved; no browser errors');
   console.log(
     "UI PASS: signup, tour sync, inquiry, task create/status, feedback; desktop and mobile no overflow; no page errors.",
   );

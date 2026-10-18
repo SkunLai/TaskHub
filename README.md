@@ -39,6 +39,8 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 
 Đã bổ sung **B2B tối giản** (phiếu ghép, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV), nhập **XLSX/CSV** tối đa 20 tour/đợt, chọn nội dung tour trong hai lần chạm và đổi số chỗ/giao việc ngay trên thẻ. Xem [bảng P1–P3/S-1–S-4](docs/CP2_FEATURE_MAP.md) và [bản demo cố định](docs/CP3_DEMO_RELEASE.md).
 
+Đợt hoàn thiện file tiến độ bổ sung [bộ tập demo](docs/CP3_REHEARSAL.md), [quy trình hoàn tất 8 việc](docs/CP3_CLOSEOUT.md) và `npm run survey:report` để tổng hợp riêng 6 nhóm tính năng từ hai CSV raw của An. Giảng viên chưa được gửi/cấp quyền mới theo yêu cầu chủ dự án.
+
 B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot, Google login/xác minh email, gửi email tự động và reset mật khẩu chưa được xây. Người phụ trách là tên nhập, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó.
 
 Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có tiền giao dịch thật. Tour, giá, lịch và người phụ trách phải do người quản lý nhập; bản cài mới không tự tạo dữ liệu kinh doanh. Giá SaaS chưa chốt; 500.000 VND/tháng trong CP2 là giả định, không dùng làm kết quả khảo sát. MVP thu mức sẵn sàng trả đơn giản, **không** triển khai mô hình Van Westendorp.

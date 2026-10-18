@@ -53,3 +53,11 @@
 - Google Sheet khảo sát đã tạo và kiểm tra 6 tab, 12 câu, múi giờ Việt Nam, điểm 1–5 và raw trống. Đã thực hiện thao tác chia sẻ theo email anh cung cấp cho An; đọc lại quyền cho thấy email đó đã là chủ sở hữu và có quyền chỉnh sửa. Không mở bảng raw công khai hoặc tạo phản hồi mẫu.
 - Bảng P1–P3/S-1–S-4 và kịch bản demo nêu rõ phạm vi B2B sổ nội bộ, log UI có thể thiếu khi mất mạng, giới hạn thao tác 1–2 chạm và S-4 còn cần người thử/dữ liệu thật.
 - Sau QA production: API health trả phiên bản 0.3.0; 0 participant, 0 feedback, 0 event, 0 phản hồi đủ log để đối chiếu. Không tạo kết quả khảo sát; dữ liệu demo của nhóm vẫn cần được duyệt và ít nhất 20 người thật còn phải thử.
+
+## Hoàn thiện các việc trong file tiến độ — 18/10/2026
+
+- Bổ sung `survey:report` cho hai tab raw của An, đánh giá riêng 6 nhóm tính năng. 47/47 kiểm tra đạt trên SQLite và libSQL, gồm tách self/demo, không lấy điểm dễ dùng của người chỉ xem, chống dùng dữ liệu trước consent, sửa câu trả lời trùng, giá 0 và không xuất email/ý kiến mở vào báo cáo. Nguồn CSV được bảo vệ khỏi ghi đè.
+- Đọc lại web và toàn bộ 1000 dòng khả dụng của hai tab Raw_testers/Raw_features: web vẫn 0 participant/feedback/event; Sheet chỉ có hàng tiêu đề. Chạy lệnh mới trên các CSV tương ứng cho kết quả 0, không tạo thống kê hoặc giá giả.
+- Hoàn thiện kịch bản lời dẫn theo P1–P3, ba vòng tập, checklist trình bày và bảng thông tin demo cần nhóm duyệt. Chưa đánh dấu Tuấn đã tập hoặc dữ liệu demo đã được duyệt khi chưa có xác nhận thực tế.
+- Chủ dự án yêu cầu chưa gửi giảng viên: không gửi email, thông tin đăng nhập hoặc cấp quyền mới. Bản hướng dẫn bàn giao giữ lại cho lúc anh yêu cầu tiếp.
+- Đợt này chỉ bổ sung công cụ offline và tài liệu, không thay giao diện/API/schema/dữ liệu production; tag demo đã phát hành được giữ nguyên.

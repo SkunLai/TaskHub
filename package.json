@@ -17,6 +17,7 @@
     "build:pages": "node scripts/build-pages.mjs",
     "data:backup": "node --env-file-if-exists=.env scripts/backup.mjs",
     "research:report": "node scripts/research-report.mjs",
+    "survey:report": "node scripts/survey-report.mjs",
     "data:purge": "node --env-file-if-exists=.env scripts/purge.mjs"
   },
   "dependencies": {

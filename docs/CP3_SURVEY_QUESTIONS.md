@@ -37,6 +37,18 @@ Nhóm TaskHub thu email, vai trò, quy mô doanh nghiệp, phản hồi và thao
 
 ## Đối chiếu dữ liệu
 
+### Quy ước khi xuất CSV để tổng hợp
+
+Lưu mốc consent/thử/đánh giá theo ISO có múi giờ, ví dụ dạng `YYYY-MM-DDTHH:mm:ss+07:00` hoặc `...Z`; không nhập ngày mơ hồ như 18/10 rồi bỏ giờ. `consent_version` dùng `CP3-2026.10.18`. Trường thời gian bắt đầu/kết thúc có thể trống nếu chưa ghi, không tự đoán.
+
+- `feature`: `portal`, `operations`, `sync`, `pooling`, `import`, `quick_actions` hoặc đúng tên tính năng trong tab Tinhnang.
+- `mode`: `self`/Tự dùng hoặc `demo`/Xem demo.
+- `result`: `completed`/Tự hoàn thành, `assisted`/Cần trợ giúp, `incomplete`/Chưa hoàn thành, `viewed`/Chỉ xem demo, `untried`/Chưa thử. Người chỉ xem demo để trống điểm dễ dùng.
+- `importance`, `ease`: 1–5 hoặc trống; không điền 0 để chỉ chưa thử. `intent`: `yes`/Có, `maybe`/Cân nhắc, `no`/Không, `na`/Không áp dụng.
+- `monthly_price_vnd`: số nguyên VND không có phân cách hàng nghìn; 0 hợp lệ. Nếu có giá trị, `price_status` dùng `provided` hoặc để trống; nếu chưa xác định/không quyết định ngân sách thì để số tiền trống, ghi trạng thái riêng.
+
+`npm run survey:report -- Raw_testers.csv Raw_features.csv thu-muc-bao-cao` tạo báo cáo riêng cho cả 6 nhóm chức năng. Dòng Raw_testers trùng email: giữ dòng cuối CSV, nên không đổi thứ tự các phiên cập nhật trước khi xuất. Raw_features trùng email/tính năng: giữ observed_at mới nhất, cùng mốc thì dòng cuối; bản mới sai được báo lỗi thay vì lấy lại câu trả lời cũ. Báo cáo không xác minh 20 người thật hoặc tự chọn giá. Xem [quy trình hoàn tất](CP3_CLOSEOUT.md).
+
 - Log UI: `ui_click`/`ui_change`; mã nút, khu vực, thời gian thiết bị nằm trong `entity`; `created` là thời gian server. Không lưu nội dung gõ hoặc mật khẩu. Khi mất mạng, log có thể thiếu.
 - Log nghiệp vụ xác nhận tour/việc/phiếu thực sự được lưu. Không dùng số click để kết luận luồng hoàn tất hoặc để đếm người thật.
 - Phản hồi trong app hiện đánh giá ba tính năng cốt lõi. Bộ Sheet bổ sung đánh giá riêng B2B, nhập Excel và thao tác nhanh; không tự gán các điểm này vào phản hồi cũ.

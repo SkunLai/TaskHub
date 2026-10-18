@@ -1,6 +1,6 @@
 # Bàn giao FE/BE TaskHub cho CP3
 
-Ngày rà soát: 18/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu hỗ trợ kiểm thử, tài liệu demo và bộ câu hỏi/Sheet bàn giao An theo yêu cầu chủ dự án. Không điền thay kết quả khảo sát, slide, BMC hoặc quyết định giá.
+Ngày rà soát tài liệu: 19/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu hỗ trợ kiểm thử, tài liệu demo và bộ câu hỏi/Sheet bàn giao An theo yêu cầu chủ dự án. Không điền thay kết quả khảo sát, slide, BMC hoặc quyết định giá. Kết quả kiểm thử đã thực hiện được ghi theo mốc ở [VALIDATION.md](VALIDATION.md); chỉnh tài liệu không tạo thêm bằng chứng kiểm thử.
 
 - Web: https://taskhub-travel.pages.dev/
 - Code nhóm làm việc: https://github.com/skunlainro3-glitch/TaskHub/tree/build
@@ -43,6 +43,8 @@ PDF yêu cầu chứng minh MVP đáp ứng giải pháp CP2 khi demo trực ti�
 
 Bảng đầy đủ [P1–P3/S-1–S-4](CP2_FEATURE_MAP.md); [kịch bản và tag demo cố định](CP3_DEMO_RELEASE.md); [câu hỏi cho An](CP3_SURVEY_QUESTIONS.md).
 
+Nhóm mới nhận code có thể bắt đầu từ [hướng dẫn đọc mã nguồn](CODE_GUIDE.md): cách chạy Node.js 24, vị trí sửa giao diện/API, dữ liệu và quá trình xuất bản cloud.
+
 ## 5. Kịch bản demo trực tiếp
 
 Chuẩn bị trước: [bộ giả lập do nhóm cung cấp](OWNER_DEMO_DATA_2026-10-18.md) đã có 3 tour, 3 phiếu B2B chờ và 2 công việc tại không gian điều hành. Xác nhận cách tính khách B2B và khoản thu trước khi đổi các phiếu này; TASK-03 còn thiếu tour liên quan. Chọn tài khoản dùng thử riêng cho người thử và giữ một cửa sổ cổng khách hàng. Không dùng tài khoản reviewer để chỉnh dữ liệu. Không đưa CSV có email vào màn chiếu công khai.
@@ -52,8 +54,9 @@ Chuẩn bị trước: [bộ giả lập do nhóm cung cấp](OWNER_DEMO_DATA_20
 3. Mở lại tour, đổi lịch hoặc số khách giữ chỗ, lưu. Đổi sang cổng khách hàng và đợi chu kỳ cập nhật; đối chiếu thông tin.
 4. Gửi yêu cầu tư vấn bằng dữ liệu thử được nhóm chuẩn bị, quay về điều hành để thấy yêu cầu. Nói rõ chưa phải xác nhận đặt tour.
 5. Tạo việc gắn đúng tour, nhập người phụ trách/hạn, chuyển trạng thái. Nói rõ chưa có tài khoản hoặc thông báo tự gửi tới nhân viên đó.
-6. Mở Phản hồi MVP và giải thích người thử tự đánh giá; quản trị/reviewer xuất dữ liệu gốc. QA dùng để trình diễn phải được tách khỏi khảo sát.
-7. Nếu mạng gián đoạn: dùng thông báo lỗi/thử tải lại; không dùng ảnh hoặc video thay thế rồi gọi đó là demo live. Có thể chạy bản local bằng README và nói rõ môi trường đang dùng.
+6. Demo P3 bằng bộ giả lập riêng đã được Tuấn duyệt: tạo phiếu B2B → xác nhận → đối chiếu số chỗ → ghi nhận thu lũy kế → xem lịch sử/xuất CSV. Không xác nhận hoặc ghi thu trên ba phiếu nguồn đang chờ đối chiếu. Đối soát về 0 trước khi hủy phiếu đã có khoản thu; nói rõ hệ thống không chuyển/hoàn tiền.
+7. Mở Phản hồi MVP và giải thích người thử tự đánh giá; quản trị/reviewer xuất dữ liệu gốc. QA dùng để trình diễn phải được tách khỏi khảo sát. Hai CSV mới Người thử/Đánh giá tính năng dùng với `survey:report`; bản phản hồi cũ và tương tác dùng với `research:report`.
+8. Nếu mạng gián đoạn: dùng thông báo lỗi/thử tải lại; không dùng ảnh hoặc video thay thế rồi gọi đó là demo live. Có thể chạy bản local bằng README và nói rõ môi trường đang dùng.
 
 Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình diễn trực tiếp trong PDF; không tự biến các phần này thành slide thay thế demo.
 
@@ -61,7 +64,6 @@ Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình di
 
 - Giá: chưa có mức bán đã chốt. Mức 500.000 VND/tháng trong CP2 là giả định kịch bản. Tool mới tính thống kê willingness-to-pay từ dữ liệu thật, không tự chọn giá hoặc dựng Price Map. Van Westendorp là phần nâng cao tùy chọn.
 - Lợi thế có thể demo: thông tin tour và công việc theo ngành lữ hành dùng chung với cổng khách hàng. Chưa có thử nghiệm đối thủ để chứng minh tính độc nhất, chi phí chuyển đổi hoặc lợi thế thị trường.
-- AI-proof: phần dữ liệu có phiên bản, quyền truy cập và thao tác điều hành đã có thể kiểm tra. Không có căn cứ khẳng định sản phẩm không thể bị AI thay thế; nhóm đối chiếu lập luận với CP1 trước khi trình bày.
 - Hỗ trợ hiện tại: hướng dẫn trong app và mục Phản hồi MVP. Chưa được cung cấp email/kênh hỗ trợ công khai, người trực hoặc SLA; không tự thêm lời cam kết.
 
 ## 7. Checklist bàn giao
@@ -72,13 +74,12 @@ Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình di
 - [x] Hướng dẫn tuyển người thử, xuất bản gốc, tạo báo cáo và demo trực tiếp.
 - [x] B2B tối giản, nhập XLSX/CSV, thao tác nhanh trên thẻ tour; ghi log nút/menu cho người tham gia đồng ý.
 - [x] Bảng P1–P3/S-1–S-4, kịch bản demo và Google Sheet 12 câu hỏi bàn giao An; các tab raw để trống.
-- [ ] Nhóm cung cấp dữ liệu demo được duyệt, thông tin hỗ trợ và GitHub username nếu cần quyền push.
+- [x] Đã nhập bộ giả lập nhóm cung cấp: 3 tour DEMO, 3 phiếu B2B chờ và 2 công việc. Không đưa 22 dòng tester mẫu thành phản hồi thật.
+- [ ] Hoàn tất phần dữ liệu còn thiếu: khách đã giữ có gồm B2B không, khoản thu B2B-102, tour của TASK-03; duyệt thông tin hỗ trợ công khai và GitHub username nếu cần quyền push.
 - [ ] Ít nhất 20 cá nhân thử thật, đối chiếu mẫu và phụ lục dữ liệu có email theo quyền xem.
-- [ ] Nhóm chuyển thông tin reviewer và cấp quyền phụ lục cho Thanhntl2@fpt.edu.vn; có tài khoản không đồng nghĩa giảng viên đã nhận được quyền truy cập.
+- [ ] Khi chủ dự án yêu cầu lại, nhóm chuyển thông tin reviewer và cấp quyền xem phụ lục cho đúng người nhận. Hiện **chưa gửi giảng viên**; có tài khoản không đồng nghĩa người nhận đã được cấp quyền/thông tin.
 - [ ] Thành viên phụ trách hoàn thiện chiến lược/giá, Iterate/Persevere, BMC đúng một trang và slide.
-- [ ] Nhóm trưởng xác nhận slot, hạn nộp chính thức. PDF quy định nộp trước slot tuần 7; mốc 21/10 và 23/10 là timeline nhóm đã cung cấp, không phải xác nhận booking.
-
-Báo cáo AI riêng đã gỡ theo yêu cầu chủ dự án. Tiêu chí disclosure trong bài nộp là yêu cầu riêng của PDF/rubric; không bổ sung lại báo cáo đó vào web hoặc repo trong đợt này.
+- [ ] Nhóm trưởng xác nhận slot, hạn nộp và lịch nhóm mới nhất. PDF quy định nộp trước slot tuần 7; mốc 21/10 và 23/10 do nhóm cung cấp chưa phải xác nhận booking.
 
 ## 8. Các câu trả lời kỹ thuật cần nắm
 
@@ -88,7 +89,7 @@ Báo cáo AI riêng đã gỡ theo yêu cầu chủ dự án. Tiêu chí disclos
 4. Gửi tư vấn có hết chỗ không? Không; đây chỉ là yêu cầu liên hệ, không phải booking.
 5. Giao việc có gửi thông báo cho nhân viên không? Chưa; hiện lưu tên phụ trách và tiến độ.
 6. 20 tài khoản có phải 20 người không? Không; cần nhóm đối chiếu cá nhân thực tế.
-7. Vì sao một phản hồi chưa được đối chiếu đủ thao tác? Có thể thiếu sửa tour, xem cổng, tạo việc hoặc đổi trạng thái trước khi gửi. Tool nêu số bị loại; nhóm kiểm tra bản gốc.
+7. Vì sao một phản hồi chưa được đối chiếu đủ thao tác? Có thể thiếu sửa tour, xem cổng, tạo việc hoặc đổi trạng thái trước khi gửi. Tool báo riêng tập có đủ log; không kết luận người thiếu log chắc chắn chưa xem demo. Nhóm kiểm tra bản gốc.
 8. Có thể lấy trung vị mức trả làm giá tối ưu không? Không; đây là mô tả mẫu, cần dữ liệu chi phí, cạnh tranh và quyết định của nhóm.
 9. Giảng viên sửa được dữ liệu không? Reviewer chỉ xem/xuất, không có quyền chỉnh dữ liệu.
 10. Xóa tài khoản có xóa hết file đã tải không? Không; nhóm phải quản lý/xóa riêng CSV, backup và bản chia sẻ.

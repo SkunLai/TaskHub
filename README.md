@@ -26,7 +26,7 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.
 
-## Phạm vi bản 0.4
+## Phạm vi bản 0.4.1
 
 | CP2 / CP3                         | MVP chạy được                                                                                     | Cách kiểm tra                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -44,6 +44,8 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 Đợt hoàn thiện file tiến độ bổ sung [bộ tập demo](docs/CP3_REHEARSAL.md), [quy trình hoàn tất 8 việc](docs/CP3_CLOSEOUT.md) và `npm run survey:report` để tổng hợp riêng 6 nhóm tính năng từ hai CSV raw của An. Giảng viên chưa được gửi/cấp quyền mới theo yêu cầu chủ dự án.
 
 Bản 0.4 thêm sửa/xóa công việc có phiên bản, lọc việc quá hạn, lịch sử đối soát B2B theo người/thời gian/số trước-sau, nạp lại khi xung đột và hướng dẫn mở trực tiếp từng luồng. Tour đã qua ngày khởi hành theo giờ Việt Nam không nhận tư vấn mới; tour vừa rút công khai sẽ khóa form đang mở. Xem [báo cáo rà soát và thông tin nhóm cần bổ sung](docs/WEB_REVIEW_2026-10-18.md).
+
+Bản 0.4.1 thêm tìm tour không dấu, lọc ngày/chỗ, số kết quả và đặt lại bộ lọc. Danh mục chưa có lịch/chỗ được giải thích riêng khi lọc lịch. Phần giới thiệu trên điện thoại gọn hơn; form nhập/lưu khóa các lối đóng trong lúc xử lý. API tư vấn kiểm tra lại khả dụng ngay lúc ghi dữ liệu, không tự giữ chỗ. Nhóm mới nhận code đọc [hướng dẫn mã nguồn](docs/CODE_GUIDE.md).
 
 B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot, Google login/xác minh email, gửi email tự động và reset mật khẩu chưa được xây. Người phụ trách là tên nhập, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó.
 
@@ -68,7 +70,13 @@ CP3 Requirements mục 2.1 yêu cầu ít nhất **20 cá nhân**, xem/dùng MVP
 - Admin/reviewer xem tài khoản, phản hồi và số phản hồi có đủ thao tác thử trước khi gửi (sửa tour, mở portal, tạo việc, đổi trạng thái). Nhóm vẫn phải đối chiếu người thử thật; bộ đếm không xác minh danh tính, thứ tự thử hoặc mức hiểu tính năng. Không tính dữ liệu tự động/QA vào khảo sát.
 - Không tự quyết định Iterate/Persevere hoặc giá khi chưa có dữ liệu thật. Phần slide, BMC và phân tích giá thuộc phân công riêng; repo chỉ cung cấp dữ liệu phục vụ các phần đó.
 
-Hướng dẫn thực hiện: [khảo sát và dữ liệu CP3](docs/CP3_TESTING_GUIDE.md). Sau khi quản trị/reviewer tải hai CSV, chạy:
+Hướng dẫn thực hiện: [khảo sát và dữ liệu CP3](docs/CP3_TESTING_GUIDE.md). Với biểu mẫu sáu tính năng hiện tại, quản trị/reviewer tải **Người thử CSV** và **Đánh giá tính năng CSV** rồi chạy:
+
+```powershell
+npm run survey:report -- work/survey/taskhub-survey-testers.csv work/survey/taskhub-survey-features.csv work/survey/report
+```
+
+Tệp tương tác được giữ để đối chiếu hành vi. Bộ tổng hợp **legacy** bên dưới chỉ dành cho biểu mẫu điểm ba tính năng cũ, không dùng thay cho CSV sáu tính năng:
 
 ```powershell
 npm run research:report -- work/research/input/taskhub-feedback.csv work/research/input/taskhub-interactions.csv work/research/report

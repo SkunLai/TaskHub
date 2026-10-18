@@ -1,10 +1,12 @@
 # Tập demo TaskHub theo P1 P2 P3
 
-Mã giao diện cố định: `demo-cp3-2026-10-18`. Web: https://taskhub-travel.pages.dev/. Thời lượng dưới đây là lịch tập dự kiến, chưa phải thời gian Tuấn đã trình bày.
+Web: https://taskhub-travel.pages.dev/. Chọn mốc mã nguồn theo [bản demo và các mốc phát hành](CP3_DEMO_RELEASE.md); giữ nguyên các tag đã phát hành. Thời lượng dưới đây là lịch tập dự kiến, chưa phải thời gian Tuấn đã trình bày.
 
 ## Dữ liệu cần duyệt trước buổi tập
 
-Chọn nội dung từ danh mục Én Việt hoặc nhập tour đã được nhóm duyệt. Nhóm điền ngày đi chính xác, sức chứa, khách đã giữ chỗ và lịch trình từng ngày; kiểm tra lại giá. Nguồn tham khảo không có các trường này nên bản hiện tại không tự điền. Công việc cần có tên việc, tên người phụ trách và hạn do nhóm quyết định. B2B cần tour, tên đối tác, số khách ghép và giá net; không đưa thông tin khách hàng thật vào demo.
+Không gian điều hành đã có [bộ giả lập nhóm cung cấp](OWNER_DEMO_DATA_2026-10-18.md): 3 tour DEMO, 3 phiếu B2B chờ và 2 công việc. Giữ nguyên số khách trong bảng tour. Chưa xác nhận khách B2B có nằm trong số đã giữ hay khoản thu B2B-102, nên chưa dùng các phiếu này để xác nhận/đối soát. TASK-03 vẫn chờ tour liên quan. Các dữ liệu này không phải thông tin mở bán hoặc giao dịch thực tế.
+
+Để tập toàn bộ luồng ghi dữ liệu mà không làm thay đổi các phiếu còn chờ đối chiếu, dùng tài khoản thử riêng và bộ giả lập đã được Tuấn duyệt cho buổi tập. Chọn nội dung từ danh mục Én Việt hoặc nhập tour; điền ngày đi, sức chứa, khách đã giữ, giá và lịch trình. Chuẩn bị công việc có người phụ trách/hạn, phiếu B2B có tên đối tác/số khách/giá net. Không lấy dữ liệu khách hàng thật hoặc đổi những con số chưa rõ để luồng chạy qua.
 
 Chỉ dùng tài khoản demo riêng do Tuấn kiểm soát. Mở hai cửa sổ: điều hành và portal của cùng không gian. Không dùng reviewer để nhập dữ liệu hoặc chia sẻ tài khoản demo cho người khảo sát. Tag cố định code, không khóa dữ liệu live.
 
@@ -27,7 +29,7 @@ Chỉ dùng tài khoản demo riêng do Tuấn kiểm soát. Mở hai cửa sổ
 
 ## Tự kiểm trước khi present
 
-- [ ] Nhóm duyệt dữ liệu tour, công việc và B2B; tour cần chiếu đã được công khai.
+- [ ] Tour cần chiếu đã được công khai và ghi rõ DEMO; các phiếu nguồn chưa đối chiếu vẫn giữ chờ. Bộ dữ liệu riêng dùng tập ghi đã được Tuấn duyệt.
 - [ ] Hai cửa sổ cùng workspace; tài khoản demo không phải reviewer.
 - [ ] Portal đọc đúng lịch/giá/chỗ sau chu kỳ cập nhật 5 giây khi tab hiển thị.
 - [ ] Đã tập tạo, xác nhận, đối soát và hủy phiếu; không còn tiền ghi sổ trên phiếu định hủy.

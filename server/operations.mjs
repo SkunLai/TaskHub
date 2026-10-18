@@ -5,6 +5,18 @@ const text=(v,label,max)=>{if(typeof v!=='string'||!v.trim()||v.trim().length>ma
 const now=()=>new Date().toISOString();
 const event=(u,action,entity)=>['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events VALUES (?,?,?,?,?)',[randomUUID(),u.id,action,entity,now()]]];
 
+// Check availability in the same statement that saves the inquiry. A tour can
+// be withdrawn or filled after the API first reads it; an inquiry never reserves seats.
+export async function insertPublicInquiry(db,tour,details,today) {
+  const id=randomUUID();
+  const result=await db.prepare(`INSERT INTO inquiries(id,workspace,tour_id,name,email,people,note,status,created,consent_version)
+    SELECT ?,workspace,id,?,?,?,?,'new',?,'inquiry-v1' FROM tours
+    WHERE id=? AND workspace=? AND published=1 AND departure>=? AND capacity-reserved>=?`)
+    .run(id,details.name,details.email,details.people,details.note,now(),tour.id,tour.workspace,today,details.people);
+  if(!result.changes)fail('Tour đã thay đổi hoặc không còn đủ chỗ. Vui lòng tải lại và chọn lịch khác.',409);
+  return {id};
+}
+
 export async function importTours(db,u,b,tourInput) {
   if(!Array.isArray(b.rows)||!b.rows.length||b.rows.length>20)fail('Chọn từ 1 đến 20 dòng tour.');
   if(b.preview!==true) {
@@ -51,6 +63,7 @@ export async function updatePooling(db,u,id,b) {
   const version=integer(b.version,'Phiên bản',1,1e9);
   const row=await db.prepare('SELECT * FROM pooling WHERE id=? AND workspace=?').get(id,u.workspace);
   if(!row)fail('Không tìm thấy phiếu ghép tour.',404);
+  if(row.version!==version)fail('Phiếu đã thay đổi. Tải lại trước khi tiếp tục.',409);
   let sql,args,action;
   if(b.action==='confirm') {
     if(row.status!=='pending')fail('Chỉ xác nhận phiếu đang chờ.',409);
@@ -85,6 +98,7 @@ export async function recordInteractions(db,u,b) {
   if(['admin','reviewer'].includes(u.role))return {count:0};
   if(!Array.isArray(b.events)||!b.events.length||b.events.length>50)fail('Lô tương tác không hợp lệ.');
   const statements=b.events.map(e=>{
+    if(!e||typeof e!=='object'||Array.isArray(e))fail('Tương tác không hợp lệ.');
     const id=text(e.id,'Mã tương tác',36);
     if(!/^[a-f0-9-]{36}$/i.test(id)||!['click','change'].includes(e.kind))fail('Tương tác không hợp lệ.');
     const control=text(e.control,'Mã điều khiển',120),area=text(e.area,'Vị trí',40);

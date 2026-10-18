@@ -1,0 +1,137 @@
+# Đọc và sửa mã nguồn TaskHub
+
+Tài liệu này dành cho thành viên mới nhận code. TaskHub dùng React để hiển thị, API Node.js để xử lý và SQLite để lưu dữ liệu khi chạy trên máy. Bản public dùng Cloudflare Pages, gateway và Workers/D1 từ cùng nguồn FE/BE. Không cần học thêm một bộ framework khác để sửa nội dung hoặc một biểu mẫu.
+
+## 1. Chạy bản local trước
+
+Cài Git và **Node.js 24 LTS**. Backend dùng `node:sqlite` có sẵn trong Node.js 24; Node.js 18/20 không chạy được bản này.
+
+```powershell
+git clone --branch build https://github.com/skunlainro3-glitch/TaskHub.git
+cd TaskHub
+npm ci
+npm run dev
+```
+
+Mở http://127.0.0.1:5173. Một lệnh `dev` mở cả frontend cổng 5173 và API cổng 3001. Dừng bằng `Ctrl+C`. Vite chuyển yêu cầu `/api` sang API local; không cần tự nhập URL production vào code.
+
+Đọc [README](../README.md) để dùng tài khoản local và cấu hình `.env` nếu cần. Dữ liệu local nằm trong `data/`, tách khỏi database public. Tài khoản người thử mới có không gian trống; code không tự tạo tour, nhân viên hoặc phản hồi khảo sát.
+
+## 2. Tìm đúng tệp cần sửa
+
+Các đường dẫn dưới đây tính từ thư mục gốc repo.
+
+| Tệp / thư mục | Nhiệm vụ |
+| --- | --- |
+| `src/main.jsx` | Ghép ứng dụng; đăng nhập, portal, tour, tổng quan, công việc và điều hướng. |
+| `src/operations-ui.jsx` | Biểu mẫu Excel/CSV, đổi số khách và ghép tour B2B. |
+| `src/experience-ui.jsx` | Phản hồi sáu nhóm tính năng, màn hình nghiên cứu và hướng dẫn. |
+| `src/styles.css`, `src/portal-filters.css`, `src/operations-polish.css`, `src/experience.css` | Màu, khoảng cách, bố cục và cách hiển thị trên điện thoại. |
+| `src/api.mjs` | Hàm gọi HTTP của trình duyệt; tập trung xử lý lỗi và thời gian chờ. |
+| `src/dates.mjs` | Hàm lấy ngày hiện tại theo giờ Việt Nam. |
+| `src/tour-search.mjs` | Hàm tìm kiếm, ngày và tình trạng chỗ; không gọi mạng hoặc tự sửa dữ liệu. |
+| `src/import-tours.mjs` | Đọc tệp nhập thành các dòng để xem trước và gửi API. |
+| `src/interactions.mjs` | Gom và gửi mã thao tác nút/menu của người thử đã đồng ý. |
+| `server/index.mjs` | API, đăng nhập, phân quyền, kiểm tra đầu vào và các thao tác tour/công việc/tư vấn. |
+| `server/operations.mjs` | Nhập tour, các bước B2B và lưu tương tác. |
+| `server/feature-feedback.mjs` | Kiểm tra, lưu và xuất phản hồi sáu nhóm tính năng. |
+| `server/db.mjs`, `server/connection.mjs` | Khởi tạo bảng local và lớp truy vấn database. |
+| `server/pooling-triggers.sql` | Quy tắc giữ/hoàn chỗ và bảo vệ sổ B2B ở database. |
+| `catalog/enviet-tours.json` | Danh mục nội dung tour tham khảo có nguồn; không phải tồn kho mở bán. |
+| `tests/` | Kiểm tra nghiệp vụ/API, CSV, gateway và luồng trình duyệt. |
+| `scripts/` | Chạy local, xuất nguồn cloud, build, sao lưu và tổng hợp CSV. |
+| `cloud/schema.ts`, `cloud/drizzle/` | Cấu trúc và các lần bổ sung bảng/cột cho D1 public. |
+| `cloud/pages/` | Gateway của Pages và thông tin triển khai; không chứa mật khẩu. |
+
+Các module giao diện nhận những thành phần dùng chung như `Modal`, `Button` và `api` qua hàm `createOperationsUI` hoặc `createExperienceUI`. Cách này giúp dùng cùng nút/hộp thoại mà không lặp lại chúng. Khi sửa một biểu mẫu, bắt đầu từ hàm mang tên biểu mẫu đó; chưa cần tách thêm một tầng thư viện.
+
+## 3. Một thao tác đi qua hệ thống thế nào?
+
+Ví dụ sửa tour:
+
+1. Người dùng mở `TourEditor` trong `src/main.jsx` và bấm Lưu.
+2. Giao diện gọi `api('/tours/' + id, 'PUT', dữ_liệu)`; hàm HTTP thêm tiền tố `/api`.
+3. `server/index.mjs` kiểm tra đăng nhập, workspace, dữ liệu và phiên bản hiện tại.
+4. Database lưu thay đổi; API trả kết quả. Giao diện tải lại dữ liệu.
+5. Portal của cùng workspace đọc cùng nguồn tour theo chu kỳ 5 giây khi tab đang hiển thị.
+
+Frontend giúp nhập dễ hơn; backend mới quyết định dữ liệu có được lưu hay không. Không bỏ kiểm tra backend chỉ vì giao diện đã có `required`, giới hạn số hoặc nút bị vô hiệu hóa.
+
+| API chính | Cách dùng |
+| --- | --- |
+| `GET /api/session` | Lấy người dùng đang đăng nhập. |
+| `POST /api/register`, `/api/login`, `/api/logout` | Đăng ký tự nguyện, đăng nhập, đăng xuất. |
+| `GET /api/public/:workspace` | Chỉ đọc tour đã công khai trong một cổng tour. |
+| `POST /api/public/:workspace/inquiries` | Gửi yêu cầu tư vấn; không tự giữ chỗ. |
+| `GET /api/workspace` | Lấy tour, việc, tư vấn và B2B trong không gian của tài khoản. |
+| `POST /api/tours`; `PUT`, `DELETE /api/tours/:id` | Tạo, sửa, xóa tour. |
+| `POST /api/tasks`; `PUT`, `PATCH`, `DELETE /api/tasks/:id` | Tạo, sửa, đổi trạng thái, xóa công việc. |
+| `POST /api/tours/import` | Kiểm tra/xem trước hoặc lưu một đợt nhập. |
+| `POST /api/pooling`; `PATCH /api/pooling/:id` | Tạo phiếu và thực hiện xác nhận/ghi nhận thu/hủy. |
+| `GET /api/pooling/export`, `/api/pooling/history/export` | Xuất sổ B2B/lịch sử trong workspace. |
+| `POST /api/interactions`, `/api/feedback/features` | Lưu thao tác và đánh giá của người thử. |
+| `GET /api/research`, `/api/export/*` | Tổng hợp và xuất nghiên cứu theo quyền quản trị/reviewer. |
+
+`:id` và `:workspace` là giá trị thay vào URL, không phải chữ gửi nguyên. Reviewer có quyền xem/xuất, không sửa dữ liệu. Nhân viên/đối tác chưa có tài khoản cộng tác chung; trường người phụ trách hiện là tên nhập.
+
+## 4. Hiểu các bảng dữ liệu
+
+| Bảng | Lưu gì? |
+| --- | --- |
+| `workspaces` | Không gian dữ liệu riêng của từng tài khoản dùng thử; `agency` là không gian điều hành demo. |
+| `users`, `sessions` | Tài khoản, đồng ý tham gia và phiên đăng nhập. |
+| `tours` | Ngày, giá, sức chứa, khách đã giữ, nội dung và trạng thái công khai. |
+| `tasks` | Công việc gắn một tour, người phụ trách, hạn, ưu tiên và trạng thái. |
+| `inquiries` | Yêu cầu tư vấn riêng tư, gắn tour. |
+| `pooling` | Phiếu B2B, khách ghép, giá net, tổng thu đã ghi nhận và trạng thái. |
+| `pooling_audit` | Ai thực hiện, lúc nào, số thu/trạng thái trước và sau. |
+| `events` | Log nghiệp vụ và mã thao tác của người thử. |
+| `feature_feedback` | Phản hồi mới cho sáu nhóm tính năng; phân biệt tự dùng/xem demo/chưa thử. |
+| `feedback` | Phản hồi phiên bản trước; giữ riêng, không đổi sang thang điểm mới. |
+
+Các bản ghi nghiệp vụ có workspace. API phải lọc theo workspace lấy từ **phiên đăng nhập**, không tin một workspace do người dùng gửi để đọc/sửa dữ liệu. Portal chỉ nhận các trường công khai; không đưa email tư vấn, ghi chú đối tác hoặc giá net nội bộ vào dữ liệu public.
+
+### Vì sao có `version`?
+
+Ví dụ hai tab cùng mở tour phiên bản 3. Tab A lưu thành phiên bản 4. Tab B vẫn gửi phiên bản 3 nên API trả `409` thay vì ghi đè thông tin mới. Giao diện giữ nháp và cho người dùng chọn **Nạp bản mới**, xem lại rồi lưu.
+
+Khi thêm một thao tác sửa, giữ điều kiện `WHERE id=? AND workspace=? AND version=?`, tăng phiên bản sau khi thành công và kiểm tra số dòng thực sự thay đổi. Không tự lặp lại một thao tác ghi khi mất mạng vì lần trước có thể đã được lưu.
+
+### Phiếu B2B hoạt động thế nào?
+
+- **Chờ (`pending`)**: đã lưu thỏa thuận; chưa cộng khách vào tour.
+- **Xác nhận (`confirmed`)**: kiểm tra phiên bản/sức chứa rồi cộng khách đúng một lần.
+- **Ghi nhận thu**: lưu **tổng tiền lũy kế đã đối chiếu**, không phải số tiền tăng thêm; tối đa bằng số khách nhân giá net.
+- **Hủy (`cancelled`)**: nếu đã ghi thu thì đối soát về 0 trước; phiếu từng xác nhận trả chỗ đúng một lần.
+
+Các bước có batch/trigger để giữ trạng thái phiếu và số chỗ nhất quán. `pooling_audit` ghi trước/sau cùng thao tác thành công. Không tự tạo lịch sử cho bản ghi cũ, và không gọi ghi sổ là chuyển tiền hay hoàn tiền thực tế.
+
+## 5. Sửa ở nguồn gốc, rồi xuất sang cloud
+
+Nguồn FE/BE chính nằm trong **repo TaskHub này**. `scripts/export-sites.mjs` chuyển/copy các tệp cần thiết vào checkout Sites đã chuẩn bị, đổi phần kết nối Node/SQLite sang Workers/D1 và giữ các kiểm tra nghiệp vụ. `npm run build:pages` tạo frontend/gateway Pages từ nguồn hiện tại.
+
+Khi sửa, làm ở `src/`, `server/`, `catalog/` hoặc script tương ứng trong repo gốc. Không sửa riêng một bản API/giao diện đã xuất trong checkout cloud, vì lần xuất tiếp theo sẽ ghi lại tệp đó. Schema D1 và các migration nằm tại `cloud/`; thêm thay đổi tương thích, giữ nguyên migration đã phát hành và dữ liệu đang có.
+
+Đọc [vận hành Pages](PAGES_DEPLOYMENT.md) và [backend cloud](CLOUD_HOSTING.md) trước khi phát hành. Deploy không cần máy chủ repo tiếp tục bật. Giữ `.env`, database, bản xuất có email và credential trong khu vực riêng đã bị Git bỏ qua.
+
+## 6. Ví dụ: muốn đổi gì thì bắt đầu ở đâu?
+
+| Muốn đổi | Bắt đầu từ |
+| --- | --- |
+| Màu nút, khoảng cách, bố cục điện thoại | CSS tương ứng; kiểm tra thêm 320/390 px. |
+| Tên nhãn hoặc hướng dẫn một biểu mẫu | Component biểu mẫu trong `main.jsx` hoặc `operations-ui.jsx`. |
+| Cách tìm/lọc tour | `tour-search.mjs` và nơi gọi trong `main.jsx`; kiểm tra tour có dấu/không dấu, ngày và chỗ. |
+| Thêm trường tour | Biểu mẫu, `tourInput`/API, schema local, schema/migration D1 và xuất cloud; kiểm tra dữ liệu cũ. |
+| Quy tắc giữ chỗ hoặc tiền B2B | `server/operations.mjs` và `server/pooling-triggers.sql`; chạy kiểm tra đồng thời và lịch sử. |
+| Câu hỏi đánh giá/CSV | `experience-ui.jsx`, `feature-feedback.mjs`, schema câu hỏi và công cụ tổng hợp tương ứng. |
+
+Sau thay đổi, chạy các kiểm tra liên quan rồi build:
+
+```powershell
+npm test
+npm run build
+```
+
+Nếu thay giao diện/luồng thao tác, chạy `npm run test:ui` trên môi trường thử theo [README](../README.md). Kiểm tra dữ liệu cũ, thao tác sai, mất mạng và xung đột phiên bản khi có liên quan. Không lấy tài khoản QA hoặc dữ liệu DEMO làm bằng chứng người dùng thật.
+
+Code mới đưa lên `build`, ghi rõ thay đổi và cách kiểm tra. `dev` để chủ repo duyệt. Các con số kiểm thử, deployment và mốc demo thực tế nằm ở [VALIDATION.md](VALIDATION.md) và [CP3_DEMO_RELEASE.md](CP3_DEMO_RELEASE.md); chỉ cập nhật kết quả sau khi đã chạy thành công.

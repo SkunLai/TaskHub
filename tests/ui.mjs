@@ -53,6 +53,47 @@ try {
   await page.getByText('Chưa có ngày khởi hành cụ thể, số chỗ và lịch trình từng ngày.',{exact:false}).waitFor();
   await page.getByRole('button',{name:'Xong',exact:true}).click();
   await page.getByLabel('Tìm tour',{exact:true}).fill('');
+  // Read-only route fixture: date/stock filtering must not invent availability
+  // for reference content or write any business data to a live workspace.
+  const catalogResponse=await context.request.get(base+'/api/public/agency');
+  assert.equal(catalogResponse.status(),200);
+  const catalogData=await catalogResponse.json();
+  const filterTours=[
+    {...qaTour,id:'filter-open',title:'Hà Nội - Đà Nẵng',destination:'Đà Nẵng',reserved:10},
+    {...qaTour,id:'filter-full',title:'Tour đã đủ khách',destination:'Phú Quốc',reserved:30,departure:'2026-12-21'},
+    {...qaTour,id:'filter-past',title:'Tour lịch sử',destination:'Quy Nhơn',departure:'2020-01-01'},
+  ];
+  await page.route('**/api/public/agency',route=>route.fulfill({json:{...catalogData,tours:filterTours}}));
+  await page.reload();
+  const operatingCards=page.locator('.tour-card:not(.catalog-card)');
+  await operatingCards.last().waitFor();
+  assert.equal(await operatingCards.count(),3);
+  await page.getByLabel('Tìm tour',{exact:true}).fill('da nang');
+  assert.equal(await operatingCards.count(),1);
+  await page.getByRole('button',{name:'Xóa bộ lọc',exact:true}).click();
+  await page.getByLabel('Khởi hành từ ngày',{exact:true}).fill('2026-12-20');
+  await page.getByLabel('Đến ngày',{exact:true}).fill('2026-12-20');
+  assert.equal(await operatingCards.count(),1);
+  assert.equal(await page.locator('.catalog-card').count(),0);
+  await page.locator('.reference-filter-note').getByText('chưa có ngày hoặc số chỗ xác nhận',{exact:false}).waitFor();
+  await page.getByLabel('Đến ngày',{exact:true}).fill('2026-12-19');
+  await page.getByText('Ngày kết thúc cần bằng hoặc sau ngày bắt đầu.',{exact:true}).waitFor();
+  assert.equal(await operatingCards.count(),0);
+  await page.getByRole('button',{name:'Xóa bộ lọc',exact:true}).click();
+  await page.getByLabel('Chỉ tour còn chỗ, chưa khởi hành',{exact:true}).check();
+  assert.equal(await operatingCards.count(),1);
+  await page.getByRole('button',{name:'Xóa bộ lọc',exact:true}).click();
+  for(const width of [320,390]){
+    await page.setViewportSize({width,height:844});
+    const hero=await page.locator('.portal-hero').boundingBox();
+    assert.ok(hero.height<550,'Mobile hero must leave space for actual tour search');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Portal filters overflow');
+  }
+  await page.unroute('**/api/public/agency');
+  await page.reload();
+  await page.locator('.catalog-card').last().waitFor();
+  await page.setViewportSize({width:1440,height:1050});
+  console.log('Portal schedule filters passed: accent-free search, inclusive dates, invalid ranges, unavailable stock, honest reference separation and compact mobile hero');
   assert.equal(await page.getByText('TaskHub Travel',{exact:true}).count(),0);
   await screenshot({ path: "work/portal-desktop.png", fullPage: true });
   for (const width of [320, 390, 768]) {
@@ -478,8 +519,22 @@ try {
   const imported={...qaTour,title:'Excel UI QA'};
   await page.getByLabel('Tệp tour Excel hoặc CSV').setInputFiles({name:'qa-tour.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:xlsxFixture([importColumns,importColumns.map(k=>imported[k])])});
   await page.getByText('1 / 1 dòng hợp lệ',{exact:true}).waitFor();
-  await page.getByRole('button',{name:'Nhập 1 tour',exact:true}).click();
+  let releaseImport;
+  const importGate=new Promise(resolve=>{releaseImport=resolve;});
+  await page.route('**/api/tours/import',async route=>{
+    if(route.request().postDataJSON()?.import_id)await importGate;
+    await route.continue();
+  });
+  try {
+    await page.getByRole('button',{name:'Nhập 1 tour',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('[role="dialog"]')?.getAttribute('aria-busy')==='true');
+    for(const close of await page.getByRole('dialog').getByRole('button',{name:'Đóng',exact:true}).all())assert.ok(await close.isDisabled());
+    await page.keyboard.press('Escape');
+    await page.locator('.overlay').click({position:{x:2,y:2}});
+    assert.ok(await page.getByRole('dialog').isVisible(),'Pending import cannot be closed by Escape or backdrop');
+  } finally { releaseImport(); }
   await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.unroute('**/api/tours/import');
   await page.getByRole('button',{name:'Excel UI QA',exact:true}).waitFor();
   await page.locator('.tour-card').getByText('Bản nháp',{exact:true}).waitFor();
   console.log('XLSX browser import passed; new tour stays unpublished');

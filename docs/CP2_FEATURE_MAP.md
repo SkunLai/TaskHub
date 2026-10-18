@@ -1,6 +1,6 @@
 # P1–P3 và S-1–S-4 — bản demo 18/10/2026
 
-Web: https://taskhub-travel.pages.dev/ · Mốc code 0.4: `demo-cp3-0.4-2026-10-18` trên nhánh `build`. Mốc 0.3 cũ giữ nguyên.
+Web: https://taskhub-travel.pages.dev/ · Mốc code 0.4.1: `demo-cp3-0.4.1-2026-10-19` trên nhánh `build`. Mốc 0.4 và 0.3 cũ giữ nguyên. Ngày 19/10 bổ sung tìm không dấu, lọc lịch/chỗ và khóa đóng form lúc đang lưu.
 
 ## Pain → tính năng → cách chứng minh
 

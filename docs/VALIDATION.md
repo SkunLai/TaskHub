@@ -83,3 +83,11 @@
 - Bảng tester không được nhập thành phản hồi hoặc tài khoản. Sau nhập và kiểm tra, các bộ đếm nghiên cứu vẫn bằng 0; liên hệ B2B không xuất hiện trong API công khai.
 - UI CI ban đầu vướng câu thông báo reviewer cũ. Cập nhật assertion theo thông báo dữ liệu giả lập mới và giữ nguyên toàn bộ kiểm tra chặn quyền sửa/xóa/xuất dữ liệu.
 - Full UI regression production đã đạt lại với bộ dữ liệu demo hiện hữu: người thử riêng, portal, tư vấn, task CRUD, B2B/audit, phản hồi, XLSX và reviewer; tài khoản QA được xóa. Pages deployment `996531fa-b887-4523-ba56-cfbbc81267fe`; Sites version 7 deployment `appgdep_6ad4e342e2448191b393df7ba7345532` thành công, secrets revision 2 giữ nguyên.
+
+## Hoàn thiện MVP 0.4.1 — 19/10/2026
+
+- 66/66 kiểm tra tự động đạt trên SQLite và libSQL: thêm các tình huống inquiry vừa ẩn/đầy/qua ngày/xóa, B2B phiên bản tương lai và log sai cấu trúc; lọc ngày/chỗ/tìm không dấu và mốc ngày Việt Nam.
+- UI local đạt bộ lọc ngày bao gồm biên, khoảng ngày đảo ngược, hết chỗ/đã đi, danh mục chưa có lịch được giải thích riêng và reset. Hero mobile 390px rộng khoảng 361px cao; không có tràn ngang ở 320/390/768/1440px trong màn hình đã thử.
+- Full UI local đạt network recovery/slow polling, tour ẩn khi đang mở, task CRUD, B2B/history, khảo sát sáu tính năng, reviewer và nhập XLSX thành nháp. Lần nhập cố ý bị giữ response để kiểm modal không đóng khi Escape/nền/nút Đóng; tiếp tục response vẫn nhập đúng một lần.
+- Build Vite, Pages và Sites đạt. Không thêm dependency ứng dụng, schema hoặc migration. Source cloud dùng các module chung mới qua exporter, không sửa riêng hai bản logic.
+- Chi tiết thay đổi và thông tin nhóm còn cần cung cấp: [rà soát 19/10](WEB_REVIEW_2026-10-19.md). Kết quả production được ghi tiếp sau phát hành.

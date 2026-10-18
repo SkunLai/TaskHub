@@ -208,6 +208,9 @@ put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
 put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
+for (const file of ['api.mjs','dates.mjs','tour-search.mjs','portal-filters.css']) {
+  put('app/'+file,readFileSync('src/'+file,'utf8'));
+}
 put('app/globals.css',readFileSync('src/styles.css','utf8'));
 for(const [file,relative] of [['app/page.tsx','./TaskHub'],['app/app/page.tsx','../TaskHub'],['app/portal/[workspace]/page.tsx','../../TaskHub']]) put(file,`import TaskHub from '${relative}';\nexport default function Page(){return <TaskHub/>;}\n`);
 put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'TaskHub · Điều hành tour, cùng một nhịp',description:'TaskHub hỗ trợ doanh nghiệp lữ hành quản lý tour, lịch/số chỗ và công việc.',icons:{icon:'/favicon.svg'}};\nexport default function Layout({children}:{children:React.ReactNode}){return <html lang="vi"><body>{children}</body></html>;}\n`);

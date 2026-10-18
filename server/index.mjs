@@ -1,6 +1,6 @@
 import http from "node:http";
 import { referenceCatalog } from "./catalog.mjs";
-import { importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
+import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
 import { isIP } from "node:net";
 import { readFileSync, existsSync, statSync } from "node:fs";
@@ -310,7 +310,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.4.0" });
+      return json(res, { ok: true, version: "0.4.1" });
     }
     if (
       p.startsWith("/api/") &&
@@ -435,20 +435,7 @@ export const server = http.createServer(async (req, res) => {
         note = text(b.note || "", "ghi chú", 1000, true);
       if (people > tour.capacity - tour.reserved)
         fail("Số khách vượt số chỗ còn lại. Vui lòng chọn tour khác.");
-      await db
-        .prepare("INSERT INTO inquiries VALUES (?,?,?,?,?,?,?,?,?,?)")
-        .run(
-          randomUUID(),
-          tour.workspace,
-          tour.id,
-          name,
-          em,
-          people,
-          note,
-          "new",
-          now(),
-          "inquiry-v1",
-        );
+      await insertPublicInquiry(db,tour,{name,email:em,people,note},todayVietnam());
       const u = await userFor(req);
       if (u?.workspace === tour.workspace)
         await log(u, "inquiry_sent", tour.id);

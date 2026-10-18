@@ -1,0 +1,118 @@
+/* Schedule filters belong to dated operating tours, not the reference catalog. */
+.journeys > .portal-notice[role="note"] {
+  margin-bottom: 16px;
+}
+.journeys > .filter-bar {
+  margin-bottom: 0;
+}
+.portal-date-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(230px, 1.2fr);
+  align-items: end;
+  gap: 16px;
+  padding: 18px;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f7faff;
+}
+.portal-date-filters .field {
+  margin: 0;
+  min-width: 0;
+}
+.portal-date-filters .checkbox {
+  margin: 0;
+  min-height: 46px;
+  align-items: center;
+}
+.portal-date-filters input[type="date"] {
+  min-width: 0;
+  width: 100%;
+}
+.portal-date-filters input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.portal-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  margin: 8px 0 12px;
+}
+.portal-results p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.portal-results .btn {
+  flex-shrink: 0;
+}
+.portal-filter-error {
+  color: #a13232;
+  font-size: 13px;
+  margin: 10px 0;
+}
+.reference-filter-note {
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #dce8f6;
+  color: #456180;
+  background: #f0f6ff;
+  line-height: 1.65;
+  font-size: 13px;
+}
+.reference-filter-note .text-btn {
+  font-size: inherit;
+  text-align: left;
+}
+@media (max-width: 900px) {
+  .portal-date-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .portal-date-filters .checkbox {
+    grid-column: 1 / -1;
+    min-height: 36px;
+  }
+}
+@media (max-width: 650px) {
+  /* Put the actual tour list closer to the first screen on a phone. */
+  .portal-hero {
+    display: block;
+    padding: 28px 0 30px;
+    margin-bottom: 0;
+  }
+  .portal-hero .capability-board {
+    display: none;
+  }
+  .portal-hero .hero-copy h1 {
+    font-size: clamp(31px, 9vw, 39px);
+    line-height: 1.2;
+    margin: 14px 0;
+  }
+  .portal-hero .hero-copy p {
+    margin-bottom: 18px;
+  }
+  .portal-hero .hero-trust {
+    margin-top: 16px;
+  }
+  .portal-date-filters {
+    padding: 14px;
+    gap: 12px;
+  }
+  .portal-date-filters .field > label {
+    font-size: 12px;
+  }
+  .portal-date-filters .checkbox {
+    font-size: 12px;
+  }
+  .portal-results {
+    align-items: flex-start;
+    padding-top: 6px;
+  }
+  .portal-results .btn {
+    padding: 8px 11px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+}

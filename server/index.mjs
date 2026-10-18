@@ -1,4 +1,7 @@
 import http from "node:http";
+import { referenceCatalog } from "./catalog.mjs";
+import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
+import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
 import { isIP } from "node:net";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { resolve, extname } from "node:path";
@@ -40,7 +43,7 @@ const verify = (password, stored) => {
 };
 await transaction(db, async () => {
   if (!(await db.prepare("SELECT id FROM workspaces WHERE id=?").get("agency")))
-    await seedWorkspace(db, "agency", "TaskHub Travel");
+    await seedWorkspace(db, "agency", "TaskHub");
   const admin = await db
     .prepare("SELECT id,role,workspace FROM users WHERE email=?")
     .get(adminEmail);
@@ -220,14 +223,14 @@ function json(res, value, status = 200) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(value));
 }
-async function body(req) {
+async function body(req, maximum = 32768) {
   if (!(req.headers["content-type"] || "").startsWith("application/json"))
     fail("Yêu cầu phải có định dạng JSON.", 415);
   const chunks = [];
   let bytes = 0;
   for await (const chunk of req) {
     bytes += chunk.length;
-    if (bytes > 32768) fail("Dữ liệu quá lớn.", 413);
+    if (bytes > maximum) fail("Dữ liệu quá lớn.", 413);
     chunks.push(chunk);
   }
   try {
@@ -239,9 +242,9 @@ async function body(req) {
     fail("JSON không hợp lệ.");
   }
 }
-function csv(rows) {
-  if (!rows.length) return "\ufeffNo data\r\n";
-  const fields = Object.keys(rows[0]);
+function csv(rows, selectedFields) {
+  if (!rows.length && !selectedFields) return "\ufeffNo data\r\n";
+  const fields = selectedFields || Object.keys(rows[0]);
   const quote = (x) =>
     '"' +
     String(x ?? "")
@@ -255,13 +258,14 @@ function csv(rows) {
       .join("\r\n")
   );
 }
-function download(res, rows, name) {
+function download(res, rows, name, fields) {
   res.writeHead(200, {
     "Content-Type": "text/csv; charset=utf-8",
     "Content-Disposition": `attachment; filename="${name}.csv"`,
   });
-  res.end(csv(rows));
+  res.end(csv(rows, fields));
 }
+const todayVietnam = () => new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
 function tourInput(b) {
   return [
     text(b.title, "tên tour", 120),
@@ -285,7 +289,7 @@ export const server = http.createServer(async (req, res) => {
   if (production)
     res.setHeader(
       "Content-Security-Policy",
-      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
+      "default-src 'self'; img-src 'self' data: https://dulichenvietcs.netlify.app; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'",
     );
   try {
     const url = new URL(req.url, "http://localhost");
@@ -306,7 +310,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.2.0" });
+      return json(res, { ok: true, version: "0.4.1" });
     }
     if (
       p.startsWith("/api/") &&
@@ -407,8 +411,9 @@ export const server = http.createServer(async (req, res) => {
         .get(publicMatch[1]);
       if (!ws) fail("Không tìm thấy cổng tour.", 404);
       return json(res, {
-        agency: ws.name,
+        agency: ws.id === "agency" ? "TaskHub" : ws.name,
         tours: await publicTours(db, ws.id),
+        catalog: ws.id === "agency" ? referenceCatalog : null,
         updated: now(),
       });
     }
@@ -422,6 +427,7 @@ export const server = http.createServer(async (req, res) => {
         )
         .get(b.tour_id, inquiryMatch[1]);
       if (!tour) fail("Tour không khả dụng.", 404);
+      if (tour.departure < todayVietnam()) fail("Tour đã qua ngày khởi hành. Vui lòng chọn lịch khác.", 409);
       if (b.consent !== true) fail("Cần đồng ý để gửi yêu cầu.");
       const name = text(b.name, "tên", 80),
         em = email(b.email),
@@ -429,20 +435,7 @@ export const server = http.createServer(async (req, res) => {
         note = text(b.note || "", "ghi chú", 1000, true);
       if (people > tour.capacity - tour.reserved)
         fail("Số khách vượt số chỗ còn lại. Vui lòng chọn tour khác.");
-      await db
-        .prepare("INSERT INTO inquiries VALUES (?,?,?,?,?,?,?,?,?,?)")
-        .run(
-          randomUUID(),
-          tour.workspace,
-          tour.id,
-          name,
-          em,
-          people,
-          note,
-          "new",
-          now(),
-          "inquiry-v1",
-        );
+      await insertPublicInquiry(db,tour,{name,email:em,people,note},todayVietnam());
       const u = await userFor(req);
       if (u?.workspace === tour.workspace)
         await log(u, "inquiry_sent", tour.id);
@@ -458,7 +451,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/workspace" && method === "GET") {
       const u = await required(req);
-      const [tasks, tours, inquiries, activity, actionRows, feedback] =
+      const [tasks, tours, inquiries, activity, actionRows, feedback, pooling, featureFeedback, poolingHistory] =
         await Promise.all([
           db
             .prepare(
@@ -482,6 +475,9 @@ export const server = http.createServer(async (req, res) => {
             .prepare("SELECT DISTINCT action FROM events WHERE user_id=?")
             .all(u.id),
           db.prepare("SELECT * FROM feedback WHERE user_id=?").get(u.id),
+          db.prepare("SELECT p.*,t.title AS tour_title,t.departure AS departure FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created DESC").all(u.workspace),
+          db.prepare('SELECT * FROM feature_feedback WHERE user_id=?').get(u.id),
+          db.prepare('SELECT a.*,u.name AS actor_name FROM pooling_audit a LEFT JOIN users u ON u.id=a.actor_id WHERE a.workspace=? ORDER BY a.created DESC,a.id DESC LIMIT 200').all(u.workspace),
         ]);
       const completedActions = actionRows.map((e) => e.action);
       return json(res, {
@@ -490,8 +486,39 @@ export const server = http.createServer(async (req, res) => {
         inquiries,
         activity,
         completedActions,
+        catalog: referenceCatalog,
+        pooling,
         feedback: feedback || null,
+        featureFeedback: parseFeatureFeedback(featureFeedback),
+        poolingHistory,
       });
+    }
+    if (p === "/api/tours/import" && method === "POST") {
+      const u=await required(req); limited(req,'tour-import',20);
+      return json(res,await importTours(db,u,await body(req,262144),tourInput));
+    }
+    if (p === "/api/interactions" && method === "POST") {
+      const u=await required(req); limited(req,'interactions',120);
+      return json(res,await recordInteractions(db,u,await body(req)));
+    }
+    if (p === "/api/pooling/export" && method === "GET") {
+      const u=await required(req);
+      const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,p.seats*p.unit_price-p.paid AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
+      return download(res,rows,'taskhub-pooling');
+    }
+    if (p === '/api/pooling/history/export' && method === 'GET') {
+      const u=await required(req);
+      const rows=await db.prepare('SELECT a.id,a.pooling_id,p.partner,t.title AS tour,u.name AS actor_name,a.action,a.paid_before,a.paid_after,a.status_before,a.status_after,a.created FROM pooling_audit a JOIN pooling p ON p.id=a.pooling_id JOIN tours t ON t.id=p.tour_id LEFT JOIN users u ON u.id=a.actor_id WHERE a.workspace=? ORDER BY a.created,a.id').all(u.workspace);
+      return download(res,rows,'taskhub-pooling-history',['id','pooling_id','partner','tour','actor_name','action','paid_before','paid_after','status_before','status_after','created']);
+    }
+    if (p === "/api/pooling" && method === "POST") {
+      const u=await required(req);
+      return json(res,await createPooling(db,u,await body(req)),201);
+    }
+    const poolMatch=p.match(/^\/api\/pooling\/([^/]+)$/);
+    if(poolMatch && method==='PATCH') {
+      const u=await required(req);
+      return json(res,await updatePooling(db,u,poolMatch[1],await body(req)));
     }
     if (p === "/api/events" && method === "POST") {
       const u = await required(req),
@@ -520,6 +547,16 @@ export const server = http.createServer(async (req, res) => {
       return json(res, { id }, 201);
     }
     const tourMatch = p.match(/^\/api\/tours\/([^/]+)$/);
+    if (tourMatch && method === "DELETE") {
+      const u = await required(req), b = await body(req);
+      integer(b.version, "phiên bản", 1, 1000000000);
+      await transaction(db, async () => {
+        const result = await db.prepare("DELETE FROM tours WHERE id=? AND workspace=? AND version=?").run(tourMatch[1], u.workspace, b.version);
+        if (!result.changes) fail("Tour đã thay đổi hoặc không tồn tại. Tải lại trước khi xóa.", 409);
+        await log(u, "tour_deleted", tourMatch[1]);
+      });
+      return json(res, { ok: true });
+    }
     if (tourMatch && method === "PUT") {
       const u = await required(req),
         b = await body(req),
@@ -555,7 +592,7 @@ export const server = http.createServer(async (req, res) => {
         priority = choice(b.priority, ["normal", "high"], "ưu tiên");
       await transaction(db, async () => {
         await db
-          .prepare("INSERT INTO tasks VALUES (?,?,?,?,?,?,?,?,?)")
+          .prepare("INSERT INTO tasks(id,workspace,tour_id,title,assignee,due,priority,status,created) VALUES (?,?,?,?,?,?,?,?,?)")
           .run(
             id,
             u.workspace,
@@ -576,14 +613,28 @@ export const server = http.createServer(async (req, res) => {
       const u = await required(req),
         b = await body(req);
       const status = choice(b.status, ["todo", "doing", "done"], "trạng thái");
-      await transaction(db, async () => {
-        const result = await db
-          .prepare("UPDATE tasks SET status=? WHERE id=? AND workspace=?")
-          .run(status, taskMatch[1], u.workspace);
-        if (!result.changes) fail("Không tìm thấy công việc.", 404);
-        await log(u, "task_status_changed", status);
-      });
+      if (b.version !== undefined) integer(b.version, 'phiên bản', 1, 1000000000);
+      const sql='UPDATE tasks SET status=?,version=version+1 WHERE id=? AND workspace=?'+(b.version === undefined ? '' : ' AND version=?');
+      const args=[status,taskMatch[1],u.workspace,...(b.version === undefined ? [] : [b.version])];
+      const result=await db.batch([[sql,args],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_status_changed',status,now()]]])]);
+      if (!result[0].changes) fail(b.version === undefined ? 'Không tìm thấy công việc.' : 'Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.', b.version === undefined ? 404 : 409);
       return json(res, { ok: true });
+    }
+    if (taskMatch && method === 'PUT') {
+      const u=await required(req),b=await body(req);
+      integer(b.version,'phiên bản',1,1000000000);
+      const title=text(b.title,'công việc',160),assignee=text(b.assignee,'người phụ trách',80),due=date(b.due),priority=choice(b.priority,['normal','high'],'ưu tiên'),status=choice(b.status,['todo','doing','done'],'trạng thái');
+      if (!await db.prepare('SELECT id FROM tours WHERE id=? AND workspace=?').get(b.tour_id,u.workspace)) fail('Tour không tồn tại.',404);
+      const result=await db.batch([['UPDATE tasks SET tour_id=?,title=?,assignee=?,due=?,priority=?,status=?,version=version+1 WHERE id=? AND workspace=? AND version=?',[b.tour_id,title,assignee,due,priority,status,taskMatch[1],u.workspace,b.version]],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_updated',taskMatch[1],now()]]])]);
+      if (!result[0].changes) fail('Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.',409);
+      return json(res,{ok:true});
+    }
+    if (taskMatch && method === 'DELETE') {
+      const u=await required(req),b=await body(req);
+      integer(b.version,'phiên bản',1,1000000000);
+      const result=await db.batch([['DELETE FROM tasks WHERE id=? AND workspace=? AND version=?',[taskMatch[1],u.workspace,b.version]],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_deleted',taskMatch[1],now()]]])]);
+      if (!result[0].changes) fail('Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi xóa.',409);
+      return json(res,{ok:true});
     }
     const leadMatch = p.match(/^\/api\/inquiries\/([^/]+)$/);
     if (leadMatch && method === "PATCH") {
@@ -599,6 +650,10 @@ export const server = http.createServer(async (req, res) => {
         .run(status, leadMatch[1], u.workspace);
       if (!result.changes) fail("Không tìm thấy yêu cầu.", 404);
       return json(res, { ok: true });
+    }
+    if (p === '/api/feedback/features' && method === 'POST') {
+      const u=await required(req); limited(req,'feedback-features',30);
+      return json(res,await saveFeatureFeedback(db,u,await body(req)));
     }
     if (p === "/api/feedback" && method === "POST") {
       const u = await required(req),
@@ -640,10 +695,17 @@ export const server = http.createServer(async (req, res) => {
           )
           .get()
       ).count;
+      const featureFeedback=(await db.prepare(`SELECT f.*,u.name,u.role,u.company_size,
+        (SELECT COUNT(DISTINCT e.action) FROM events e WHERE e.user_id=f.user_id AND e.created<=f.created AND e.action IN ('tour_updated','portal_viewed','task_created','task_status_changed'))=4 AS has_test_flow
+        FROM feature_feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer') ORDER BY f.created DESC`).all()).map(parseFeatureFeedback);
+      const responseIds=new Set([...feedback,...featureFeedback].map(f=>f.user_id));
+      const readyIds=new Set([...feedback,...featureFeedback].filter(f=>f.has_test_flow).map(f=>f.user_id));
       return json(res, {
         participants,
         feedback,
-        readyToReview: feedback.filter((f) => f.has_test_flow).length,
+        featureFeedback,
+        uniqueResponseCount: responseIds.size,
+        readyToReview: readyIds.size,
         events: (await db.prepare("SELECT COUNT(*) AS count FROM events").get())
           .count,
       });
@@ -671,6 +733,11 @@ export const server = http.createServer(async (req, res) => {
           .all(),
         "taskhub-feedback",
       );
+    }
+    if (['/api/export/survey-testers','/api/export/survey-features'].includes(p) && method === 'GET') {
+      await adminOnly(req);
+      const rows=await surveyExportRows(db), testers=p.endsWith('survey-testers');
+      return download(res,testers?rows.testers:rows.features,testers?'taskhub-survey-testers':'taskhub-survey-features',testers?testerFields:featureFields);
     }
     if (p === "/api/account" && method === "DELETE") {
       const u = await required(req);
@@ -708,6 +775,7 @@ export const server = http.createServer(async (req, res) => {
     });
     res.end(method === "HEAD" ? undefined : readFileSync(file));
   } catch (e) {
+    e = operationError(e);
     if (!e.status) console.error("API error:", e.message);
     if (!res.headersSent)
       json(

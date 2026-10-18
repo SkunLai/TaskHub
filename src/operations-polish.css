@@ -1,0 +1,33 @@
+.operation-fields{border:0;padding:0;margin:0;min-width:0}
+.operation-recovery{margin:12px 0 18px;padding:14px 16px;background:#f0f7ff;border:1px solid #c9def5;border-radius:12px;color:#294e72}
+.operation-recovery p{margin:0 0 12px;font-size:13px;line-height:1.65}
+.operation-recovery .btn{min-height:40px}
+.operation-correction-note,.operation-state-note{font-size:13px;line-height:1.7;margin:12px 0 0;color:#536980}
+.operation-state-note{background:#fff8ed;border:1px solid #efdfbf;border-radius:10px;padding:12px 14px;color:#745720}
+.pool-empty-action{display:block;margin-top:20px}
+.pool-empty-action small{display:block;margin-top:10px;color:#62758b;line-height:1.6}
+.pool-export-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.pool-card-actions>small{flex-basis:100%;line-height:1.6}
+.pool-history-intro,.pool-history-empty{color:#566d84;font-size:13px;line-height:1.75;margin:0 0 18px}
+.pool-history-empty{padding:18px;background:#f6f9fd;border:1px solid #e3ebf4;border-radius:12px}
+.pool-history{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.pool-history>li{padding:16px 18px;border:1px solid #dfe9f4;border-radius:12px;background:#fff;min-width:0}
+.pool-history-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pool-history-heading strong{font-size:14px;color:#233f5d;overflow-wrap:anywhere}
+.pool-history-heading time{font-size:12px;line-height:1.6;color:#6b7f95;text-align:right;white-space:nowrap}
+.pool-history-actor{font-size:12px;color:#63788e;margin:7px 0 12px;overflow-wrap:anywhere}
+.pool-history dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:0}
+.pool-history dl>div{min-width:0}
+.pool-history dt{font-size:11px;color:#71849a;margin-bottom:4px}
+.pool-history dd{font-size:13px;line-height:1.7;color:#294b6c;margin:0;overflow-wrap:anywhere}
+.pool-history dd span{padding:0 4px;color:#8298ae}
+@media(max-width:600px){
+  .pool-toolbar{align-items:flex-start;gap:12px;flex-direction:column}
+  .pool-export-actions{justify-content:flex-start;width:100%}
+  .pool-export-actions .btn{flex:1 1 130px;padding-left:12px;padding-right:12px}
+  .pool-history-heading{display:block}
+  .pool-history-heading time{display:block;text-align:left;margin-top:5px;white-space:normal}
+  .pool-history dl{grid-template-columns:1fr}
+  .pool-history>li{padding:14px}
+  .pool-empty-action .btn{max-width:100%}
+}

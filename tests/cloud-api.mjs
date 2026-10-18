@@ -1,6 +1,7 @@
 // Run explicitly against a prepared cloud/staging URL. Uses disposable QA only.
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { qaTour } from './fixtures.mjs';
 const base = process.env.TEST_URL;
 assert.ok(base, 'Set TEST_URL to the prepared cloud/staging URL.');
 const cookies = [];
@@ -25,10 +26,11 @@ try {
   for(const r of race)if(r.status===201 && r.cookie)cookies.push(r.cookie);
   assert.deepEqual(race.map(r=>r.status).sort(),[201,409]);
   const ac=a.cookie, bc=b.cookie;
+  assert.equal((await req('/interactions','POST',{events:[null]},ac)).status,400,'Malformed click records are validation errors, not system failures');
   const aw=await req('/workspace','GET',null,ac), bw=await req('/workspace','GET',null,bc);
-  assert.equal(aw.body.tours.length,3);assert.equal(aw.body.tasks.length,6);
-  assert.ok(!bw.body.tours.some(t=>t.id===aw.body.tours[0].id));
-  const tour=aw.body.tours[0], update={...tour,published:true,reserved:tour.reserved+1};
+  assert.deepEqual(aw.body.tours,[]);assert.deepEqual(aw.body.tasks,[]);assert.deepEqual(bw.body.tours,[]);
+  assert.equal((await req('/tours','POST',qaTour,ac)).status,201);
+  const tour=(await req('/workspace','GET',null,ac)).body.tours[0], update={...tour,published:true,reserved:tour.reserved+1};
   assert.equal((await req('/tours/'+tour.id,'PUT',update,bc)).status,409);
   assert.equal((await req('/tours/'+tour.id,'PUT',{...update,reserved:tour.capacity+1},ac)).status,400);
   assert.equal((await req('/tours/'+tour.id,'PUT',{...update,departure:'2026-02-30'},ac)).status,400);
@@ -62,6 +64,13 @@ try {
   assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'todo'},reviewer.cookie)).status,403);
   assert.equal((await req('/feedback','POST',feedback,reviewer.cookie)).status,403);
   assert.equal((await req('/account','DELETE',null,reviewer.cookie)).status,403);
+  const latest=(await req('/workspace','GET',null,ac)).body.tours[0];
+  assert.equal((await req('/tours/'+tour.id,'DELETE',{version:latest.version},reviewer.cookie)).status,403);
+  assert.equal((await req('/tours/'+tour.id,'DELETE',{version:latest.version},bc)).status,409);
+  assert.equal((await req('/tours/'+tour.id,'DELETE',{version:latest.version-1},ac)).status,409);
+  assert.equal((await req('/tours/'+tour.id,'DELETE',{version:latest.version},ac)).status,200);
+  const after=(await req('/workspace','GET',null,ac)).body;
+  assert.deepEqual(after.tours,[]);assert.deepEqual(after.tasks,[]);
   assert.equal((await req('/events','POST',{action:'portal_viewed'},ac,{Origin:'https://unrelated.example'})).status,403);
   console.log('CLOUD API PASS: consent, atomic duplicate signup, tenant isolation, capacity/date validation, concurrent version updates, correct event logs, feedback upsert/test flow, protected formula-safe CSV and reviewer restrictions.');
 } finally {

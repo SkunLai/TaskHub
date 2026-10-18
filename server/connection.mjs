@@ -70,6 +70,13 @@ export function connectDatabase(filename) {
         if (remote) await remote.executeMultiple(sql);
         else local.exec(sql);
       }),
+    async batch(statements) {
+      return this.transaction(async () => {
+        const results=[];
+        for(const [sql,args] of statements) results.push(await this.prepare(sql).run(...args));
+        return results;
+      });
+    },
     transaction: (fn) =>
       exclusive(async () => {
         const tx = remote ? await remote.transaction("write") : true;

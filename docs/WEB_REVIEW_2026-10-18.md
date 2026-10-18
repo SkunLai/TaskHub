@@ -2,6 +2,8 @@
 
 Ngày 18/10/2026. Bản 0.4. Web: https://taskhub-travel.pages.dev/. Code tiếp tục vào `build`; `dev` để chủ repo duyệt. Mốc demo 0.3 cũ được giữ nguyên, không di chuyển tag đã phát hành.
 
+**Cập nhật sau khi nhận dữ liệu nhóm:** đã nhập 3 tour giả lập, 3 phiếu B2B chờ và 2 công việc. Các mục cần bổ sung bên dưới phản ánh thời điểm rà soát ban đầu; trạng thái mới, nguồn và phần chưa rõ được ghi ở [bàn giao dữ liệu demo](OWNER_DEMO_DATA_2026-10-18.md). Chưa có bằng chứng người thử thật từ bảng tester cung cấp thêm.
+
 ## Đối chiếu phạm vi
 
 Nguồn: CP3 Requirements EXE101FA26, rubric CP3, TaskHub CP2 Paper Report, Business Model Canvas mẫu và [CP3_Task](https://docs.google.com/document/d/13M47fO3BZaCxFwdXpl_ok8idEHb9V_3BMYfDOm0LExM/edit?tab=t.y36z8yf961cz). CP2 xác định ba chức năng cho bản đầu: portal công khai, lịch/số chỗ dùng chung và giao việc. Phân công Task2 bổ sung B2B tối giản, Excel, thao tác nhanh, log, bản đồ demo và câu hỏi đánh giá.

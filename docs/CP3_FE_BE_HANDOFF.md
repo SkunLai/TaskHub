@@ -45,7 +45,7 @@ Bảng đầy đủ [P1–P3/S-1–S-4](CP2_FEATURE_MAP.md); [kịch bản và t
 
 ## 5. Kịch bản demo trực tiếp
 
-Chuẩn bị trước: nhóm nhập/duyệt dữ liệu tour để dùng trong demo; chọn tài khoản dùng thử riêng và giữ một cửa sổ cổng khách hàng. Không dùng tài khoản reviewer để chỉnh dữ liệu. Không đưa CSV có email vào màn chiếu công khai.
+Chuẩn bị trước: [bộ giả lập do nhóm cung cấp](OWNER_DEMO_DATA_2026-10-18.md) đã có 3 tour, 3 phiếu B2B chờ và 2 công việc tại không gian điều hành. Xác nhận cách tính khách B2B và khoản thu trước khi đổi các phiếu này; TASK-03 còn thiếu tour liên quan. Chọn tài khoản dùng thử riêng cho người thử và giữ một cửa sổ cổng khách hàng. Không dùng tài khoản reviewer để chỉnh dữ liệu. Không đưa CSV có email vào màn chiếu công khai.
 
 1. Giới thiệu người dùng mục tiêu: điều hành/Sales tại doanh nghiệp lữ hành 10–50 nhân sự, theo báo cáo CP2.
 2. Vào Quản lý tour, tạo tour bằng thông tin nhóm chuẩn bị; kiểm tra rồi chọn công khai. Giải thích dữ liệu không tự tạo.

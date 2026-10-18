@@ -2,6 +2,8 @@
 
 **FE/BE của Tuấn đã có bản public và tài liệu bàn giao. Toàn bộ CP3 chưa hoàn thành.** Kiểm tra ngày 17/10: 0 tài khoản người thử, 0 phản hồi, 0 interaction event; chưa có bằng chứng 20 cá nhân đã thử thật.
 
+Cập nhật ngày 18/10: đã nhập [bộ giả lập do chủ dự án cung cấp](OWNER_DEMO_DATA_2026-10-18.md) gồm 3 tour, 3 phiếu B2B chờ và 2 công việc. Bảng tester bổ sung chưa đủ thông tin để xác nhận người thử thật, không nhập vào hệ thống nghiên cứu. Các điểm cần làm rõ về số khách, khoản thu B2B và TASK-03 được liệt kê trong bàn giao mới.
+
 Web: https://taskhub-travel.pages.dev/. Code mới tiếp tục đẩy lên `build`; giữ `dev` để chủ repo duyệt sau.
 
 Đợt 18/10 đã bổ sung B2B tối giản, nhập XLSX/CSV, thao tác nhanh và log nút/menu. Xem [bảng P1–P3/S-1–S-4](CP2_FEATURE_MAP.md), [tag và kịch bản demo](CP3_DEMO_RELEASE.md) và [bộ câu hỏi/Sheet bàn giao An](CP3_SURVEY_QUESTIONS.md). Các bản ghi khảo sát không được điền sẵn.

@@ -82,3 +82,4 @@
 - Kiểm tra production chỉ đọc đạt: portal agency có nhãn giả lập, form yêu cầu thử nghiệm, 3 tour, 3 phiếu chờ và 2 công việc; không tràn ngang ở 320/390/768px, không lỗi JavaScript. Nhãn không thay đổi luồng của không gian người thử riêng.
 - Bảng tester không được nhập thành phản hồi hoặc tài khoản. Sau nhập và kiểm tra, các bộ đếm nghiên cứu vẫn bằng 0; liên hệ B2B không xuất hiện trong API công khai.
 - UI CI ban đầu vướng câu thông báo reviewer cũ. Cập nhật assertion theo thông báo dữ liệu giả lập mới và giữ nguyên toàn bộ kiểm tra chặn quyền sửa/xóa/xuất dữ liệu.
+- Full UI regression production đã đạt lại với bộ dữ liệu demo hiện hữu: người thử riêng, portal, tư vấn, task CRUD, B2B/audit, phản hồi, XLSX và reviewer; tài khoản QA được xóa. Pages deployment `996531fa-b887-4523-ba56-cfbbc81267fe`; Sites version 7 deployment `appgdep_6ad4e342e2448191b393df7ba7345532` thành công, secrets revision 2 giữ nguyên.

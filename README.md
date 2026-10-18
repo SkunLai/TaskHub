@@ -6,6 +6,8 @@ Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/V
 
 Danh mục tham khảo gồm 13 tour từ nguồn Én Việt do chủ dự án cung cấp. Xem [dữ liệu tour và cách đưa vào điều hành](docs/TOUR_CATALOG.md). Ngày đi, sức chứa, số khách và lịch trình từng ngày vẫn cần người quản lý xác nhận trước khi công khai một tour vận hành.
 
+Ngày 18/10, chủ dự án cung cấp thêm bộ dữ liệu giả lập: web chính đã có 3 tour DEMO, 3 phiếu B2B chờ và 2 công việc trong không gian điều hành. Không gian người thử mới vẫn trống. Xem [nguồn, cách nhập và các điểm cần đối chiếu](docs/OWNER_DEMO_DATA_2026-10-18.md); không dùng bộ này làm bằng chứng khách hàng hoặc khảo sát thật.
+
 Giao diện chạy trên Cloudflare Pages; gateway dùng tiếp backend/database cloud hiện có. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn. URL Sites cũ vẫn hoạt động và dùng cùng dữ liệu.
 
 ## Chạy trên máy anh

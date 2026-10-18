@@ -74,3 +74,11 @@
 - Production API legacy đạt. UI đầy đủ qua Pages đạt: rút/khôi phục tour trong lúc mở chi tiết, task CRUD/bộ lọc, B2B có audit, khảo sát 6 tính năng/giá null→0, reviewer/CSV, XLSX và logs; không có lỗi JavaScript hoặc tràn ngang trong các màn hình kiểm tra. Kiểm tra riêng 4 form xung đột cũng đạt qua URL production.
 - Hai CSV khảo sát production đã kiểm schema/quyền reviewer, bỏ mục chưa thử, không gán điểm dễ dùng cho người chỉ xem, giữ giá thiếu khác 0 và chống công thức trong nội dung tự do. Mọi tài khoản QA riêng của các bộ kiểm tra đều xóa thành công.
 - Sau khi dọn QA: health trả `0.4.0`; bộ đếm nghiên cứu trả 0 participants, 0 feedback, 0 events và 0 readyToReview. Những lần thử kỹ thuật không được tính thành người tham gia nghiên cứu.
+
+## Bộ dữ liệu demo do chủ dự án cung cấp — 18/10/2026
+
+- Nhập 3 tour có lịch/giá/sức chứa/số khách theo nguồn; portal hiển thị còn 8, 7 và 8 chỗ. Tạo 3 phiếu B2B chờ xác nhận với `paid=0`, không tự cộng khách hoặc suy diễn khoản đã thu từ nguồn mâu thuẫn.
+- Nhập TASK-01 và TASK-02 với tour liên quan rõ, giữ người phụ trách/trạng thái/hạn. TASK-03 chưa có tour liên quan nên chưa nhập. [Bàn giao dữ liệu và điểm cần xác nhận](OWNER_DEMO_DATA_2026-10-18.md).
+- Kiểm tra production chỉ đọc đạt: portal agency có nhãn giả lập, form yêu cầu thử nghiệm, 3 tour, 3 phiếu chờ và 2 công việc; không tràn ngang ở 320/390/768px, không lỗi JavaScript. Nhãn không thay đổi luồng của không gian người thử riêng.
+- Bảng tester không được nhập thành phản hồi hoặc tài khoản. Sau nhập và kiểm tra, các bộ đếm nghiên cứu vẫn bằng 0; liên hệ B2B không xuất hiện trong API công khai.
+- UI CI ban đầu vướng câu thông báo reviewer cũ. Cập nhật assertion theo thông báo dữ liệu giả lập mới và giữ nguyên toàn bộ kiểm tra chặn quyền sửa/xóa/xuất dữ liệu.

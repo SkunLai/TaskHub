@@ -418,11 +418,8 @@ try {
     const review = await reviewerContext.newPage();
     review.on("pageerror", (error) => errors.push(error.message));
     await review.goto(base + "/app");
-    await review
-      .getByText(
-        "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu.",
-      )
-      .waitFor();
+    await review.getByText('Người đánh giá chỉ có quyền xem.', {exact:false}).waitFor();
+    assert.ok((await review.locator('.workspace-notice').innerText()).includes('Dữ liệu giả lập'));
     await review
       .getByRole("button", { name: "Quản lý tour", exact: true })
       .click();

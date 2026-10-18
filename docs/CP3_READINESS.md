@@ -35,11 +35,12 @@ Chủ dự án xác nhận đợt này chỉ làm FE/BE và bàn giao. Không l�
 
 Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [khảo sát và tổng hợp CSV](CP3_TESTING_GUIDE.md), [chạy trên máy](../README.md), [vận hành public](PAGES_DEPLOYMENT.md).
 
-## Kiểm chứng ngày 17/10
+## Kiểm chứng ngày 17–18/10
 
 - 40 kiểm tra Node/API, gateway và công cụ tổng hợp đạt trên SQLite và libSQL ở đợt 18/10, gồm B2B giữ/hoàn chỗ, đối soát, nhập tệp và quyền/giới hạn log. UI kiểm tra thêm XLSX thật, thao tác nhanh và luồng B2B. Không dùng QA làm khảo sát.
 - Đã tải CSV thật từ hệ thống bằng quyền quản trị và chạy tool: 0 dòng phản hồi, 0 dòng tương tác, không có kết quả để kết luận. Raw và báo cáo được giữ riêng dưới `work/research/2026-10-17/`, không commit.
-- 20 lần đọc đồng thời cổng công khai hiện trống đều trả 200. Mẫu đo từ máy/mạng này: trung vị 643,5 ms; p95 1.093 ms. Đây là một mẫu request, không phải 20 người, phép đo tải đại diện hoặc cam kết hiệu năng.
+- Ngày 17/10, 20 lần đọc đồng thời cổng công khai lúc đó trống đều trả 200. Mẫu đo từ máy/mạng này: trung vị 643,5 ms; p95 1.093 ms. Đây là một mẫu request, không phải 20 người, phép đo tải đại diện hoặc cam kết hiệu năng.
+- Ngày 18/10, API D1 và UI production qua Pages đạt thêm luồng B2B/Excel, thao tác nhanh, log click đã lưu, quyền reviewer và màn hình desktop/mobile; không có lỗi JavaScript trong các luồng đã thử.
 - Công cụ tổng hợp xử lý dữ liệu rỗng, nháy/xuống dòng trong CSV, dữ liệu cắt/sai cột, email trùng, QA, thao tác sau phản hồi và mức trả bằng 0. Không xuất email/tên/ý kiến tự do vào báo cáo tổng hợp.
 
 ## Việc còn lại cần người thật hoặc quyết định của nhóm

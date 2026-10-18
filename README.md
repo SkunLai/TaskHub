@@ -24,12 +24,14 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.
 
-## Phạm vi bản 0.2
+## Phạm vi bản 0.3
 
 | CP2 / CP3                         | MVP chạy được                                                                                     | Cách kiểm tra                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | P1: thông tin rời rạc             | Tour và công việc gắn chung tour; người phụ trách, hạn và trạng thái                              | Tạo việc → chuyển Đang thực hiện → Hoàn thành  |
 | P2: khách cần thông tin ngoài giờ | Cổng tour công khai: ngày, giá, lịch trình, số chỗ; gửi yêu cầu tư vấn                            | Mở cổng khách hàng, xem tour và gửi yêu cầu    |
+| P3: ghép tour và đối soát B2B | Phiếu đối tác nội bộ; xác nhận giữ chỗ, ghi nhận thu/còn phải thu, hủy hoàn chỗ và CSV | Tạo phiếu → xác nhận → đối soát → hủy |
+| Giảm thao tác nhập tour | Nhập XLSX/CSV có xem trước; chọn nội dung có nguồn và đổi số chỗ/giao việc ngay trên thẻ | Nhập tệp thành bản nháp, kiểm tra portal sau khi công khai |
 | Lịch / số chỗ dùng chung          | API điều hành và portal dùng cùng SQLite; portal đọc lại mỗi 5 giây khi tab đang hiển thị         | Sửa số khách hoặc ngày, kiểm tra portal        |
 | Tránh cập nhật sai                | Kiểm tra số khách không vượt sức chứa; phiên bản tour để từ chối ghi đè bản cũ                    | Thử vượt sức chứa hoặc sửa đồng thời ở hai tab |
 | CP3: người dùng thử thật          | Đăng ký tự nguyện; lịch sử thao tác; đánh giá 3 tính năng, độ dễ dùng, ý định và mức sẵn sàng trả | Tester dùng MVP rồi gửi phản hồi               |

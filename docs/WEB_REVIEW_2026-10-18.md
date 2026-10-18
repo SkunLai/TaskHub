@@ -42,4 +42,4 @@ Các phần web đã có luồng để demo. Tài liệu học phần còn yêu 
 
 ## Kiểm chứng
 
-58 kiểm tra tự động đạt trên SQLite/libSQL; build FE, Pages và Sites đạt. Đã thử ba migration trên D1 local riêng, giữ nguyên các migration cũ. UI local đạt task CRUD/bộ lọc, B2B/audit, form 6 tính năng, giá chưa biết khác 0, tour rút công khai, reviewer và nhập XLSX thật. Các form gặp xung đột đã được kiểm tra giữ nháp rồi nạp lại. Chi tiết triển khai và kiểm thử production được ghi trong [VALIDATION.md](VALIDATION.md).
+58 kiểm tra tự động đạt trên SQLite/libSQL; build FE, Pages và Sites đạt. Đã thử ba migration trên D1 local riêng, giữ nguyên các migration cũ. API và UI production qua Pages đạt task CRUD/bộ lọc, B2B/audit, form 6 tính năng, giá chưa biết khác 0, tour rút công khai, reviewer và nhập XLSX thật. Các form gặp xung đột đã được kiểm tra giữ nháp rồi nạp lại; CSV production có quyền và đúng schema. Các tài khoản QA được xóa sau kiểm tra. Chi tiết ở [VALIDATION.md](VALIDATION.md).

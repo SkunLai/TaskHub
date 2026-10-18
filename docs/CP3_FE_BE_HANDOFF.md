@@ -12,9 +12,9 @@ Ngày rà soát: 18/10/2026. Phạm vi Tuấn: FE/BE, vận hành, dữ liệu h
 | --- | --- | --- |
 | Thông tin tour tập trung | Tạo/sửa/xóa tour, lịch/giá/chỗ; 13 nội dung Én Việt đã được chủ dự án cung cấp; chọn nhanh hoặc nhập XLSX/CSV tối đa 20 tour/đợt | Không tự đoán ngày/sức chứa. Tour nhập mới là bản nháp; nguồn Én Việt không cập nhật tự động. |
 | Khách tra cứu ngoài giờ | Cổng tour công khai, tìm/lọc, xem lịch trình/giá/số chỗ, gửi yêu cầu tư vấn | Yêu cầu không giữ chỗ, xác nhận booking, thanh toán hoặc tự gửi email. Không có chatbot. |
-| Theo dõi điều hành | Công việc gắn tour, tên phụ trách, hạn, ưu tiên và trạng thái | Chưa có tài khoản từng nhân viên, thông báo giao việc hoặc không gian cộng tác nhiều nhân viên. Tên người phụ trách do người dùng nhập. |
-| Ghép tour B2B | Phiếu đối tác, xác nhận giữ chỗ, ghi nhận thu/còn phải thu, hủy hoàn chỗ và CSV; kiểm tra sức chứa/phiên bản | Sổ nội bộ; chưa có đối tác đăng nhập, duyệt hai phía, hóa đơn hoặc xử lý thanh toán/hoàn tiền. |
-| Dữ liệu phục vụ CP3 | Consent, vai trò/quy mô tự khai, lịch sử thao tác, feedback, CSV có quyền xem, công cụ tổng hợp offline | Không xác minh email, người thật hay mẫu đại diện. Không tạo người thử hoặc kết luận thị trường. |
+| Theo dõi điều hành | Tạo/sửa/xóa công việc gắn tour, tên phụ trách, hạn, ưu tiên/trạng thái và bộ lọc; có kiểm tra phiên bản | Chưa có tài khoản từng nhân viên, thông báo giao việc hoặc không gian cộng tác nhiều nhân viên. Tên người phụ trách do người dùng nhập. |
+| Ghép tour B2B | Phiếu đối tác, xác nhận giữ chỗ, ghi nhận thu/còn phải thu, lịch sử người/thời gian/số trước-sau, hủy hoàn chỗ và CSV | Sổ nội bộ; chưa có đối tác đăng nhập, duyệt hai phía, hóa đơn hoặc xử lý thanh toán/hoàn tiền. |
+| Dữ liệu phục vụ CP3 | Consent, vai trò/quy mô tự khai, log và form 6 nhóm tính năng; tự dùng/xem demo/chưa thử, giá tùy chọn, CSV có quyền và công cụ tổng hợp | Không xác minh email, người thật hay mẫu đại diện. Không chuyển thang đo phản hồi cũ hoặc tạo kết luận thị trường. |
 
 ## 2. Specs — Có thể chứng minh bằng hệ thống
 

@@ -4,10 +4,10 @@
   "project_name": "taskhub-travel",
   "production_branch": "dev",
   "url": "https://taskhub-travel.pages.dev/",
-  "deployment_id": "5a4876dc-0f28-4b2e-9119-ea53f91b2663",
-  "deployment_url": "https://5a4876dc.taskhub-travel.pages.dev",
-  "source_commit": "884da5f657708347305cdb6d9f0061708a087b33",
+  "deployment_id": "93a2ff2b-c832-4bad-a409-ecf63a43cf02",
+  "deployment_url": "https://93a2ff2b.taskhub-travel.pages.dev",
+  "source_commit": "1ccc53f03d8412637418cfa7bcfb672b34e7c5ac",
   "backend_url": "https://taskhub.ninaninohihi.chatgpt.site",
-  "database": "Existing Sites D1 binding DB; additive B2B migration 0001, no data reset",
+  "database": "Existing Sites D1 binding DB; additive migrations through 0002, no data reset",
   "verified_on": "2026-10-18"
 }

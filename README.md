@@ -10,6 +10,8 @@ Bản 0.5 dùng bộ dữ liệu giả lập đã được chủ dự án cho ph
 
 Giao diện chạy trên Cloudflare Pages; gateway dùng tiếp backend/database cloud hiện có. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn. URL Sites cũ vẫn hoạt động và dùng cùng dữ liệu.
 
+Bàn giao mới nhất: [bản 0.5, kiểm tra và việc cần nhóm bổ sung](docs/RELEASE_0_5.md).
+
 ## Chạy trên máy anh
 
 Máy hiện tại đã cài thư viện. Trong terminal ở thư mục TaskHub:

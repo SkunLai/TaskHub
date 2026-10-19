@@ -64,18 +64,18 @@ Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình di
 
 - Giá: chưa có mức bán đã chốt. Mức 500.000 VND/tháng trong CP2 là giả định kịch bản. Tool mới tính thống kê willingness-to-pay từ dữ liệu thật, không tự chọn giá hoặc dựng Price Map. Van Westendorp là phần nâng cao tùy chọn.
 - Lợi thế có thể demo: thông tin tour và công việc theo ngành lữ hành dùng chung với cổng khách hàng. Chưa có thử nghiệm đối thủ để chứng minh tính độc nhất, chi phí chuyển đổi hoặc lợi thế thị trường.
-- Hỗ trợ hiện tại: hướng dẫn trong app và mục Phản hồi MVP. Chưa được cung cấp email/kênh hỗ trợ công khai, người trực hoặc SLA; không tự thêm lời cam kết.
+- Hỗ trợ hiện tại: hướng dẫn trong app và mục Phản hồi MVP. Có kênh GitHub Issues của repo để báo lỗi; chưa có người trực, email hỗ trợ hoặc SLA.
 
 ## 7. Checklist bàn giao
 
-- [x] FE/BE public, địa chỉ cố định, dữ liệu cloud bền vững; giữ nhánh `build` cho nhóm và chưa merge `dev`.
+- [x] FE/BE public, địa chỉ cố định, dữ liệu cloud bền vững; nhóm làm trên `build`, gộp `dev` qua PR/review được chủ repo ủy quyền.
 - [x] Form dùng thử, consent, phản hồi, interaction logs, quyền xuất CSV, reviewer chỉ xem.
 - [x] Công cụ tổng hợp CSV có kiểm tra dữ liệu, phân biệt QA/trùng/chưa đủ thao tác; không xuất email/nội dung tự do vào báo cáo tổng hợp.
 - [x] Hướng dẫn tuyển người thử, xuất bản gốc, tạo báo cáo và demo trực tiếp.
 - [x] B2B tối giản, nhập XLSX/CSV, thao tác nhanh trên thẻ tour; ghi log nút/menu cho người tham gia đồng ý.
 - [x] Bảng P1–P3/S-1–S-4, kịch bản demo và Google Sheet 12 câu hỏi bàn giao An; các tab raw để trống.
-- [x] Đã nhập bộ giả lập nhóm cung cấp: 3 tour DEMO, 3 phiếu B2B chờ và 2 công việc. Không đưa 22 dòng tester mẫu thành phản hồi thật.
-- [ ] Hoàn tất phần dữ liệu còn thiếu: khách đã giữ có gồm B2B không, khoản thu B2B-102, tour của TASK-03; duyệt thông tin hỗ trợ công khai và GitHub username nếu cần quyền push.
+- [x] Đã nhập bộ giả lập nhóm cung cấp: 3 tour DEMO, 3 phiếu B2B (2 xác nhận/1 chờ) và 3 công việc. Không đưa 22 dòng tester mẫu thành phản hồi thật.
+- [x] Chủ dự án cho phép chốt quy ước giả lập: khách tour gồm B2B, B2B-102 cọc 8,5 triệu, TASK-03 thuộc TOUR-01. Dùng GitHub Issues hỗ trợ; không tạo hotline giả.
 - [ ] Ít nhất 20 cá nhân thử thật, đối chiếu mẫu và phụ lục dữ liệu có email theo quyền xem.
 - [ ] Khi chủ dự án yêu cầu lại, nhóm chuyển thông tin reviewer và cấp quyền xem phụ lục cho đúng người nhận. Hiện **chưa gửi giảng viên**; có tài khoản không đồng nghĩa người nhận đã được cấp quyền/thông tin.
 - [ ] Thành viên phụ trách hoàn thiện chiến lược/giá, Iterate/Persevere, BMC đúng một trang và slide.

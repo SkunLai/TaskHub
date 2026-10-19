@@ -508,7 +508,7 @@ export function createOperationsUI({
     confirmed: "Đã xác nhận",
     cancelled: "Đã hủy",
   };
-  function Pooling({ data, readOnly, onNew, onPayment, reload, notify }) {
+  function Pooling({ data, readOnly, onNew, onPayment, reload, notify, simulated = false }) {
     const [busy, setBusy] = useState(""),
       [cancel, setCancel] = useState(null),
       [history, setHistory] = useState(null);
@@ -548,6 +548,7 @@ export function createOperationsUI({
     const auditLabels = {
       pooling_created: "Tạo phiếu ghép",
       pooling_confirmed: "Xác nhận giữ chỗ",
+      demo_seeded: "Khởi tạo dữ liệu giả lập",
       pooling_reconciled: "Điều chỉnh tổng đã thu",
       pooling_cancelled: "Hủy phiếu",
     };
@@ -560,6 +561,7 @@ export function createOperationsUI({
     return (
       <>
         <div className="pooling-notice">
+          {simulated && <p><strong>Quy ước demo:</strong> Số khách đã giữ trong tour bao gồm khách B2B đã xác nhận. B2B-101 thu giả lập 33,6 triệu; B2B-102 cọc giả lập 8,5 triệu (50%); B2B-103 vẫn chờ, chưa giữ chỗ hoặc ghi thu. Ghi chú nguồn cũ được giữ để đối chiếu; đây không phải giao dịch thực tế.</p>}
           <Handshake size={21} />
           <div>
             <strong>Ghép tour và đối soát tập trung</strong>

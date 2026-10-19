@@ -1,28 +1,29 @@
-# Dữ liệu giả lập do nhóm cung cấp — 18/10/2026
+# Dữ liệu giả lập do nhóm cung cấp — cập nhật 19/10/2026
 
-Web chính: https://taskhub-travel.pages.dev/. Dữ liệu này phục vụ trình diễn, không phải thông tin mở bán, khách hàng hay giao dịch thực tế. Chỉ nhập vào không gian điều hành `agency`; không thêm tài khoản người thử hoặc phản hồi khảo sát.
+Web: https://taskhub-travel.pages.dev/. Nguồn là các Sheet tour, B2B, công việc và tester do chủ dự án cung cấp trong cuộc trò chuyện. Không lấy bộ này làm khách hàng, giao dịch hoặc bằng chứng khảo sát thật.
 
-## Nguồn và cách sử dụng
+## Quy ước được chủ dự án cho phép tự quyết trong bản 0.5
 
-| Nguồn do chủ dự án cung cấp | Xử lý |
+| Nội dung | Quyết định chỉ dùng cho demo |
 | --- | --- |
-| [Danh sách tour](https://docs.google.com/spreadsheets/d/1SPdhi6z_NXESlaMM7okHDlH9Z84GVHj3ZFVzvyTnbWU/edit) | Nhập và công khai 3 tour với nhãn DEMO, giữ nguyên ngày, giá, sức chứa, số khách và lịch trình. |
-| [Đối tác B2B](https://docs.google.com/spreadsheets/d/1mJ7Xm7vHXuaSQu7mnMyQaWVOhORMh6sAQDXDk0pZSbw/edit) | Tạo 3 phiếu chờ xác nhận, chưa giữ thêm chỗ và chưa ghi nhận thu. Liên hệ và số nguồn chỉ lưu trong ghi chú nội bộ, không xuất hiện trên portal. |
-| [Công việc](https://docs.google.com/spreadsheets/d/11Bwq9QqiRoijpezP96MS3noeaEylLEjW1lZbIsElEaY/edit) | Nhập TASK-01 gắn TOUR-01 và TASK-02 gắn TOUR-02 theo liên hệ rõ trong tên việc. Giữ người phụ trách, hạn ngày, ưu tiên và trạng thái. Giờ hạn được ghi trong tên việc vì trường hạn hiện chỉ lưu ngày. TASK-03 chờ xác định tour liên quan. |
-| [Bảng tester](https://docs.google.com/spreadsheets/d/1jgUoMw1o-AESwMCEDZXiDyoN2Sep3jTOXYwxTmY0yI8/edit) | Giữ làm tham khảo riêng; không biến 22 dòng thành tài khoản hoặc phản hồi thật. Thiếu email/mã người thử, thời điểm dùng và đồng ý tham gia để đối chiếu; đơn vị các mức giá cần xác nhận. |
-| [BMC](https://docs.google.com/document/d/1kuV82odu9DNvEboxifcWcJnXJsAndOwGMLjEIOyP1IY/edit) | Dùng để đối chiếu định hướng. Các mức phí, tên đối tác tích hợp và hỗ trợ 24/7 trong kế hoạch chưa tự biến thành tính năng, hợp tác hay cam kết công khai. |
+| TOUR-01, TOUR-02, TOUR-03 | Giữ số khách 22/30, 18/25, 12/20 và ngày/giá/lịch trình nguồn. Số khách này **bao gồm B2B đã xác nhận**. |
+| B2B-101 | 8 khách trong TOUR-01, xác nhận; thu giả lập đủ 33.600.000 đồng. |
+| B2B-102 | 5 khách trong TOUR-02, xác nhận; tổng 17.000.000 đồng, cọc giả lập 50% = **8.500.000 đồng**. |
+| B2B-103 | 4 khách chờ, chưa cộng chỗ và chưa ghi nhận thu. |
+| TASK-03 | Gắn TOUR-01, tên “Gửi lịch trình chi tiết đoàn 22 khách”, Lê Hoàng Nam, 14/11/2026 09:00, ưu tiên cao, cần làm. Đổi chữ “Testers” trong nguồn để tránh nhầm với nghiên cứu thật. API hạn chỉ lưu ngày; giờ nguồn giữ trong tên/metadata demo. |
 
-## Những điểm chưa được xác nhận
+Các phiếu cũ giữ ghi chú nguồn và lịch sử để đối chiếu. Banner giải thích đây là quy ước giả lập mới, không xác nhận số tiền thực tế. Trước thay đổi lưu bản sao riêng trong thư mục work bị Git bỏ qua. Không thay dữ liệu của tài khoản người dùng khác.
 
-- Chủ dự án chưa biết số khách đã giữ trong tour có gồm khách B2B hay chưa. Giữ nguyên 22/30, 18/25 và 12/20 theo bảng tour; không tự cộng hoặc trừ khách.
-- B2B-102 ghi 17 triệu là tổng thu thực tế nhưng trạng thái cọc 50%; chưa có căn cứ chọn 8,5 triệu hay 17 triệu đã nhận. Tất cả phiếu đang chờ, `paid=0` có nghĩa **chưa ghi nhận trên hệ thống**, không khẳng định nguồn thực tế chưa thu tiền.
-- Cần nhóm xác nhận hai nội dung trên trước khi bấm xác nhận chỗ hoặc đối soát. Phiếu chờ chưa làm giảm số chỗ hiển thị trên portal.
-- TASK-03 cần chỉ rõ tour. Không tự gán từ tên “22 Testers”. Vai trò của người phụ trách trong bảng là mô tả, không tạo thành quyền truy cập nhân viên.
-- Các số 150/400/700 trong bảng tester nằm dưới tiêu đề VNĐ trong khi cột khác dùng 1.500.000. Không tự hiểu là nghìn đồng hoặc đưa thành kết luận willingness-to-pay.
-- Chưa có liên hệ hỗ trợ công khai được duyệt. Không lấy số điện thoại của đối tác giả lập để làm hotline TaskHub.
+## Nguồn
 
-## Kiểm tra sau nhập
+- [Tour](https://docs.google.com/spreadsheets/d/1SPdhi6z_NXESlaMM7okHDlH9Z84GVHj3ZFVzvyTnbWU/edit)
+- [B2B](https://docs.google.com/spreadsheets/d/1mJ7Xm7vHXuaSQu7mnMyQaWVOhORMh6sAQDXDk0pZSbw/edit)
+- [Công việc](https://docs.google.com/spreadsheets/d/11Bwq9QqiRoijpezP96MS3noeaEylLEjW1lZbIsElEaY/edit)
+- [Bảng tester tham khảo](https://docs.google.com/spreadsheets/d/1jgUoMw1o-AESwMCEDZXiDyoN2Sep3jTOXYwxTmY0yI8/edit)
+- [BMC](https://docs.google.com/document/d/1kuV82odu9DNvEboxifcWcJnXJsAndOwGMLjEIOyP1IY/edit)
 
-Đã đối chiếu 3 tour công khai, 3 phiếu B2B chờ với số ghi nhận thu bằng 0, và 2 công việc. Giữ nguyên số khách do nguồn cung cấp. Không gian cũ trống trước khi nhập; không xóa dữ liệu, không sửa dữ liệu cá nhân khác. Các bộ đếm nghiên cứu trước/sau nhập đều là 0 participants, 0 feedback, 0 events và 0 readyToReview.
+## Những gì không tự tạo
 
-Mã nguồn và tài liệu được cập nhật ở `build`; không gộp `dev`, không di chuyển tag demo đã phát hành. Các tệp nguồn và manifest ID chi tiết được giữ trong thư mục `work/` bị Git bỏ qua, không công khai liên hệ nội bộ.
+Bảng 22 dòng thiếu email/mã người, consent và thời điểm dùng để xác minh; đơn vị mức giá còn mơ hồ. Không nhập các dòng này thành tài khoản hoặc phản hồi. Không tự chốt giá, paid pilot hay quyết định Iterate/Persevere. Liên hệ hỗ trợ dùng GitHub Issues của chính repo; không bịa hotline/email hoặc lấy số đối tác demo làm số TaskHub. Giảng viên chưa được gửi credential/quyền trong lần này.
+
+Người thử mới vẫn bắt đầu bằng không gian trống. Họ có thể chọn Dùng dữ liệu mẫu để nạp một bộ riêng 3 tour/3 việc/3 phiếu khi không gian trống. Không ghi đè dữ liệu; nạp mẫu không tự đánh dấu đã dùng từng tính năng. Nhân viên/admin/reviewer bị loại khỏi nghiên cứu.

@@ -2,6 +2,7 @@
 
 - Web: https://taskhub-travel.pages.dev/
 - Nhánh làm việc của nhóm: `build`; `dev` giữ để chủ repo duyệt.
+- Bản hiện tại: 0.5.0. Có bộ mẫu tùy chọn và nhân viên dùng chung. Các tag cũ là bản dự phòng; không di chuyển.
 - Mốc demo 0.4.1: Git tag `demo-cp3-0.4.1-2026-10-19`, tạo sau khi kiểm thử/CI đạt. Mốc 0.4 `demo-cp3-0.4-2026-10-18` và 0.3 `demo-cp3-2026-10-18` giữ làm bản dự phòng. Không di chuyển tag đã tạo.
 - Bảng đối chiếu: [P1–P3 và S-1–S-4](CP2_FEATURE_MAP.md).
 - Câu hỏi bàn giao An: [khảo sát sau dùng thử](CP3_SURVEY_QUESTIONS.md).
@@ -36,3 +37,7 @@ npm run dev
 ```
 
 Cần Node.js 24; đổi mật khẩu local trong `.env` trước khi chia sẻ máy/mạng. Giữ nguyên dữ liệu production. Tag cố định mã nguồn, không khóa dữ liệu live: để tránh người khác thay đổi dữ liệu lúc demo, dùng không gian và tài khoản demo riêng, không gửi tài khoản đó cho tester.
+
+## Luồng mẫu 0.5
+
+Đăng ký tài khoản dùng thử → Dùng dữ liệu mẫu → kiểm tra 3 tour/3 việc/3 phiếu. P1: đổi số chỗ/giao việc; P2: mở portal đối chiếu; P3: xác nhận B2B-103 rồi ghi nhận khoản thu giả lập. Bắt đầu một bài thử trước thao tác và kết thúc sau khi tự dùng; không biến bài QA thành khảo sát thật. Nếu muốn bộ mẫu nguyên vẹn, dùng tài khoản demo riêng; không có nút reset toàn bộ dữ liệu cloud của mọi người.

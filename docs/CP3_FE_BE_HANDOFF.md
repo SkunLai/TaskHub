@@ -4,7 +4,7 @@ Ngày rà soát tài liệu: 19/10/2026. Phạm vi Tuấn: FE/BE, vận hành, d
 
 - Web: https://taskhub-travel.pages.dev/
 - Code nhóm làm việc: https://github.com/skunlainro3-glitch/TaskHub/tree/build
-- Nhánh `dev` giữ để chủ repo duyệt sau. Thay đổi tổng hợp đang ở PR #4.
+- Nhóm sửa trên `build`, đưa vào `dev` qua PR và review của chủ repo. Chủ repo đã cho phép agent thực hiện review/merge bằng phiên tài khoản đang có; không đổi quy tắc bảo vệ nhánh.
 
 ## 1. Uses — Chức năng và giới hạn
 
@@ -12,7 +12,7 @@ Ngày rà soát tài liệu: 19/10/2026. Phạm vi Tuấn: FE/BE, vận hành, d
 | --- | --- | --- |
 | Thông tin tour tập trung | Tạo/sửa/xóa tour, lịch/giá/chỗ; 13 nội dung Én Việt đã được chủ dự án cung cấp; chọn nhanh hoặc nhập XLSX/CSV tối đa 20 tour/đợt | Không tự đoán ngày/sức chứa. Tour nhập mới là bản nháp; nguồn Én Việt không cập nhật tự động. |
 | Khách tra cứu ngoài giờ | Cổng tour công khai, tìm/lọc, xem lịch trình/giá/số chỗ, gửi yêu cầu tư vấn | Yêu cầu không giữ chỗ, xác nhận booking, thanh toán hoặc tự gửi email. Không có chatbot. |
-| Theo dõi điều hành | Tạo/sửa/xóa công việc gắn tour, tên phụ trách, hạn, ưu tiên/trạng thái và bộ lọc; có kiểm tra phiên bản | Chưa có tài khoản từng nhân viên, thông báo giao việc hoặc không gian cộng tác nhiều nhân viên. Tên người phụ trách do người dùng nhập. |
+| Theo dõi điều hành | Tạo/sửa/xóa công việc gắn tour, tên phụ trách, hạn, ưu tiên/trạng thái và bộ lọc; có kiểm tra phiên bản | Đã có mời nhân viên vào cùng không gian, quyền chỉ xem/được sửa. Chưa có thông báo giao việc tự gửi. Tên người phụ trách do người dùng nhập. |
 | Ghép tour B2B | Phiếu đối tác, xác nhận giữ chỗ, ghi nhận thu/còn phải thu, lịch sử người/thời gian/số trước-sau, hủy hoàn chỗ và CSV | Sổ nội bộ; chưa có đối tác đăng nhập, duyệt hai phía, hóa đơn hoặc xử lý thanh toán/hoàn tiền. |
 | Dữ liệu phục vụ CP3 | Consent, vai trò/quy mô tự khai, log và form 6 nhóm tính năng; tự dùng/xem demo/chưa thử, giá tùy chọn, CSV có quyền và công cụ tổng hợp | Không xác minh email, người thật hay mẫu đại diện. Không chuyển thang đo phản hồi cũ hoặc tạo kết luận thị trường. |
 
@@ -35,7 +35,7 @@ Web tiếng Việt, xanh dương nhạt, responsive; đã kiểm tra ở 320/390
 
 | Pain trong CP2 | Thao tác trình diễn | Bằng chứng và điều chưa giải quyết |
 | --- | --- | --- |
-| P1: thông tin phân tán, khó theo dõi tiến độ | Chọn nội dung/nhập Excel; đổi số chỗ nhanh; giao và đổi trạng thái việc | Tour và công việc cùng workspace. Chưa tích hợp Zalo hoặc nhiều tài khoản nhân viên. |
+| P1: thông tin phân tán, khó theo dõi tiến độ | Chọn nội dung/nhập Excel; đổi số chỗ nhanh; giao và đổi trạng thái việc | Tour và công việc cùng workspace. Đã có nhiều tài khoản nhân viên; chưa tích hợp Zalo. |
 | P2: khách hỏi ngoài giờ | Mở cổng khách hàng, tìm/xem tour, gửi yêu cầu và xem ở điều hành | Khách đọc dữ liệu đã công khai. Chưa đo số khách giữ được hoặc doanh thu tăng. |
 | P3: sai lệch khi ghép tour giữa doanh nghiệp | Tạo phiếu B2B → xác nhận chỗ → ghi nhận thu/còn phải thu → xuất CSV/hủy hoàn chỗ | Đã có bản tối giản; chưa có đối tác tự duyệt hoặc xác nhận dịch vụ hai phía. Không tuyên bố B2B hoàn chỉnh. |
 
@@ -53,7 +53,7 @@ Chuẩn bị trước: [bộ giả lập do nhóm cung cấp](OWNER_DEMO_DATA_20
 2. Vào Quản lý tour, tạo tour bằng thông tin nhóm chuẩn bị; kiểm tra rồi chọn công khai. Giải thích dữ liệu không tự tạo.
 3. Mở lại tour, đổi lịch hoặc số khách giữ chỗ, lưu. Đổi sang cổng khách hàng và đợi chu kỳ cập nhật; đối chiếu thông tin.
 4. Gửi yêu cầu tư vấn bằng dữ liệu thử được nhóm chuẩn bị, quay về điều hành để thấy yêu cầu. Nói rõ chưa phải xác nhận đặt tour.
-5. Tạo việc gắn đúng tour, nhập người phụ trách/hạn, chuyển trạng thái. Nói rõ chưa có tài khoản hoặc thông báo tự gửi tới nhân viên đó.
+5. Tạo việc gắn đúng tour, nhập người phụ trách/hạn, chuyển trạng thái. Có thể trình diễn lời mời nhân viên; tên giao việc vẫn nhập tay, chưa tự gửi thông báo.
 6. Demo P3 bằng bộ giả lập riêng đã được Tuấn duyệt: tạo phiếu B2B → xác nhận → đối chiếu số chỗ → ghi nhận thu lũy kế → xem lịch sử/xuất CSV. Không xác nhận hoặc ghi thu trên ba phiếu nguồn đang chờ đối chiếu. Đối soát về 0 trước khi hủy phiếu đã có khoản thu; nói rõ hệ thống không chuyển/hoàn tiền.
 7. Mở Phản hồi MVP và giải thích người thử tự đánh giá; quản trị/reviewer xuất dữ liệu gốc. QA dùng để trình diễn phải được tách khỏi khảo sát. Hai CSV mới Người thử/Đánh giá tính năng dùng với `survey:report`; bản phản hồi cũ và tương tác dùng với `research:report`.
 8. Nếu mạng gián đoạn: dùng thông báo lỗi/thử tải lại; không dùng ảnh hoặc video thay thế rồi gọi đó là demo live. Có thể chạy bản local bằng README và nói rõ môi trường đang dùng.
@@ -93,3 +93,7 @@ Phần chức năng, giải quyết pain và UI/UX được yêu cầu trình di
 8. Có thể lấy trung vị mức trả làm giá tối ưu không? Không; đây là mô tả mẫu, cần dữ liệu chi phí, cạnh tranh và quyết định của nhóm.
 9. Giảng viên sửa được dữ liệu không? Reviewer chỉ xem/xuất, không có quyền chỉnh dữ liệu.
 10. Xóa tài khoản có xóa hết file đã tải không? Không; nhóm phải quản lý/xóa riêng CSV, backup và bản chia sẻ.
+
+## Bổ sung 0.5 — 19/10/2026
+
+Xem [tài khoản/nhân viên](ACCOUNTS_AND_TEAM.md), [quy ước demo](OWNER_DEMO_DATA_2026-10-18.md) và [nguồn ảnh](TOUR_IMAGE_CREDITS.md). Người thử tự chọn nạp mẫu vào không gian trống. Bài thử bắt đầu/kết thúc theo hành động thật, có CSV; không tự sinh phản hồi hay tester. UI hiển thị thời gian tải API vừa đo ở chính trình duyệt, không cam kết SLA hoặc số người đồng thời. Gửi email xác minh/khôi phục còn cần kết nối dịch vụ email; lời mời thủ công dùng được ngay.

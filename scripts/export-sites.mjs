@@ -10,6 +10,9 @@ const put = (path, text) => { mkdirSync(resolve(target, path, '..'), { recursive
 put('lib/catalog.mjs', 'export const referenceCatalog = '+readFileSync('catalog/enviet-tours.json','utf8').trim()+';\n');
 put('lib/operations.mjs',readFileSync('server/operations.mjs','utf8'));
 put('lib/feature-feedback.mjs',readFileSync('server/feature-feedback.mjs','utf8'));
+put('lib/accounts.mjs',readFileSync('server/accounts.mjs','utf8'));
+put('lib/demo.mjs',readFileSync('server/demo.mjs','utf8'));
+put('lib/trials.mjs',readFileSync('server/trials.mjs','utf8'));
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')
@@ -19,6 +22,7 @@ api = api.replace('import http from "node:http";\n', '')
   .replace('} from "./db.mjs";', '} from "./seed.mjs";');
 replace('const production = process.env.NODE_ENV === "production";', 'export async function createApi(db, settings) {\nconst production = settings.NODE_ENV === "production";');
 api = api.replaceAll('process.env.', 'settings.');
+api = api.replace('createAccounts(db, process.env,', 'createAccounts(db, settings,');
 replace('const db = await openDatabase();', '');
 const startupStart = api.indexOf('await transaction(db, async () => {');
 const startupEnd = api.indexOf('const limits = new Map();');
@@ -47,7 +51,10 @@ async function retention() {
   if (Date.now() - lastPurge < 12*3600000) return;
   const cutoff = new Date(Date.now()-180*86400000).toISOString();
   await db.batch([
-    ["DELETE FROM workspaces WHERE id IN (SELECT workspace FROM users WHERE role NOT IN ('admin','reviewer') AND workspace!='agency' AND consent_at<?)",[cutoff]],
+    ["DELETE FROM workspaces WHERE id IN (SELECT workspace FROM users WHERE role NOT IN ('admin','reviewer','staff') AND workspace!='agency' AND consent_at<?)",[cutoff]],
+    ["DELETE FROM users WHERE role='staff' AND consent_at<?",[cutoff]],
+    ['DELETE FROM account_tokens WHERE expires<?',[Date.now()]],
+    ['DELETE FROM workspace_invites WHERE expires<?',[Date.now()]],
     ['DELETE FROM inquiries WHERE created<?',[cutoff]],
     ['DELETE FROM sessions WHERE expires<?',[Date.now()]],
     ['DELETE FROM rate_limits WHERE bucket<?',[Math.floor(Date.now()/60000)-1440]],
@@ -60,7 +67,7 @@ async function workspaceStatements(id,name) {
   return statements;
 }
 function eventStatement(user,action,entity='',conditional=false) {
-  if (['admin','reviewer'].includes(user.role)) return [];
+  if (['admin','reviewer','staff'].includes(user.role)) return [];
   return [[conditional ? 'INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1' : 'INSERT INTO events VALUES (?,?,?,?,?)', [randomUUID(),user.id,action,entity,now()]]];
 }
 ` + api.slice(startupEnd);
@@ -208,7 +215,7 @@ put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
 put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
-for (const file of ['api.mjs','dates.mjs','tour-search.mjs','portal-filters.css']) {
+for (const file of ['api.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','trial-ui.jsx','trial.css']) {
   put('app/'+file,readFileSync('src/'+file,'utf8'));
 }
 put('app/globals.css',readFileSync('src/styles.css','utf8'));
@@ -217,6 +224,15 @@ put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'Tas
 put('README.md',`# TaskHub cloud\n\nGenerated from the TaskHub FE/BE by scripts/export-sites.mjs. Uses Sites Workers and persistent D1, independent of the owner's PC. Runtime credentials are private environment secrets. No CP2 or local personal data is imported.\n`);
 copyFileSync('cloud/schema.ts',join(target,'db/schema.ts'));
 copyFileSync('cloud/favicon.svg',join(target,'public/favicon.svg'));
+function copyAssets(from,to) {
+  mkdirSync(to,{recursive:true});
+  for(const entry of readdirSync(from,{withFileTypes:true})) {
+    const source=join(from,entry.name),dest=join(to,entry.name);
+    if(entry.isDirectory())copyAssets(source,dest);
+    else copyFileSync(source,dest);
+  }
+}
+copyAssets('public/images',join(target,'public/images'));
 function copyMigrations(from,to) {
   mkdirSync(to,{recursive:true});
   for(const entry of readdirSync(from,{withFileTypes:true})) {

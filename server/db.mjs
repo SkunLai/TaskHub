@@ -22,6 +22,13 @@ export async function openDatabase(dir = process.env.DATA_DIR || "./data") {
     CREATE TABLE IF NOT EXISTS pooling_audit(id TEXT PRIMARY KEY,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,pooling_id TEXT NOT NULL REFERENCES pooling(id) ON DELETE CASCADE,actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,action TEXT NOT NULL,paid_before INTEGER NOT NULL,paid_after INTEGER NOT NULL,status_before TEXT NOT NULL,status_after TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS pooling_audit_workspace ON pooling_audit(workspace); CREATE INDEX IF NOT EXISTS pooling_audit_pooling ON pooling_audit(pooling_id);`);
   await db.exec(readFileSync(new URL('./pooling-triggers.sql',import.meta.url),'utf8'));
+  await db.exec(`CREATE TABLE IF NOT EXISTS account_profiles(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,verified_at TEXT);
+    CREATE TABLE IF NOT EXISTS account_tokens(token TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,purpose TEXT NOT NULL CHECK(purpose IN ('verify','reset')),expires INTEGER NOT NULL,used_at TEXT,created TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS account_tokens_user ON account_tokens(user_id,purpose);
+    CREATE TABLE IF NOT EXISTS workspace_members(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,permission TEXT NOT NULL CHECK(permission IN ('viewer','editor')),created TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS workspace_members_workspace ON workspace_members(workspace);
+    CREATE TABLE IF NOT EXISTS workspace_invites(id TEXT PRIMARY KEY,token TEXT UNIQUE NOT NULL,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,email TEXT NOT NULL,permission TEXT NOT NULL CHECK(permission IN ('viewer','editor')),invited_by TEXT REFERENCES users(id) ON DELETE SET NULL,expires INTEGER NOT NULL,used_at TEXT,created TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS workspace_invites_workspace ON workspace_invites(workspace);`);
   if (!db.remote)
     await db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
   return db;
@@ -35,11 +42,14 @@ export async function purgeExpired(db) {
   return await transaction(db, async () => {
     const old = await db
       .prepare(
-        "SELECT workspace FROM users WHERE role NOT IN ('admin','reviewer') AND workspace!='agency' AND consent_at<?",
+        "SELECT workspace FROM users WHERE role NOT IN ('admin','reviewer','staff') AND workspace!='agency' AND consent_at<?",
       )
       .all(cutoff);
     for (const row of old)
       await db.prepare("DELETE FROM workspaces WHERE id=?").run(row.workspace);
+    await db.prepare("DELETE FROM users WHERE role='staff' AND consent_at<?").run(cutoff);
+    await db.prepare('DELETE FROM account_tokens WHERE expires<?').run(Date.now());
+    await db.prepare('DELETE FROM workspace_invites WHERE expires<?').run(Date.now());
     await db.prepare("DELETE FROM inquiries WHERE created<?").run(cutoff);
     await db.prepare("DELETE FROM sessions WHERE expires<?").run(Date.now());
     return old.length;

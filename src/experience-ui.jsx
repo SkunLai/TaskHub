@@ -89,6 +89,7 @@ export function createExperienceUI({
   money,
   date,
   roleNames,
+  TrialSummary,
 }) {
   function FeatureFeedback({ data, notify, reload }) {
     const saved = data.featureFeedback;
@@ -447,6 +448,7 @@ export function createExperienceUI({
     return (
       <>
         <ErrorBox error={error} />
+        <TrialSummary/>
         <div className="research-banner">
           <div>
             <Badge tone="blue">DỮ LIỆU KIỂM THỬ CÓ QUYỀN XEM</Badge>
@@ -711,9 +713,7 @@ export function createExperienceUI({
               sau xác nhận. Bộ lọc giúp tìm việc quá hạn hoặc ưu tiên cao.
             </p>
             <p>
-              MVP đang theo dõi tên người phụ trách trong từng tài khoản điều
-              hành; chưa có tài khoản nhân viên cùng workspace hoặc thông báo tự
-              gửi.
+              Tài khoản & nhóm cho phép chủ không gian mời nhân viên cùng làm việc, cấp quyền chỉ xem hoặc được sửa. Tên người phụ trách công việc vẫn là thông tin tự nhập; chưa có thông báo tự gửi.
             </p>
           </details>
           <details>
@@ -745,7 +745,7 @@ export function createExperienceUI({
                   <tr>
                     <td>P1 · S-2</td>
                     <td>Tour, công việc, Excel và thao tác nhanh</td>
-                    <td>Chưa có phân quyền từng nhân viên hoặc nhà cung cấp</td>
+                    <td>Đã có nhân viên chỉ xem/được sửa; chưa quản lý nhà cung cấp</td>
                   </tr>
                   <tr>
                     <td>P2 · S-1</td>
@@ -769,8 +769,7 @@ export function createExperienceUI({
           <details>
             <summary>Dữ liệu và quyền riêng tư</summary>
             <p>
-              Đăng ký tự nguyện. Email và vai trò do người dùng nhập; chưa xác
-              minh danh tính. Nhóm ghi thao tác nghiệp vụ và mã nút/menu/thời
+              Đăng ký tự nguyện. Email và vai trò do người dùng nhập. Xác minh email chỉ hoạt động khi kết nối dịch vụ gửi thư và không thay thế kiểm tra danh tính. Nhóm ghi thao tác nghiệp vụ và mã nút/menu/thời
               gian, không ghi nội dung gõ hoặc mật khẩu. Dữ liệu nghiên cứu chỉ
               dành cho nhóm và người đánh giá được cấp quyền, lưu tối đa khoảng
               6 tháng.
@@ -785,7 +784,7 @@ export function createExperienceUI({
                 onClick={onDelete}
                 data-track="account:delete"
               >
-                Xóa tài khoản và dữ liệu dùng thử
+                {user.role === "staff" ? "Xóa tài khoản nhân viên của tôi" : "Xóa tài khoản và dữ liệu dùng thử"}
               </Button>
             )}
           </details>
@@ -798,12 +797,13 @@ export function createExperienceUI({
               <p>
                 {viewer
                   ? "Tài khoản này chỉ xem và xuất dữ liệu, không tạo hoặc sửa bản ghi."
-                  : "Ghi chức năng, thao tác gặp lỗi và điều cần cải thiện trong mục Phản hồi MVP."}
+                  : user.role === "staff" ? "Báo lỗi cho chủ không gian hoặc tạo yêu cầu trên GitHub. Không đăng dữ liệu cá nhân và thông tin khách hàng." : "Ghi chức năng, thao tác gặp lỗi và điều cần cải thiện trong mục Phản hồi MVP."}
               </p>
-              <Button variant="ghost" onClick={() => open("research")}>
+              {user.role !== "staff" && <Button variant="ghost" onClick={() => open("research")}>
                 {viewer ? "Xem phản hồi và dữ liệu" : "Mở phản hồi MVP"}
                 <ArrowRight size={15} />
-              </Button>
+              </Button>}
+              <a className="text-btn" href="https://github.com/skunlainro3-glitch/TaskHub/issues" target="_blank" rel="noopener noreferrer">Báo lỗi / góp ý trên GitHub</a>
             </div>
           </div>
         </div>

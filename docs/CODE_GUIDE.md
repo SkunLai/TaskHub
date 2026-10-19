@@ -23,7 +23,11 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 
 | Tệp / thư mục | Nhiệm vụ |
 | --- | --- |
-| `src/main.jsx` | Ghép ứng dụng; đăng nhập, portal, tour, tổng quan, công việc và điều hướng. |
+| `src/main.jsx` | Ghép ứng dụng, tổng quan, tour/công việc và điều hướng. Đăng nhập và portal đã tách riêng. |
+| `src/portal-ui.jsx` | Portal, thẻ tour, danh mục và chi tiết/tư vấn. |
+| `src/accounts-ui.jsx` | Đăng nhập, lời mời, phục hồi và quản lý nhân viên. |
+| `src/trial-ui.jsx` | Nạp mẫu, bắt đầu/kết thúc bài thử và thống kê. |
+| `src/tour-media.jsx` | Ảnh minh họa có nguồn và xử lý ảnh lỗi. |
 | `src/operations-ui.jsx` | Biểu mẫu Excel/CSV, đổi số khách và ghép tour B2B. |
 | `src/experience-ui.jsx` | Phản hồi sáu nhóm tính năng, màn hình nghiên cứu và hướng dẫn. |
 | `src/styles.css`, `src/portal-filters.css`, `src/operations-polish.css`, `src/experience.css` | Màu, khoảng cách, bố cục và cách hiển thị trên điện thoại. |
@@ -33,6 +37,8 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/import-tours.mjs` | Đọc tệp nhập thành các dòng để xem trước và gửi API. |
 | `src/interactions.mjs` | Gom và gửi mã thao tác nút/menu của người thử đã đồng ý. |
 | `server/index.mjs` | API, đăng nhập, phân quyền, kiểm tra đầu vào và các thao tác tour/công việc/tư vấn. |
+| `server/accounts.mjs` | Token email, thành viên và vòng đời tài khoản. |
+| `server/demo.mjs`, `server/trials.mjs` | Bộ mẫu tùy chọn và thời gian thử thực tế. |
 | `server/operations.mjs` | Nhập tour, các bước B2B và lưu tương tác. |
 | `server/feature-feedback.mjs` | Kiểm tra, lưu và xuất phản hồi sáu nhóm tính năng. |
 | `server/db.mjs`, `server/connection.mjs` | Khởi tạo bảng local và lớp truy vấn database. |
@@ -72,7 +78,7 @@ Frontend giúp nhập dễ hơn; backend mới quyết định dữ liệu có �
 | `POST /api/interactions`, `/api/feedback/features` | Lưu thao tác và đánh giá của người thử. |
 | `GET /api/research`, `/api/export/*` | Tổng hợp và xuất nghiên cứu theo quyền quản trị/reviewer. |
 
-`:id` và `:workspace` là giá trị thay vào URL, không phải chữ gửi nguyên. Reviewer có quyền xem/xuất, không sửa dữ liệu. Nhân viên/đối tác chưa có tài khoản cộng tác chung; trường người phụ trách hiện là tên nhập.
+`:id` và `:workspace` là giá trị thay vào URL, không phải chữ gửi nguyên. Reviewer có quyền xem/xuất, không sửa dữ liệu. Nhân viên có lời mời và quyền chỉ xem/được sửa; đối tác B2B chưa có tài khoản tự duyệt; trường người phụ trách hiện là tên nhập.
 
 ## 4. Hiểu các bảng dữ liệu
 

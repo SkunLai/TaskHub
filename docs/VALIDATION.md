@@ -94,3 +94,9 @@
 - Đã phát hành Sites version 8 (`appgdep_6ad507f051688191a18bd61376671ed2`) và Pages (`0ed61021-f452-475e-a3b9-8969fd3329a2`); health production trả `0.4.1`. Secrets revision 2, D1 và các migration cũ giữ nguyên.
 - Sau khi cả FE/BE mới đều live, production API và full browser regression đã đạt lại, gồm log sai trả 400, các luồng lõi, bộ lọc lịch/chỗ, reviewer và nhập XLSX cố ý giữ response để kiểm khóa đóng. Không có lỗi JavaScript/tràn ngang trong màn hình kiểm tra; tài khoản QA đã xóa.
 - Readback sau rollout vẫn đúng 3 tour, 3 phiếu chờ `paid=0`, 2 việc và số khách 22/30, 18/25, 12/20. Bộ đếm nghiên cứu sau dọn QA vẫn 0 participants, 0 feedback, 0 events, 0 readyToReview; không đưa bộ tester mẫu vào dữ liệu nghiên cứu.
+
+## Phát hành 0.5 — 19/10/2026
+
+86/86 kiểm tra trên SQLite và libSQL đạt. API production và cả hai bộ browser cũ/mới đạt; QA tạm được xóa. Đã kiểm tra 3 tour công khai với ảnh, 3 công việc, B2B xác nhận2/chờ1, số khách22/18/12 và thu giả lập33,6tr/8,5tr/0. Admin không làm tăng khảo sát. Bộ demo quản trị không tràn ngang320/390/1440px, không lỗi JS.
+
+Migration0003 bổ sung bảng tài khoản; Sites version10 và Pages sourcef695f2d đã phát hành, D1 và secrets revision2 giữ nguyên. Chi tiết ở RELEASE_0_5.md; metadata deployment ở cloud/site.json và cloud/pages/deployment.json. Xác minh email/gửi khôi phục còn chờ nhà cung cấp; không có tester thật hay giao dịch thật tự phát sinh.

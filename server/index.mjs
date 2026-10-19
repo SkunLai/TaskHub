@@ -1,4 +1,7 @@
 import http from "node:http";
+import { createAccounts, deleteAccount, canManageTeam, workspacePermission } from './accounts.mjs';
+import { loadDemoWorkspace } from './demo.mjs';
+import { startFeatureTrial, finishFeatureTrial, ownFeatureTrials, trialResearchSummary, trialExportRows, trialFields } from './trials.mjs';
 import { referenceCatalog } from "./catalog.mjs";
 import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
@@ -41,6 +44,7 @@ const verify = (password, stored) => {
   const received = scryptSync(password, salt, 64);
   return timingSafeEqual(received, Buffer.from(key, "hex"));
 };
+const accounts = createAccounts(db, process.env, { hashPassword: hash });
 await transaction(db, async () => {
   if (!(await db.prepare("SELECT id FROM workspaces WHERE id=?").get("agency")))
     await seedWorkspace(db, "agency", "TaskHub");
@@ -167,7 +171,7 @@ function choice(v, choices, label) {
   return v;
 }
 const log = async (user, action, entity = "") => {
-  if (!["admin", "reviewer"].includes(user.role))
+  if (!["admin", "reviewer", "staff"].includes(user.role))
     await db
       .prepare("INSERT INTO events VALUES (?,?,?,?,?)")
       .run(randomUUID(), user.id, action, entity, now());
@@ -182,7 +186,7 @@ async function userFor(req) {
   return (
     (await db
       .prepare(
-        "SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.token=? AND s.expires>?",
+        "SELECT u.*,m.permission AS staff_permission,p.verified_at FROM users u JOIN sessions s ON s.user_id=u.id LEFT JOIN workspace_members m ON m.user_id=u.id LEFT JOIN account_profiles p ON p.user_id=u.id WHERE s.token=? AND s.expires>?",
       )
       .get(createHash("sha256").update(raw).digest("hex"), Date.now())) || null
   );
@@ -217,6 +221,10 @@ function safeUser(u) {
     email: u.email,
     workspace: u.workspace,
     role: u.role,
+    email_verified: Boolean(u.verified_at),
+    workspace_permission: workspacePermission(u),
+    can_manage_team: canManageTeam(u),
+    can_delete_workspace: !['admin','reviewer','staff'].includes(u.role),
   };
 }
 function json(res, value, status = 200) {
@@ -310,7 +318,15 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.4.1" });
+      return json(res, { ok: true, version: "0.5.0" });
+    }
+    // Read-only members cannot bypass the interface by calling a write API.
+    // Personal account actions do not mutate shared business data.
+    if (p.startsWith('/api/') && method !== 'GET') {
+      const actor = await userFor(req);
+      const personal = ['/api/login','/api/logout','/api/register','/api/account','/api/account/verification/request','/api/account/verification/confirm','/api/password/forgot','/api/password/reset','/api/events','/api/interactions'];
+      if (actor?.role === 'staff' && workspacePermission(actor) === 'viewer' && !personal.includes(p))
+        fail('Nhân viên chỉ xem không được chỉnh sửa dữ liệu.', 403);
     }
     if (
       p.startsWith("/api/") &&
@@ -325,6 +341,52 @@ export const server = http.createServer(async (req, res) => {
       const u = await userFor(req);
       return json(res, { user: u ? safeUser(u) : null });
     }
+    if (p === '/api/account/security' && method === 'GET') return json(res, await accounts.security(await required(req)));
+    if (p === '/api/demo/load' && method === 'POST') {
+      limited(req,'demo-load',5); return json(res,await loadDemoWorkspace(db,await required(req)));
+    }
+    if (p === '/api/trials' && method === 'GET') return json(res,await ownFeatureTrials(db,await required(req)));
+    if (p === '/api/trials/summary' && method === 'GET') {
+      await adminOnly(req); return json(res,await trialResearchSummary(db));
+    }
+    if (p === '/api/trials' && method === 'POST') {
+      limited(req,'trial-start',30); return json(res,await startFeatureTrial(db,await required(req),await body(req)),201);
+    }
+    const trialMatch=p.match(/^\/api\/trials\/([^/]+)$/);
+    if (trialMatch && method === 'PATCH') {
+      limited(req,'trial-finish',30); return json(res,await finishFeatureTrial(db,await required(req),trialMatch[1],await body(req)));
+    }
+    if (p === '/api/export/trials' && method === 'GET') {
+      await adminOnly(req); return download(res,await trialExportRows(db),'taskhub-trials',trialFields);
+    }
+    if (p === '/api/account/verification/request' && method === 'POST') {
+      limited(req,'verify-request',5); return json(res,await accounts.requestVerification(await required(req)));
+    }
+    if (p === '/api/account/verification/confirm' && method === 'POST') {
+      limited(req,'verify-confirm',10); return json(res,await accounts.confirmVerification((await body(req)).token));
+    }
+    if (p === '/api/password/forgot' && method === 'POST') {
+      limited(req,'password-forgot',5); return json(res,await accounts.forgot((await body(req)).email));
+    }
+    if (p === '/api/password/reset' && method === 'POST') {
+      limited(req,'password-reset',10); const input=await body(req); return json(res,await accounts.reset(input.token,input.password));
+    }
+    if (p === '/api/team' && method === 'GET') return json(res,await accounts.team(await required(req)));
+    if (p === '/api/team/invites/preview' && method === 'GET') {
+      limited(req,'invite-preview',30); return json(res,await accounts.preview(url.searchParams.get('token')));
+    }
+    if (p === '/api/team/invites/accept' && method === 'POST') {
+      limited(req,'invite-accept',10);
+      const user=await accounts.accept(await body(req)); await session(res,user); return json(res,{user:safeUser(user)},201);
+    }
+    if (p === '/api/team/invites' && method === 'POST') {
+      limited(req,'invite-create',10); return json(res,await accounts.invite(await required(req),await body(req)),201);
+    }
+    const inviteMatch=p.match(/^\/api\/team\/invites\/([^/]+)$/);
+    if (inviteMatch && method==='DELETE') return json(res,await accounts.revokeInvite(await required(req),inviteMatch[1]));
+    const memberMatch=p.match(/^\/api\/team\/members\/([^/]+)$/);
+    if (memberMatch && method==='PATCH') return json(res,await accounts.updateMember(await required(req),memberMatch[1],await body(req)));
+    if (memberMatch && method==='DELETE') return json(res,await accounts.removeMember(await required(req),memberMatch[1]));
     if (p === "/api/register" && method === "POST") {
       limited(req, "register", 30);
       const b = await body(req);
@@ -377,7 +439,7 @@ export const server = http.createServer(async (req, res) => {
       limited(req, "login", 30);
       const b = await body(req);
       const u = await db
-        .prepare("SELECT * FROM users WHERE email=?")
+        .prepare("SELECT u.*,m.permission AS staff_permission,p.verified_at FROM users u LEFT JOIN workspace_members m ON m.user_id=u.id LEFT JOIN account_profiles p ON p.user_id=u.id WHERE u.email=?")
         .get(email(b.email));
       const password = text(b.password, "mật khẩu", 128);
       if (!u || !verify(password, u.password))
@@ -482,6 +544,7 @@ export const server = http.createServer(async (req, res) => {
       const completedActions = actionRows.map((e) => e.action);
       return json(res, {
         tours,
+        workspace_permission: workspacePermission(u),
         tasks,
         inquiries,
         activity,
@@ -616,7 +679,7 @@ export const server = http.createServer(async (req, res) => {
       if (b.version !== undefined) integer(b.version, 'phiên bản', 1, 1000000000);
       const sql='UPDATE tasks SET status=?,version=version+1 WHERE id=? AND workspace=?'+(b.version === undefined ? '' : ' AND version=?');
       const args=[status,taskMatch[1],u.workspace,...(b.version === undefined ? [] : [b.version])];
-      const result=await db.batch([[sql,args],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_status_changed',status,now()]]])]);
+      const result=await db.batch([[sql,args],...(['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_status_changed',status,now()]]])]);
       if (!result[0].changes) fail(b.version === undefined ? 'Không tìm thấy công việc.' : 'Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.', b.version === undefined ? 404 : 409);
       return json(res, { ok: true });
     }
@@ -625,14 +688,14 @@ export const server = http.createServer(async (req, res) => {
       integer(b.version,'phiên bản',1,1000000000);
       const title=text(b.title,'công việc',160),assignee=text(b.assignee,'người phụ trách',80),due=date(b.due),priority=choice(b.priority,['normal','high'],'ưu tiên'),status=choice(b.status,['todo','doing','done'],'trạng thái');
       if (!await db.prepare('SELECT id FROM tours WHERE id=? AND workspace=?').get(b.tour_id,u.workspace)) fail('Tour không tồn tại.',404);
-      const result=await db.batch([['UPDATE tasks SET tour_id=?,title=?,assignee=?,due=?,priority=?,status=?,version=version+1 WHERE id=? AND workspace=? AND version=?',[b.tour_id,title,assignee,due,priority,status,taskMatch[1],u.workspace,b.version]],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_updated',taskMatch[1],now()]]])]);
+      const result=await db.batch([['UPDATE tasks SET tour_id=?,title=?,assignee=?,due=?,priority=?,status=?,version=version+1 WHERE id=? AND workspace=? AND version=?',[b.tour_id,title,assignee,due,priority,status,taskMatch[1],u.workspace,b.version]],...(['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_updated',taskMatch[1],now()]]])]);
       if (!result[0].changes) fail('Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.',409);
       return json(res,{ok:true});
     }
     if (taskMatch && method === 'DELETE') {
       const u=await required(req),b=await body(req);
       integer(b.version,'phiên bản',1,1000000000);
-      const result=await db.batch([['DELETE FROM tasks WHERE id=? AND workspace=? AND version=?',[taskMatch[1],u.workspace,b.version]],...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_deleted',taskMatch[1],now()]]])]);
+      const result=await db.batch([['DELETE FROM tasks WHERE id=? AND workspace=? AND version=?',[taskMatch[1],u.workspace,b.version]],...(['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_deleted',taskMatch[1],now()]]])]);
       if (!result[0].changes) fail('Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi xóa.',409);
       return json(res,{ok:true});
     }
@@ -658,7 +721,7 @@ export const server = http.createServer(async (req, res) => {
     if (p === "/api/feedback" && method === "POST") {
       const u = await required(req),
         b = await body(req);
-      if (u.role === "admin")
+      if (['admin','reviewer','staff'].includes(u.role))
         fail("Quản trị không phải người tham gia khảo sát.");
       const values = ["portal", "operations", "sync", "ease"].map((k) =>
         integer(b[k], k, 1, 5),
@@ -685,19 +748,19 @@ export const server = http.createServer(async (req, res) => {
             (SELECT COUNT(DISTINCT e.action) FROM events e
              WHERE e.user_id=f.user_id AND e.created<=f.created
              AND e.action IN ('tour_updated','portal_viewed','task_created','task_status_changed'))=4 AS has_test_flow
-           FROM feedback f JOIN users u ON u.id=f.user_id ORDER BY f.created DESC`,
+           FROM feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer','staff') ORDER BY f.created DESC`,
         )
         .all();
       const participants = (
         await db
           .prepare(
-            "SELECT COUNT(*) AS count FROM users WHERE role NOT IN ('admin','reviewer')",
+            "SELECT COUNT(*) AS count FROM users WHERE role NOT IN ('admin','reviewer','staff')",
           )
           .get()
       ).count;
       const featureFeedback=(await db.prepare(`SELECT f.*,u.name,u.role,u.company_size,
         (SELECT COUNT(DISTINCT e.action) FROM events e WHERE e.user_id=f.user_id AND e.created<=f.created AND e.action IN ('tour_updated','portal_viewed','task_created','task_status_changed'))=4 AS has_test_flow
-        FROM feature_feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer') ORDER BY f.created DESC`).all()).map(parseFeatureFeedback);
+        FROM feature_feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer','staff') ORDER BY f.created DESC`).all()).map(parseFeatureFeedback);
       const responseIds=new Set([...feedback,...featureFeedback].map(f=>f.user_id));
       const readyIds=new Set([...feedback,...featureFeedback].filter(f=>f.has_test_flow).map(f=>f.user_id));
       return json(res, {
@@ -706,7 +769,8 @@ export const server = http.createServer(async (req, res) => {
         featureFeedback,
         uniqueResponseCount: responseIds.size,
         readyToReview: readyIds.size,
-        events: (await db.prepare("SELECT COUNT(*) AS count FROM events").get())
+        trials: await trialResearchSummary(db),
+        events: (await db.prepare("SELECT COUNT(*) AS count FROM events e JOIN users u ON u.id=e.user_id WHERE u.role NOT IN ('admin','reviewer','staff')").get())
           .count,
       });
     }
@@ -716,7 +780,7 @@ export const server = http.createServer(async (req, res) => {
         res,
         await db
           .prepare(
-            "SELECT e.id,u.email,u.role,u.company_size,u.consent_at,u.consent_version,e.action,e.entity,e.created FROM events e JOIN users u ON u.id=e.user_id ORDER BY e.created",
+            "SELECT e.id,u.email,u.role,u.company_size,u.consent_at,u.consent_version,e.action,e.entity,e.created FROM events e JOIN users u ON u.id=e.user_id WHERE u.role NOT IN ('admin','reviewer','staff') ORDER BY e.created",
           )
           .all(),
         "taskhub-interactions",
@@ -728,7 +792,7 @@ export const server = http.createServer(async (req, res) => {
         res,
         await db
           .prepare(
-            "SELECT u.email,u.name,u.role,u.company_size,u.consent_at,u.consent_version,f.portal,f.operations,f.sync,f.ease,f.intent,f.price,f.liked,f.disliked,f.created FROM feedback f JOIN users u ON u.id=f.user_id ORDER BY f.created",
+            "SELECT u.email,u.name,u.role,u.company_size,u.consent_at,u.consent_version,f.portal,f.operations,f.sync,f.ease,f.intent,f.price,f.liked,f.disliked,f.created FROM feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer','staff') ORDER BY f.created",
           )
           .all(),
         "taskhub-feedback",
@@ -741,8 +805,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/account" && method === "DELETE") {
       const u = await required(req);
-      if (u.role === "admin") fail("Không thể xóa tài khoản quản trị qua đây.");
-      await db.prepare("DELETE FROM workspaces WHERE id=?").run(u.workspace);
+      await deleteAccount(db,u);
       res.setHeader(
         "Set-Cookie",
         "taskhub_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",

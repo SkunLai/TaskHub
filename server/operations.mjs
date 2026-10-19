@@ -3,7 +3,7 @@ const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status
 const integer=(n,label,min,max)=>{if(!Number.isSafeInteger(n)||n<min||n>max)fail(label+' không hợp lệ.');return n;};
 const text=(v,label,max)=>{if(typeof v!=='string'||!v.trim()||v.trim().length>max)fail(label+' không hợp lệ.');return v.trim();};
 const now=()=>new Date().toISOString();
-const event=(u,action,entity)=>['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events VALUES (?,?,?,?,?)',[randomUUID(),u.id,action,entity,now()]]];
+const event=(u,action,entity)=>['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events VALUES (?,?,?,?,?)',[randomUUID(),u.id,action,entity,now()]]];
 
 // Check availability in the same statement that saves the inquiry. A tour can
 // be withdrawn or filled after the API first reads it; an inquiry never reserves seats.
@@ -40,7 +40,7 @@ export async function importTours(db,u,b,tourInput) {
   const ids=rows.map((_,i)=>b.import_id+'-'+i);
   const statements=[];
   for(const [i,values] of rows.entries())statements.push(['INSERT INTO tours VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',[ids[i],u.workspace,...values,1,now()]]);
-  if(!['admin','reviewer'].includes(u.role))statements.push([`INSERT INTO events SELECT id||':created',?,?,id,? FROM tours WHERE workspace=? AND id IN (${ids.map(()=>'?').join(',')})`,[u.id,'tour_created',now(),u.workspace,...ids]]);
+  if(!['admin','reviewer','staff'].includes(u.role))statements.push([`INSERT INTO events SELECT id||':created',?,?,id,? FROM tours WHERE workspace=? AND id IN (${ids.map(()=>'?').join(',')})`,[u.id,'tour_created',now(),u.workspace,...ids]]);
   try{await db.batch(statements);}catch(e){if(String(e.message).includes('UNIQUE'))fail('Đợt này đã được nhập. Tải lại danh sách.',409);throw e;}
   return {count:rows.length,ids};
 }
@@ -88,14 +88,14 @@ export async function updatePooling(db,u,id,b) {
   const result=await db.batch([
     [sql,args],
     ['INSERT INTO pooling_audit(id,workspace,pooling_id,actor_id,action,paid_before,paid_after,status_before,status_after,created) SELECT ?,?,?,?,?,?,?,?,?,? WHERE changes()=1',[randomUUID(),u.workspace,id,u.id,action,row.paid,paidAfter,row.status,statusAfter,now()]],
-    ...(['admin','reviewer'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,action,id,now()]]]),
+    ...(['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,action,id,now()]]]),
   ]);
   if(!result[0].changes)fail('Phiếu hoặc tour đã thay đổi. Tải lại trước khi tiếp tục.',409);
   return {ok:true};
 }
 
 export async function recordInteractions(db,u,b) {
-  if(['admin','reviewer'].includes(u.role))return {count:0};
+  if(['admin','reviewer','staff'].includes(u.role))return {count:0};
   if(!Array.isArray(b.events)||!b.events.length||b.events.length>50)fail('Lô tương tác không hợp lệ.');
   const statements=b.events.map(e=>{
     if(!e||typeof e!=='object'||Array.isArray(e))fail('Tương tác không hợp lệ.');

@@ -4,7 +4,7 @@ const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d
 let active=null;
 export async function flushInteractions(){if(active)await active.flush();}
 export function startInteractions(user) {
-  if(!user||['admin','reviewer'].includes(user.role))return ()=>{};
+  if(!user||['admin','reviewer','staff'].includes(user.role))return ()=>{};
   const queue=[];let running=null,retryAfter=0;
   const flush=()=>{
     if(running)return running;

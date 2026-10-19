@@ -6,9 +6,11 @@ Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/V
 
 Danh mục tham khảo gồm 13 tour từ nguồn Én Việt do chủ dự án cung cấp. Xem [dữ liệu tour và cách đưa vào điều hành](docs/TOUR_CATALOG.md). Ngày đi, sức chứa, số khách và lịch trình từng ngày vẫn cần người quản lý xác nhận trước khi công khai một tour vận hành.
 
-Ngày 18/10, chủ dự án cung cấp thêm bộ dữ liệu giả lập: web chính đã có 3 tour DEMO, 3 phiếu B2B chờ và 2 công việc trong không gian điều hành. Không gian người thử mới vẫn trống. Xem [nguồn, cách nhập và các điểm cần đối chiếu](docs/OWNER_DEMO_DATA_2026-10-18.md); không dùng bộ này làm bằng chứng khách hàng hoặc khảo sát thật.
+Bản 0.5 dùng bộ dữ liệu giả lập đã được chủ dự án cho phép chốt: 3 tour DEMO, 3 công việc, 2 phiếu B2B đã xác nhận và 1 phiếu chờ. Người dùng mới có không gian trống và được tự chọn **Dùng dữ liệu mẫu** để thử luồng đầy đủ; không tự tạo khảo sát hoặc người dùng giả. Xem [nguồn, cách nhập và các điểm cần đối chiếu](docs/OWNER_DEMO_DATA_2026-10-18.md); không dùng bộ này làm bằng chứng khách hàng hoặc khảo sát thật.
 
 Giao diện chạy trên Cloudflare Pages; gateway dùng tiếp backend/database cloud hiện có. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn. URL Sites cũ vẫn hoạt động và dùng cùng dữ liệu.
+
+Bàn giao mới nhất: [bản 0.5, kiểm tra và việc cần nhóm bổ sung](docs/RELEASE_0_5.md).
 
 ## Chạy trên máy anh
 
@@ -20,13 +22,13 @@ npm run dev
 
 Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằng Ctrl+C.
 
-- **Dùng thử TaskHub**: tạo tài khoản và không gian riêng trống. Người dùng tự nhập tour/công việc; tour mới mặc định chưa công khai. Không tự tạo giá, lịch hoặc tên nhân sự.
+- **Dùng thử TaskHub**: tạo tài khoản và không gian riêng trống. Người dùng tự nhập tour/công việc hoặc chủ động nạp bộ mẫu giả lập vào không gian trống; tour mới mặc định chưa công khai. Không tự tạo giá, lịch hoặc tên nhân sự.
 - **Điều hành**: bấm Đăng nhập. Tài khoản local mặc định `admin@taskhub.local`, mật khẩu `TaskHub-Local-2026!`. Mặc định chỉ bind localhost. Tài khoản này xem kết quả và tải CSV.
 - Mật khẩu trên chỉ dành cho local. Khi deploy phải đặt mật khẩu riêng ít nhất 12 ký tự trong biến môi trường `ADMIN_PASSWORD`; production không có mật khẩu mặc định.
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.
 
-## Phạm vi bản 0.4.1
+## Phạm vi bản 0.5.0
 
 | CP2 / CP3                         | MVP chạy được                                                                                     | Cách kiểm tra                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -86,6 +88,14 @@ Tool tạo `summary.md` và `summary.json` chỉ có thống kê tổng hợp, k
 
 Tài liệu trình diễn và giải thích kỹ thuật: [bàn giao FE/BE](docs/CP3_FE_BE_HANDOFF.md). Trạng thái còn thiếu được cập nhật ở [đối chiếu CP3](docs/CP3_READINESS.md).
 
+## Tài khoản và đội ngũ
+
+Mục **Tài khoản & nhóm** cho phép chủ không gian tạo lời mời riêng theo email, chọn nhân viên **chỉ xem / được sửa**, đổi quyền và thu hồi truy cập. Nhân viên cùng đọc tour, công việc và B2B; không tính vào khảo sát. Tên người phụ trách việc vẫn là thông tin tự nhập. Xem [tài khoản và cấu hình email](docs/ACCOUNTS_AND_TEAM.md).
+
+Email xác minh/khôi phục có token dùng một lần và có hạn. Production hiện chưa kết nối dịch vụ gửi email: giao diện báo rõ chưa khả dụng, không trả token khôi phục hoặc giả vờ đã gửi. Lời mời nhân viên sao chép thủ công vẫn hoạt động. Không dùng tài khoản Gmail cá nhân làm dịch vụ gửi thư ngầm.
+
+Người thử có thể tự bấm **Bắt đầu đo**, thực hiện nhiệm vụ gợi ý rồi chọn kết quả; máy chủ ghi thời điểm và thời gian. Admin/reviewer xuất **Bài thử CSV**. Không dùng số tài khoản, bài thử, dữ liệu mẫu hoặc QA thay bằng chứng 20 người thật.
+
 ## Bảo vệ / lưu dữ liệu
 
 Cookie phiên đăng nhập HttpOnly/SameSite; production dùng Secure. Mật khẩu người thử được salt/hash bằng scrypt. SQL dùng prepared statements. API điều hành giới hạn theo workspace; export chỉ cho quản trị và reviewer được cấp quyền. Public portal chỉ đọc tour đã công khai và không trả email/khách hàng/công việc. Có kiểm tra origin và header riêng cho thao tác thay đổi, giới hạn tần suất đăng ký/đăng nhập/gửi yêu cầu.
@@ -102,7 +112,7 @@ npm start
 
 `npm start` phục vụ cả FE build và API tại http://127.0.0.1:3001. Không cần Vite trên production. Test tích hợp dùng SQLite tạm, kiểm tra consent, phân tách tenant, sync, sức chứa, ghi đồng thời, task, inquiry, CSV, lưu sau restart và xóa dữ liệu. Test không nhập email hoặc dữ liệu CP2 thật.
 
-Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task → feedback, kiểm tra màn hình 320/390/768/1440px, phục hồi kết nối và tìm kiếm, rồi xóa tài khoản test. Ảnh QA lưu trong `work/`. Không chạy với dữ liệu sản xuất.
+Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task → feedback, kiểm tra màn hình 320/390/768/1440px, phục hồi kết nối và tìm kiếm, rồi xóa tài khoản test. Ảnh QA lưu trong `work/`. Các script dùng tài khoản QA tạm riêng và xóa trong finally; không chỉnh sửa dữ liệu nghiệp vụ sẵn có. Kiểm tra mới: `TEST_URL=http://127.0.0.1:3001 node tests/v05-ui.mjs` (PowerShell đặt `$env:TEST_URL` trước).
 
 Giao diện ngày 14/10 dùng nền xanh dương nhạt, nút xanh đậm, chữ slate và điểm nhấn mint/lavender. Tổng quan có lộ trình thử 3 bước. Khi mạng lỗi, web phân biệt dữ liệu chưa tải được với tìm kiếm không có kết quả, và cho phép tải lại. Menu mobile có lớp nền, nút đóng, Escape và trạng thái truy cập bằng bàn phím.
 

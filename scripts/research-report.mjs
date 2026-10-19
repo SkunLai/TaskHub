@@ -71,7 +71,7 @@ export function summarize(feedbackCsv, eventsCsv) {
     const email = emailKey(r.email);
     if (!validEmail(email) || !validTime(r.created)) { excluded.invalid++; continue; }
     if (qaEmail.test(email)) { excluded.qa++; continue; }
-    if (['admin','reviewer'].includes(r.role)) { excluded.system++; continue; }
+    if (['admin','reviewer','staff'].includes(r.role)) { excluded.system++; continue; }
     if (latest.has(email)) excluded.duplicateEmail++;
     if (!latest.has(email) || Date.parse(r.created) >= Date.parse(latest.get(email).created)) latest.set(email, r);
   }

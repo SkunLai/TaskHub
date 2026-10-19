@@ -1,0 +1,104 @@
+.account-settings {
+  display: grid;
+  gap: 22px;
+  max-width: 1020px;
+}
+.account-panel {
+  padding: 24px;
+}
+.account-panel > .panel-header {
+  padding: 0 0 16px;
+}
+.account-panel > p {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.account-security {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+.account-message,
+.invite-result {
+  padding: 16px;
+  background: #edf5ff;
+  border: 1px solid #cbdff5;
+  border-radius: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.account-message {
+  margin-bottom: 20px;
+}
+.password-forgot {
+  margin: 16px 0;
+  display: block;
+}
+.team-invite-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.team-invite-form > .field {
+  margin-bottom: 0;
+}
+.team-invite-form > .btn {
+  margin-bottom: 0;
+  min-height: 44px;
+}
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e4edf5;
+  flex-wrap: wrap;
+}
+.team-row > div {
+  flex: 1;
+  min-width: 180px;
+  overflow-wrap: anywhere;
+}
+.team-row small {
+  display: block;
+  color: #596d83;
+  margin-top: 5px;
+}
+.team-row select {
+  width: auto;
+  max-width: 100%;
+  min-height: 44px;
+}
+.invite-result {
+  margin: 20px 0;
+}
+.invite-result input {
+  margin-bottom: 12px;
+}
+.account-panel h4 {
+  margin-top: 25px;
+}
+.account-panel .muted {
+  font-size: 13px;
+}
+.account-panel a {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .team-invite-form {
+    grid-template-columns: 1fr;
+  }
+  .account-panel {
+    padding: 18px;
+  }
+  .team-row > div {
+    min-width: 100%;
+  }
+  .team-row .btn {
+    flex: 1;
+  }
+}

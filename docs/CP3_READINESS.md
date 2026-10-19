@@ -2,7 +2,7 @@
 
 **FE/BE của Tuấn đã có bản public và tài liệu bàn giao. Toàn bộ CP3 chưa hoàn thành.** Kiểm tra ngày 17/10: 0 tài khoản người thử, 0 phản hồi, 0 interaction event; chưa có bằng chứng 20 cá nhân đã thử thật.
 
-Cập nhật ngày 18/10: đã nhập [bộ giả lập do chủ dự án cung cấp](OWNER_DEMO_DATA_2026-10-18.md) gồm 3 tour, 3 phiếu B2B chờ và 2 công việc. Bảng tester bổ sung chưa đủ thông tin để xác nhận người thử thật, không nhập vào hệ thống nghiên cứu. Các điểm cần làm rõ về số khách, khoản thu B2B và TASK-03 được liệt kê trong bàn giao mới.
+Cập nhật 19/10, bản 0.5: 3 tour, 3 việc, 2 B2B xác nhận và 1 chờ theo quy ước giả lập được chủ dự án cho phép quyết định. Có nhân viên cùng không gian, bộ mẫu tùy chọn và đo bài thử bằng thời gian máy chủ. Bảng tester chưa đủ căn cứ xác nhận 20 người thật.
 
 Web: https://taskhub-travel.pages.dev/. Code mới tiếp tục đẩy lên `build`; giữ `dev` để chủ repo duyệt sau.
 
@@ -22,13 +22,13 @@ Chủ dự án xác nhận đợt này chỉ làm FE/BE và bàn giao. Không l�
 
 | Yêu cầu | Đã có | Giới hạn/bằng chứng còn thiếu |
 | --- | --- | --- |
-| Uses | Tour/lịch/giá/chỗ, công việc, tư vấn; nhập XLSX/CSV; B2B tối giản với phiếu, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV | Chưa có tài khoản nhân viên hoặc đối tác tự duyệt; không gọi đây là B2B đầy đủ hoặc P3 được giải quyết hoàn toàn. |
+| Uses | Tour/lịch/giá/chỗ, công việc, tư vấn; nhập XLSX/CSV; B2B tối giản với phiếu, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV | Đã có nhân viên chỉ xem/được sửa; chưa có đối tác tự duyệt; không gọi đây là B2B đầy đủ hoặc P3 được giải quyết hoàn toàn. |
 | Specs | SQLite local; public Pages/gateway và Workers/D1; kiểm tra phiên bản, sức chứa, phân quyền và timeout | Polling 5 giây khi tab hiển thị, không phải WebSocket. QA không phải chứng nhận SLA hoặc tải thương mại. |
 | Interface/Packaging | Web tiếng Việt, xanh dương nhạt, responsive; đã rà 320/390/768/1440 px và luồng lỗi mạng | Cần phản hồi và thử trên thiết bị/mạng của người dùng thực tế. |
 | Special Features | Có thể demo dữ liệu tour và việc dùng chung với cổng khách hàng | Code chưa chứng minh tính độc nhất hoặc lợi thế thị trường; cần nhóm đối chiếu đối thủ và bằng chứng. |
 | Support | Hướng dẫn trong app, Phản hồi MVP, README và tài liệu bàn giao | Chưa được cung cấp kênh công khai/người trực hoặc mức dịch vụ. Không tự thêm SLA. |
 | Giá | Form thu willingness-to-pay đơn giản, cho phép 0; tool tổng hợp mô tả dữ liệu thật | Chưa chốt chiến lược/giá. 500.000 VND/tháng ở CP2 là giả định, không phải giá đã kiểm chứng. Không có Price Map/Van Westendorp. |
-| MVP testing | Consent, email tự nhập, vai trò/quy mô, log và form 6 nhóm tính năng với tự dùng/xem demo/chưa thử, quan trọng/dễ dùng/ý định theo tính năng, giá tùy chọn và ý kiến mở | Chưa xác minh email/20 người thật. Phản hồi phiên bản cũ giữ riêng, không tự chuyển thang đo. |
+| MVP testing | Consent, email tự nhập, vai trò/quy mô, log và form 6 nhóm tính năng với tự dùng/xem demo/chưa thử, quan trọng/dễ dùng/ý định theo tính năng, giá tùy chọn và ý kiến mở | Gửi email xác minh/khôi phục cần nhà cung cấp email; chưa xác nhận 20 người thật. Phản hồi phiên bản cũ giữ riêng, không tự chuyển thang đo. |
 | RAW data | Xuất interactions/feedback CSV có email theo quyền quản trị/reviewer | Nhóm phải xuất bản gốc, đối chiếu người thật và cấp quyền phụ lục; không đưa raw data lên repo public. |
 | Nút/menu | `ui_click`/`ui_change` cho tài khoản người thử đã đồng ý; mã điều khiển, khu vực, thời gian thiết bị/server; chống ghi trùng lô gửi lại | Không ghi nội dung gõ/mật khẩu. Mất mạng/đóng trình duyệt đột ngột có thể thiếu log; admin/reviewer không tính. |
 | Bộ câu hỏi cho An | 12 câu, 6 nhóm tính năng; đánh giá quan trọng, ý định dùng và dễ dùng theo từng tính năng; Sheet raw để trống | Chưa phải kết quả khảo sát hoặc bằng chứng đã có 20 người. |
@@ -57,3 +57,7 @@ Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [đọc và 
 7. Nhóm trưởng book/xác nhận slot và lịch nộp chính thức. Các bản timeline do nhóm cung cấp đã thay đổi; lịch 17/10 book, 18–19/10 phân tích là kế hoạch cũ, không phải xác nhận thực hiện. Mốc 21/10 nộp và 23/10 thuyết trình cũng cần đối chiếu lịch nhóm mới nhất. PDF quy định nộp trước slot tuần 7.
 
 Không gửi email, nộp bài, book lịch hoặc thay đổi nội dung của thành viên khác trong đợt hoàn thiện FE/BE này.
+
+## Kiểm tra và giới hạn 0.5
+
+86 kiểm tra đạt trên SQLite và libSQL. Hai bộ trình duyệt kiểm tra các luồng cũ và bổ sung nạp mẫu/bài thử/mời nhân viên/quyền xem-sửa/xóa staff/khôi phục khi chưa có email provider. Migration 0003 bổ sung bảng, giữ nguyên migration cũ. Không có tester thật, paid pilot, quyết định giá, slide/BMC hoặc quyền giảng viên tự phát sinh từ lần nâng cấp này.

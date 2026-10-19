@@ -42,7 +42,7 @@ export function parseFeatureFeedback(row) {
 }
 
 export async function saveFeatureFeedback(db, user, body) {
-  if (['admin','reviewer'].includes(user.role)) throw Object.assign(Error('Tài khoản quản trị/người đánh giá không tham gia khảo sát.'), { status: 403 });
+  if (['admin','reviewer','staff'].includes(user.role)) throw Object.assign(Error('Tài khoản quản trị/người đánh giá không tham gia khảo sát.'), { status: 403 });
   const answer = featureFeedbackInput(body), created = new Date().toISOString();
   await db.batch([
     ['INSERT INTO feature_feedback(user_id,entries,price,price_status,liked,disliked,created) VALUES (?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET entries=excluded.entries,price=excluded.price,price_status=excluded.price_status,liked=excluded.liked,disliked=excluded.disliked,created=excluded.created', [user.id,JSON.stringify(answer.entries),answer.price,answer.price_status,answer.liked,answer.disliked,created]],
@@ -54,7 +54,7 @@ export async function saveFeatureFeedback(db, user, body) {
 export async function surveyExportRows(db) {
   const rows = await db.prepare(`SELECT f.*,u.email,u.role,u.company_size,u.consent_at,u.consent_version,
     (SELECT MIN(e.created) FROM events e WHERE e.user_id=u.id AND e.action='test_started') AS test_started_at
-    FROM feature_feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer') ORDER BY f.created,u.email`).all();
+    FROM feature_feedback f JOIN users u ON u.id=f.user_id WHERE u.role NOT IN ('admin','reviewer','staff') ORDER BY f.created,u.email`).all();
   const testers = [], features = [];
   for (const raw of rows) {
     const row = parseFeatureFeedback(raw), experienced = row.entries.filter(e => e.mode !== 'untried');

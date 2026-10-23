@@ -12,3 +12,7 @@
 89 kiểm tra đạt trên SQLite và libSQL. Bộ UI cũ, bộ tài khoản/nhân viên 0.5 và bộ UX 0.5.1 đều đạt ở local. Bài UX mới kiểm tra chặn xóa/mở đúng phiếu, ẩn tour giữ nguyên chỗ và khoản thu, logo cổng riêng, danh mục thu gọn/tìm kiếm và không tràn ngang ở 320/390 px. Các tài khoản QA dùng database hoặc workspace riêng và được xóa sau kiểm tra.
 
 Không thêm thư viện, bảng hay migration; không chỉnh tour, số khách, khoản thu hoặc tài khoản hiện có trên production. Email provider và tester thật vẫn là các công việc bên ngoài lần cải thiện này. Các tag demo đã phát hành được giữ nguyên.
+
+## Phát hành đã xác minh
+
+Web https://taskhub-travel.pages.dev/ trả phiên bản 0.5.1. Backend Sites version 11, secrets revision 2 giữ nguyên; Pages deployment 4cad7697-0a53-4afe-8a9c-03ecc4ff2024. API production và cả ba bộ trình duyệt (hồi quy, tài khoản/nhân viên, UX mới) đã đạt; tài khoản QA tạm được xóa. PR: https://github.com/skunlainro3-glitch/TaskHub/pull/7.

@@ -8,9 +8,11 @@ import {
   History,
   RefreshCw,
   ShieldCheck,
+  Search,
 } from "lucide-react";
 import { readTourFile, downloadTourTemplate } from "./import-tours.mjs";
 import "./operations-polish.css";
+import { filterPooling } from "./pooling-view.mjs";
 
 // Reuse TaskHub's accessible controls and API client in these bounded workflows.
 export function createOperationsUI({
@@ -471,7 +473,10 @@ export function createOperationsUI({
                     required
                   />
                 </Field>
-                <Field label="Giá net thỏa thuận / khách (VND)">
+                <Field
+                  label="Giá thỏa thuận / khách (VND)"
+                  hint="Giá net: số tiền đối tác trả cho một khách, có thể khác giá bán trên cổng tour."
+                >
                   <input
                     type="number"
                     name="unit_price"
@@ -509,10 +514,22 @@ export function createOperationsUI({
     confirmed: "Đã xác nhận",
     cancelled: "Đã hủy",
   };
-  function Pooling({ data, readOnly, onNew, onPayment, reload, notify, simulated = false }) {
+  function Pooling({
+    data,
+    readOnly,
+    onNew,
+    onPayment,
+    reload,
+    notify,
+    simulated = false,
+    tourFilter = "",
+    onTourFilter = () => {},
+  }) {
     const [busy, setBusy] = useState(""),
       [cancel, setCancel] = useState(null),
       [history, setHistory] = useState(null);
+    const [query, setQuery] = useState(""),
+      [statusFilter, setStatusFilter] = useState("");
     const pending = useRef(false);
     const pools = data.pooling || [],
       confirmed = pools.filter((p) => p.status === "confirmed"),
@@ -542,6 +559,17 @@ export function createOperationsUI({
         setBusy("");
       }
     }
+    const visiblePools = filterPooling(pools, {
+      query,
+      status: statusFilter,
+      tour: tourFilter,
+    });
+    const filtersActive = Boolean(query || statusFilter || tourFilter);
+    const clearFilters = () => {
+      setQuery("");
+      setStatusFilter("");
+      onTourFilter("");
+    };
     const historyPool = pools.find((p) => p.id === history);
     const historyRows = (data.poolingHistory || []).filter(
       (row) => row.pooling_id === history,
@@ -561,18 +589,55 @@ export function createOperationsUI({
     };
     return (
       <>
-        {simulated && <div className="pooling-notice" role="note"><ShieldCheck size={21}/><p><strong>Quy ước demo:</strong> Số khách đã giữ trong tour bao gồm khách B2B đã xác nhận. B2B-101 thu giả lập 33,6 triệu; B2B-102 cọc giả lập 8,5 triệu (50%); B2B-103 vẫn chờ, chưa giữ chỗ hoặc ghi thu. Ghi chú nguồn cũ được giữ để đối chiếu; đây không phải giao dịch thực tế.</p></div>}
-        <div className="pooling-notice">
-          <Handshake size={21} />
-          <div>
-            <strong>Ghép tour và đối soát tập trung</strong>
+        {simulated && (
+          <div className="pooling-notice" role="note">
+            <ShieldCheck size={21} />
             <p>
-              Điều hành ghi nhận thỏa thuận với đối tác. Phiếu chờ chưa giữ chỗ;
-              xác nhận sẽ cộng số khách vào tour. Bản này chưa có đăng nhập hoặc
-              phê duyệt từ phía đối tác.
+              <strong>Dữ liệu giả lập:</strong> Khách đã giữ trong tour bao gồm
+              khách B2B đã xác nhận. Xem trạng thái và số thu hiện tại trên từng
+              phiếu; ghi chú lúc tạo được giữ riêng để đối chiếu. TaskHub không
+              thực hiện giao dịch tiền.
             </p>
           </div>
-        </div>
+        )}
+        <section className="pool-guide" aria-label="Cách ghép tour B2B">
+          <h2>Nhận khách từ công ty du lịch khác vào tour của bạn</h2>
+          <p>
+            B2B là hợp tác giữa các doanh nghiệp. Phiếu giúp đội ngũ thống nhất
+            số khách, giữ đúng chỗ và theo dõi tiền đối tác phải trả.
+          </p>
+          <ol className="pool-steps">
+            <li>
+              <strong>1. Tạo phiếu</strong>
+              <span>Ghi thỏa thuận, chưa giữ chỗ.</span>
+            </li>
+            <li>
+              <strong>2. Xác nhận ghép</strong>
+              <span>Nhận khách và trừ chỗ còn trống.</span>
+            </li>
+            <li>
+              <strong>3. Ghi nhận thu</strong>
+              <span>Nhập tổng đã nhận, xem số còn thiếu.</span>
+            </li>
+          </ol>
+          <details>
+            <summary>Xem ví dụ cách tính chỗ và tiền</summary>
+            <p>
+              Ví dụ giả lập: tour có 30 chỗ, đã giữ 22. Nhận thêm 4 khách từ đối
+              tác; xác nhận xong có 26 khách, còn 4 chỗ. Giá thỏa thuận 4,2
+              triệu/khách: tổng 16,8 triệu; đã nhận 8,4 triệu thì còn phải thu
+              8,4 triệu.
+            </p>
+            <p>
+              Đối soát là kiểm tra lại số khách, giá và tiền đã nhận. Ô Ghi nhận
+              thu lưu <strong>tổng lũy kế</strong>: nhận đủ thì nhập 16,8 triệu.
+              Việc chuyển tiền diễn ra bên ngoài TaskHub.
+            </p>
+          </details>
+        </section>
+        <p className="muted pool-total-label">
+          Tổng quan toàn bộ phiếu trong không gian
+        </p>
         <div className="pool-stats">
           <div>
             <span>Phiếu chờ xác nhận</span>
@@ -596,10 +661,54 @@ export function createOperationsUI({
             </strong>
           </div>
         </div>
+        <div className="pool-filters" aria-label="Lọc phiếu ghép">
+          <label className="search">
+            <Search size={18} />
+            <input
+              aria-label="Tìm phiếu B2B"
+              placeholder="Tìm đối tác hoặc tên tour…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <label>
+            <span>Trạng thái</span>
+            <select
+              aria-label="Trạng thái phiếu B2B"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="pending">Chờ xác nhận</option>
+              <option value="confirmed">Đã xác nhận</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
+          </label>
+          <label>
+            <span>Tour</span>
+            <select
+              aria-label="Tour của phiếu B2B"
+              value={tourFilter}
+              onChange={(e) => onTourFilter(e.target.value)}
+            >
+              <option value="">Tất cả tour</option>
+              {data.tours.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <div className="pool-toolbar">
           <span className="muted">
-            {pools.length} phiếu · trong không gian này
+            Hiển thị {visiblePools.length} / {pools.length} phiếu
           </span>
+          {filtersActive && (
+            <Button variant="ghost" onClick={clearFilters}>
+              Xóa bộ lọc phiếu
+            </Button>
+          )}
           <div className="pool-export-actions">
             <a
               className="btn ghost"
@@ -619,6 +728,10 @@ export function createOperationsUI({
             </a>
           </div>
         </div>
+        <p className="muted pool-export-note">
+          CSV gồm toàn bộ phiếu trong không gian, không giới hạn theo bộ lọc
+          đang chọn.
+        </p>
         {!pools.length ? (
           <Empty title="Chưa có phiếu ghép tour">
             <span>
@@ -637,9 +750,16 @@ export function createOperationsUI({
               </span>
             )}
           </Empty>
+        ) : !visiblePools.length ? (
+          <Empty title="Không có phiếu phù hợp">
+            Thử đổi tên đối tác, tour hoặc trạng thái.{" "}
+            <button className="text-btn" onClick={clearFilters}>
+              Xóa bộ lọc phiếu
+            </button>
+          </Empty>
         ) : (
           <div className="pool-list">
-            {pools.map((p) => (
+            {visiblePools.map((p) => (
               <article className="pool-card" key={p.id}>
                 <div className="pool-card-heading">
                   <div>
@@ -658,7 +778,7 @@ export function createOperationsUI({
                     <strong>{p.seats} khách</strong>
                   </div>
                   <div>
-                    <span>Giá net / khách</span>
+                    <span>Giá thỏa thuận / khách</span>
                     <strong>{money(p.unit_price)}</strong>
                   </div>
                   <div>
@@ -666,7 +786,11 @@ export function createOperationsUI({
                     <strong>{money(p.paid)}</strong>
                   </div>
                   <div>
-                    <span>Còn phải thu</span>
+                    <span>
+                      {p.status === "pending"
+                        ? "Dự kiến phải thu"
+                        : "Còn phải thu"}
+                    </span>
                     <strong>
                       {p.status === "cancelled"
                         ? "—"
@@ -674,7 +798,16 @@ export function createOperationsUI({
                     </strong>
                   </div>
                 </div>
-                {p.note && <p className="pool-note">{p.note}</p>}
+                {p.note && (
+                  <details className="pool-source-note">
+                    <summary>Ghi chú lúc tạo phiếu</summary>
+                    <p className="muted">
+                      Nội dung được giữ theo thời điểm tạo; có thể khác trạng
+                      thái và khoản thu hiện tại hiển thị phía trên.
+                    </p>
+                    <p className="pool-note">{p.note}</p>
+                  </details>
+                )}
                 <div className="pool-card-actions">
                   {!readOnly && p.status !== "cancelled" && (
                     <>
@@ -718,7 +851,7 @@ export function createOperationsUI({
                     Lịch sử phiếu
                   </Button>
                   {!readOnly && p.paid > 0 && p.status !== "cancelled" && (
-                    <small>Đối soát số tiền về 0 trước khi hủy.</small>
+                    <small>Phiếu còn tiền đã ghi nhận; kiểm tra đối soát thực tế trước khi hủy.</small>
                   )}
                 </div>
               </article>

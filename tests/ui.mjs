@@ -21,6 +21,7 @@ page.on("pageerror", (e) => {
   console.log("Page error:", e.message);
 });
 const base = process.env.TEST_URL || "http://127.0.0.1:5173";
+const revealCatalog=async()=>{const toggle=page.locator('[data-track="portal:toggle-reference"]');await toggle.waitFor();if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();};
 const em = "ui-" + Date.now() + "@example.test";
 let registered = false;
 const screenshot = (options) => page.screenshot({ animations: "disabled", ...options });
@@ -43,7 +44,7 @@ const chooseFeedbackMode = async (feature, mode) => {
 };
 try {
   await page.goto(base);
-  await page.locator('.catalog-card').last().waitFor();
+  await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   assert.equal(await page.locator('.catalog-card').count(),13);
   await page.getByLabel('Tìm tour',{exact:true}).fill('EVG-TQ11');
   assert.equal(await page.locator('.catalog-card').count(),1);
@@ -91,7 +92,7 @@ try {
   }
   await page.unroute('**/api/public/agency');
   await page.reload();
-  await page.locator('.catalog-card').last().waitFor();
+  await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   await page.setViewportSize({width:1440,height:1050});
   console.log('Portal schedule filters passed: accent-free search, inclusive dates, invalid ranges, unavailable stock, honest reference separation and compact mobile hero');
   assert.equal(await page.getByText('TaskHub Travel',{exact:true}).count(),0);
@@ -111,7 +112,7 @@ try {
     .getByRole("heading", { name: "Chưa có hành trình phù hợp" })
     .waitFor();
   await page.getByRole("button", { name: "Xóa bộ lọc", exact: true }).click();
-  await page.locator('.catalog-card').last().waitFor();
+  await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   await page.route("**/api/public/agency", (route) => route.abort());
   await page.reload();
   await page
@@ -126,7 +127,7 @@ try {
   );
   await page.unroute("**/api/public/agency");
   await page.getByRole("button", { name: "Thử tải lại", exact: true }).click();
-  await page.locator('.catalog-card').last().waitFor();
+  await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   console.log("Portal responsive, search reset and network recovery passed");
   await page.getByRole("button", { name: "Dùng thử TaskHub", exact: true }).click();
   await page.getByLabel("Tên hiển thị").fill("Người kiểm thử UI");
@@ -329,7 +330,7 @@ try {
   await page.getByLabel('Tour ghép',{exact:true}).selectOption({index:1});
   await page.getByLabel('Tên đối tác',{exact:true}).fill('Đối tác kiểm thử UI');
   await page.getByLabel('Số khách ghép',{exact:true}).fill('3');
-  await page.getByLabel('Giá net thỏa thuận / khách (VND)',{exact:true}).fill('100000');
+  await page.getByLabel('Giá thỏa thuận / khách (VND)',{exact:true}).fill('100000');
   await page.getByRole('dialog').getByRole('button',{name:'Tạo phiếu ghép',exact:true}).click();
   await page.getByRole('dialog').waitFor({state:'hidden'});
   await page.getByRole('button',{name:'Xác nhận ghép',exact:true}).click();

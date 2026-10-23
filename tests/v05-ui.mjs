@@ -172,7 +172,7 @@ try {
   await page
     .getByRole("heading", { name: "Ghép tour B2B", exact: true })
     .waitFor();
-  assert.equal(await page.locator(".pooling-notice").count(), 1);
+  assert.equal(await page.locator(".pool-guide").count(), 1);
   await noOverflow(page, "Simulated pooling ledger", "pooling");
   await nav(page, "Tổng quan");
   const trialResponse = await ownerContext.request.get(base + "/api/trials");

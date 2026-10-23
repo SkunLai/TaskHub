@@ -100,3 +100,9 @@
 86/86 kiểm tra trên SQLite và libSQL đạt. API production và cả hai bộ browser cũ/mới đạt; QA tạm được xóa. Đã kiểm tra 3 tour công khai với ảnh, 3 công việc, B2B xác nhận2/chờ1, số khách22/18/12 và thu giả lập33,6tr/8,5tr/0. Admin không làm tăng khảo sát. Bộ demo quản trị không tràn ngang320/390/1440px, không lỗi JS.
 
 Migration0003 bổ sung bảng tài khoản; Sites version10 và Pages sourcef695f2d đã phát hành, D1 và secrets revision2 giữ nguyên. Chi tiết ở RELEASE_0_5.md; metadata deployment ở cloud/site.json và cloud/pages/deployment.json. Xác minh email/gửi khôi phục còn chờ nhà cung cấp; không có tester thật hay giao dịch thật tự phát sinh.
+
+## UX 0.5.1 - 23/10/2026
+
+89/89 kiểm tra trên SQLite và libSQL đạt. Các bộ trình duyệt local/public kiểm tra luồng cũ, tài khoản/nhân viên và sáu cải thiện UX; không ghi nhận lỗi JavaScript hoặc tràn ngang trong màn hình kiểm tra ở 320/390 px. Ẩn tour giữ nguyên số khách, phiếu, số thu và phiên bản phiếu. Không tự đổi số tiền để xóa tour. API production đạt sau phát hành; dữ liệu QA được xóa.
+
+Sites version11 và Pages runtime source96109bd đã phát hành; schema/migration/secrets và dữ liệu nghiệp vụ hiện có giữ nguyên. Xem RELEASE_0_5_1.md và metadata cloud để truy nguyên.

@@ -45,6 +45,7 @@ import { createPortalUI } from "./portal-ui.jsx";
 import { createAccountUI } from "./accounts-ui.jsx";
 import { createTrialUI } from "./trial-ui.jsx";
 import { api } from "./api.mjs";
+import { tourDeletionSummary } from "./pooling-view.mjs";
 import { todayVietnam as todayVN } from "./dates.mjs";
 import {
   matchesTourSearch,
@@ -337,6 +338,8 @@ function TourEditor({
   tour,
   prefill,
   minimumReserved = 0,
+  pooling = [],
+  onRelatedPooling,
   onClose,
   onSave,
   onRefresh,
@@ -381,7 +384,23 @@ function TourEditor({
         }
       : {}),
   };
+  const linked = tourDeletionSummary(pooling, tour?.id);
+  async function unpublish() {
+    setBusy(true);
+    setError("");
+    try {
+      await api("/tours/" + tour.id, "PUT", { ...tour, published: false });
+      await onSave();
+      onClose();
+    } catch (e) {
+      setError(e.message);
+      setConflict(e.status === 409);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function remove() {
+    if (linked.blocking) return;
     setBusy(true);
     setError("");
     try {
@@ -570,16 +589,58 @@ function TourEditor({
         </label>
         {tour && confirmDelete && (
           <div className="delete-confirm" role="alert">
-            <strong>Xóa tour này?</strong>
+            <strong>
+              {linked.blocking
+                ? "Tour còn " + linked.blocking + " phiếu B2B cần xử lý"
+                : "Xóa tour này?"}
+            </strong>
             <p>
               Công việc và yêu cầu tư vấn gắn với tour cũng sẽ bị xóa. Nếu còn
               phiếu ghép B2B, hãy hoàn tất đối soát và hủy phiếu trước. Để chỉ
               ẩn khỏi cổng khách hàng, bỏ chọn công khai rồi lưu.
             </p>
+            {linked.blocking > 0 && (
+              <p className="deletion-guidance">
+                {linked.withReceipts > 0
+                  ? linked.withReceipts +
+                    " phiếu còn số tiền đã ghi nhận thu. Kiểm tra thỏa thuận và đối soát với đối tác trước khi hủy; không đưa tiền về 0 chỉ để xóa tour."
+                  : "Mở các phiếu liên quan để kiểm tra và hủy những phiếu đã kết thúc thỏa thuận."}
+              </p>
+            )}
+            <div className="deletion-options">
+              {onRelatedPooling && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => onRelatedPooling(tour.id)}
+                >
+                  Xem phiếu B2B liên quan
+                  {linked.total ? " (" + linked.total + ")" : ""}
+                </Button>
+              )}
+              {!!tour.published && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={unpublish}
+                >
+                  Ngừng công khai tour
+                </Button>
+              )}
+            </div>
+            {!!tour.published && (
+              <p className="muted">
+                Ngừng công khai chỉ ẩn tour khỏi cổng khách hàng, giữ dữ liệu đã
+                lưu và lịch sử. Các chỉnh sửa chưa lưu trong biểu mẫu sẽ không
+                được áp dụng.
+              </p>
+            )}
             <Button
               type="button"
               variant="danger"
-              disabled={busy}
+              disabled={busy || linked.blocking > 0}
               onClick={remove}
             >
               Xác nhận xóa tour
@@ -1218,6 +1279,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     [pendingLead, setPendingLead] = useState(""),
     [leadQuery, setLeadQuery] = useState(""),
     [leadStatus, setLeadStatus] = useState("");
+  const [poolTourFilter, setPoolTourFilter] = useState("");
   const [mobile, setMobile] = useState(
     () => matchMedia("(max-width: 650px)").matches,
   );
@@ -1699,6 +1761,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 <Pooling
                   data={data}
                   simulated={user.workspace === "agency"}
+                  tourFilter={poolTourFilter}
+                  onTourFilter={setPoolTourFilter}
                   readOnly={readOnly}
                   onNew={() => setEditor({ type: "pooling" })}
                   onPayment={(pool) => setEditor({ type: "pooling", pool })}
@@ -1820,7 +1884,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour · 0.5.0</span>
+            <span>TaskHub · Điều hành tour · 0.5.1</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>
@@ -1839,6 +1903,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           tour={editor.tour}
           prefill={editor.prefill}
           minimumReserved={minimumReserved(editor.tour?.id)}
+          pooling={data?.pooling || []}
+          onRelatedPooling={(id) => {
+            setEditor(null);
+            setPoolTourFilter(id);
+            setNav("pooling");
+          }}
           onClose={() => setEditor(null)}
           onRefresh={refreshEditor}
           onSave={async () => {

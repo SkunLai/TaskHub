@@ -318,7 +318,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.5.0" });
+      return json(res, { ok: true, version: "0.5.1" });
     }
     // Read-only members cannot bypass the interface by calling a write API.
     // Personal account actions do not mutate shared business data.

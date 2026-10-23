@@ -345,6 +345,10 @@ export function createPortalUI({
       [selected, setSelected] = useState(null),
       [reference, setReference] = useState(null),
       [last, setLast] = useState("");
+    const [catalogOpen, setCatalogOpen] = useState(false);
+    useEffect(() => {
+      if (query || destination) setCatalogOpen(true);
+    }, [query, destination]);
     const load = useCallback(async () => {
       const request = ++latest.current;
       pending.current += 1;
@@ -386,6 +390,7 @@ export function createPortalUI({
       setFrom("");
       setTo("");
       setAvailableOnly(false);
+      setCatalogOpen(false);
     }
     const open = (t) => {
       setSelected(t);
@@ -398,7 +403,15 @@ export function createPortalUI({
           Đến danh sách tour
         </a>
         <header className="portal-nav">
-          <a className="plain-link" href="/">
+          <a
+            className="plain-link"
+            href={
+              workspace === "agency"
+                ? "/"
+                : "/portal/" + encodeURIComponent(workspace)
+            }
+            aria-label="Trang đầu cổng tour này"
+          >
             <Logo />
           </a>
           <nav>
@@ -605,6 +618,7 @@ export function createPortalUI({
                     setFrom("");
                     setTo("");
                     setAvailableOnly(false);
+                    setCatalogOpen(true);
                   }}
                 >
                   Xem danh mục tham khảo
@@ -628,10 +642,15 @@ export function createPortalUI({
             {!data && !error ? (
               <p className="loading">Đang tải hành trình…</p>
             ) : visible.length ? (
-              <div className="tour-grid">
-                {visible.map((t) => (
-                  <TourCard key={t.id} tour={t} onOpen={open} />
-                ))}
+              <div>
+                <h3 className="operating-tour-heading">
+                  Tour có lịch khởi hành
+                </h3>
+                <div className="tour-grid">
+                  {visible.map((t) => (
+                    <TourCard key={t.id} tour={t} onOpen={open} />
+                  ))}
+                </div>
               </div>
             ) : data && !references.length ? (
               <Empty
@@ -659,23 +678,36 @@ export function createPortalUI({
                   Tham khảo tuyến đi, điểm nổi bật và giá. Ngày khởi hành và số
                   chỗ cần được xác nhận riêng.
                 </p>
-                <div className="tour-grid">
-                  {references.map((t) => (
-                    <CatalogCard key={t.id} tour={t} onOpen={setReference} />
-                  ))}
+                <Button
+                  variant="ghost"
+                  aria-expanded={catalogOpen}
+                  aria-controls="reference-tour-list"
+                  data-track="portal:toggle-reference"
+                  onClick={() => setCatalogOpen((open) => !open)}
+                >
+                  {catalogOpen
+                    ? "Thu gọn danh mục tham khảo"
+                    : "Xem " + references.length + " hành trình tham khảo"}
+                </Button>
+                <div id="reference-tour-list" hidden={!catalogOpen}>
+                  <div className="tour-grid">
+                    {references.map((t) => (
+                      <CatalogCard key={t.id} tour={t} onOpen={setReference} />
+                    ))}
+                  </div>
+                  <p className="catalog-attribution">
+                    Nguồn:{" "}
+                    <a
+                      href={data.catalog.source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {data.catalog.source.name}
+                    </a>{" "}
+                    · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin
+                    tham khảo có thể thay đổi.
+                  </p>
                 </div>
-                <p className="catalog-attribution">
-                  Nguồn:{" "}
-                  <a
-                    href={data.catalog.source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {data.catalog.source.name}
-                  </a>{" "}
-                  · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin
-                  tham khảo có thể thay đổi.
-                </p>
               </div>
             )}
             <div className="portal-notice">

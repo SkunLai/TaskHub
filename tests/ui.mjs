@@ -86,15 +86,16 @@ try {
   await page.getByRole('button',{name:'Xóa bộ lọc',exact:true}).click();
   for(const width of [320,390]){
     await page.setViewportSize({width,height:844});
-    const hero=await page.locator('.portal-hero').boundingBox();
-    assert.ok(hero.height<550,'Mobile hero must leave space for actual tour search');
+    assert.equal(await page.locator('.portal-hero,.portal-cta,.capability-board').count(),0,'Customer view must omit operator marketing');
+    const heading=await page.locator('.customer-heading').boundingBox();
+    assert.ok(heading.height<250,'Customer heading must leave space for actual tour search');
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Portal filters overflow');
   }
   await page.unroute('**/api/public/agency');
   await page.reload();
   await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   await page.setViewportSize({width:1440,height:1050});
-  console.log('Portal schedule filters passed: accent-free search, inclusive dates, invalid ranges, unavailable stock, honest reference separation and compact mobile hero');
+  console.log('Portal schedule filters passed: accent-free search, inclusive dates, invalid ranges, unavailable stock, honest reference separation and compact customer header');
   assert.equal(await page.getByText('TaskHub Travel',{exact:true}).count(),0);
   await screenshot({ path: "work/portal-desktop.png", fullPage: true });
   for (const width of [320, 390, 768]) {
@@ -129,6 +130,7 @@ try {
   await page.getByRole("button", { name: "Thử tải lại", exact: true }).click();
   await revealCatalog(); await page.locator('.catalog-card').last().waitFor();
   console.log("Portal responsive, search reset and network recovery passed");
+  await page.getByRole("button", { name: "Dành cho điều hành", exact: true }).click();
   await page.getByRole("button", { name: "Dùng thử TaskHub", exact: true }).click();
   await page.getByLabel("Tên hiển thị").fill("Người kiểm thử UI");
   await page.getByLabel("Email", { exact: true }).fill(em);

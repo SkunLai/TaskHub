@@ -207,7 +207,7 @@ function Logo() {
       <span className="logo-mark">
         <Compass size={25} />
       </span>
-      taskhub<span className="logo-dot">.</span>
+      TaskHub<span className="logo-dot">.</span>
     </span>
   );
 }
@@ -2003,12 +2003,13 @@ function Workspace({ user, onLogout, onPortal, notify }) {
   );
 }
 
-const { Auth, AccountLink, AccountSettings } = createAccountUI({
+const { Auth, AccountLink, AccountSettings, OperationsEntry } = createAccountUI({
   Modal,
   Button,
   Field,
   ErrorBox,
   Badge,
+  Logo,
   api,
 });
 const { DemoLoader, TrialPanel, TrialSummary } = createTrialUI({
@@ -2153,11 +2154,12 @@ function App() {
           onPortal={() => navigate("/portal/" + user.workspace)}
           notify={notify}
         />
+      ) : isApp ? (
+        <OperationsEntry onAuth={setAuth} onPortal={() => navigate("/")} />
       ) : (
         <Portal
           workspace={workspace}
           user={user}
-          onAuth={setAuth}
           onWorkspace={() => navigate("/app")}
           notify={notify}
         />

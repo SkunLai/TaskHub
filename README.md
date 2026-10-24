@@ -4,6 +4,8 @@ Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/V
 
 **Web:** https://taskhub-travel.pages.dev/ — hoạt động độc lập với máy chủ repo.
 
+Hai cách xem riêng: `/` và `/portal/<workspace>` là **cổng khách hàng**, xem tour công khai và gửi yêu cầu không cần tài khoản. `/app` là **không gian điều hành**, có trang đăng nhập riêng; sau đăng nhập chỉ xem/sửa dữ liệu theo quyền đã cấp. Chức danh nghề nghiệp trong khảo sát không cấp quyền quản trị. Khách chưa đăng nhập không truy cập được API nội bộ.
+
 Danh mục tham khảo gồm 13 tour từ nguồn Én Việt do chủ dự án cung cấp. Xem [dữ liệu tour và cách đưa vào điều hành](docs/TOUR_CATALOG.md). Ngày đi, sức chứa, số khách và lịch trình từng ngày vẫn cần người quản lý xác nhận trước khi công khai một tour vận hành.
 
 Bản 0.5 dùng bộ dữ liệu giả lập đã được chủ dự án cho phép chốt: 3 tour DEMO, 3 công việc, 2 phiếu B2B đã xác nhận và 1 phiếu chờ. Người dùng mới có không gian trống và được tự chọn **Dùng dữ liệu mẫu** để thử luồng đầy đủ; không tự tạo khảo sát hoặc người dùng giả. Xem [nguồn, cách nhập và các điểm cần đối chiếu](docs/OWNER_DEMO_DATA_2026-10-18.md); không dùng bộ này làm bằng chứng khách hàng hoặc khảo sát thật.
@@ -22,8 +24,8 @@ npm run dev
 
 Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằng Ctrl+C.
 
-- **Dùng thử TaskHub**: tạo tài khoản và không gian riêng trống. Người dùng tự nhập tour/công việc hoặc chủ động nạp bộ mẫu giả lập vào không gian trống; tour mới mặc định chưa công khai. Không tự tạo giá, lịch hoặc tên nhân sự.
-- **Điều hành**: bấm Đăng nhập. Tài khoản local mặc định `admin@taskhub.local`, mật khẩu `TaskHub-Local-2026!`. Mặc định chỉ bind localhost. Tài khoản này xem kết quả và tải CSV.
+- **Dùng thử TaskHub**: vào **Dành cho điều hành** → **Dùng thử TaskHub** để tạo tài khoản và không gian riêng trống. Người dùng tự nhập tour/công việc hoặc chủ động nạp bộ mẫu giả lập vào không gian trống; tour mới mặc định chưa công khai. Không tự tạo giá, lịch hoặc tên nhân sự.
+- **Điều hành**: vào `/app` hoặc bấm **Dành cho điều hành** → **Đăng nhập**. Tài khoản local mặc định `admin@taskhub.local`, mật khẩu `TaskHub-Local-2026!`. Mặc định chỉ bind localhost. Tài khoản này xem kết quả và tải CSV.
 - Mật khẩu trên chỉ dành cho local. Khi deploy phải đặt mật khẩu riêng ít nhất 12 ký tự trong biến môi trường `ADMIN_PASSWORD`; production không có mật khẩu mặc định.
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.

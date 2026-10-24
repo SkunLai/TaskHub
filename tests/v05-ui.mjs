@@ -93,6 +93,7 @@ async function createInvite(email) {
 
 try {
   await page.goto(base);
+  await page.getByRole("button", { name: "Dành cho điều hành", exact: true }).click();
   await page
     .getByRole("button", { name: "Dùng thử TaskHub", exact: true })
     .click();
@@ -312,7 +313,7 @@ try {
     .click();
   assert.equal((await removeStaff).status(), 200);
   await staff
-    .getByRole("button", { name: "Dùng thử TaskHub", exact: true })
+    .getByRole("button", { name: "Dành cho điều hành", exact: true })
     .waitFor();
   assert.equal(
     (await workspace(ownerContext)).tours.length,
@@ -358,6 +359,7 @@ try {
   );
 
   await staff.goto(base);
+  await staff.getByRole("button", { name: "Dành cho điều hành", exact: true }).click();
   await staff.getByRole("button", { name: "Đăng nhập", exact: true }).click();
   await staff
     .getByRole("button", { name: "Quên mật khẩu?", exact: true })

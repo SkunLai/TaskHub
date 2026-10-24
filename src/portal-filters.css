@@ -1,4 +1,18 @@
 /* Schedule filters belong to dated operating tours, not the reference catalog. */
+.customer-heading {
+  padding-top: 32px;
+  gap: 16px;
+}
+.customer-heading h1 {
+  font-size: clamp(28px, 3.5vw, 38px);
+  line-height: 1.25;
+  margin: 10px 0;
+}
+.customer-heading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
 .journeys > .portal-notice[role="note"] {
   margin-bottom: 16px;
 }

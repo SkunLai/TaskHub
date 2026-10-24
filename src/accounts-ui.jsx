@@ -7,8 +7,59 @@ export function createAccountUI({
   Field,
   ErrorBox,
   Badge,
+  Logo,
   api,
 }) {
+  function OperationsEntry({ onAuth, onPortal }) {
+    return (
+      <div className="operations-entry">
+        <header className="portal-nav">
+          <a className="plain-link" href="/" aria-label="Cổng khách hàng">
+            <Logo />
+          </a>
+          <Button variant="ghost" onClick={onPortal}>
+            Xem cổng khách hàng <ArrowRight size={16} />
+          </Button>
+        </header>
+        <main className="operations-entry-main">
+          <section className="operations-entry-intro">
+            <div className="eyebrow blue">KHÔNG GIAN ĐIỀU HÀNH</div>
+            <h1>Điều hành tour cùng TaskHub</h1>
+            <p>
+              Quản lý tour, lịch khởi hành, công việc và phiếu ghép B2B trong
+              không gian của đội ngũ. Đăng nhập để tiếp tục làm việc.
+            </p>
+            <Button onClick={() => onAuth("login")} data-track="operator:login">
+              Đăng nhập <ArrowRight size={17} />
+            </Button>
+            <p className="operations-entry-hint">
+              Khách hàng có thể xem tour và gửi yêu cầu tư vấn trên cổng khách
+              hàng mà không cần đăng nhập.
+            </p>
+          </section>
+          <section className="portal-cta" aria-label="Giới thiệu cho điều hành">
+            <div>
+              <div className="eyebrow">
+                DÀNH CHO DOANH NGHIỆP LỮ HÀNH 10–50 NHÂN SỰ
+              </div>
+              <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
+              <p>
+                Tập trung lịch, số chỗ và công việc để người điều hành theo dõi.
+                Khách hàng tra cứu thông tin đã công khai trên một cổng riêng.
+              </p>
+            </div>
+            <Button variant="light" onClick={() => onAuth("register")}>
+              Dùng thử TaskHub <ArrowRight size={17} />
+            </Button>
+          </section>
+          <a className="operations-support" href="https://github.com/skunlainro3-glitch/TaskHub/issues" target="_blank" rel="noopener noreferrer">
+            Góp ý / báo lỗi
+          </a>
+        </main>
+      </div>
+    );
+  }
+
   function Auth({ mode, setMode, onClose, onUser }) {
     const [error, setError] = useState(""),
       [busy, setBusy] = useState(false);
@@ -680,5 +731,5 @@ export function createAccountUI({
       </div>
     );
   }
-  return { Auth, AccountLink, AccountSettings };
+  return { Auth, AccountLink, AccountSettings, OperationsEntry };
 }

@@ -116,3 +116,10 @@ Sites version11 và Pages runtime source96109bd đã phát hành; schema/migrati
 - Không thêm dependency, đổi schema/migration hoặc sửa dữ liệu nghiệp vụ. Kết quả và mã triển khai public được ghi sau khi phát hành.
 - Sau phát hành: Sites version13 và Pages source88c5606 thành công, secrets revision2 giữ nguyên. Cả performance-ui, full UI và UX 0.5.1 trên public đều đạt; dữ liệu QA đã được xóa. Trang chủ không tràn ngang ở 320/390/1440px, không có lỗi JavaScript trong các luồng đã thử. GitHub CI của source88c5606 đạt.
 - Lần đo lại trên cùng máy: tiêu đề 835 ms, tour 1.271 ms, workspace 222 ms; không thấy long task trong lần đo này. Với CPU giả lập chậm4x và cache sẵn: tiêu đề 294 ms, tour508 ms (trước sửa1.075/1.088 ms). Cache và mạng giữa các lần đo có thể khác; không suy ra phần trăm cải thiện hoặc cam kết thời gian cho mọi người dùng. Các phép thử giữ session bằng route interception xác nhận độc lập rằng portal không còn phụ thuộc thời gian phản hồi session.
+
+## Tách cổng khách hàng và điều hành — 24/10/2026
+
+- Cổng `/` và `/portal/<workspace>` vào thẳng tra cứu tour: bỏ toàn bộ hero/khối mô tả công cụ điều hành, CTA doanh nghiệp và khẩu hiệu chân trang theo bốn ảnh của chủ dự án. Logo chung đổi từ `taskhub` thành `TaskHub`. Giữ nhãn dữ liệu giả lập, nguồn ảnh, lịch/giá/chỗ, bộ lọc, chi tiết và gửi yêu cầu.
+- `/app` khi chưa đăng nhập hiển thị trang vào riêng cho điều hành; CTA doanh nghiệp chỉ còn ở khu vực này. Đăng nhập hoặc dùng thử được mở từ đây. Tài khoản đã có giữ nguyên workspace, quyền chỉnh sửa/xem, log và dữ liệu; khách xem tour không cần tạo tài khoản. Vai trò nghề nghiệp trong survey khác quyền truy cập hệ thống.
+- 93/93 kiểm tra tự động đạt. Full UI, v0.5 và UX 0.5.1 local đạt lại. Performance-ui kiểm cả hai giao diện ở 320/390/1440px, khách chưa đăng nhập gửi yêu cầu vào workspace QA thật và API nội bộ vẫn trả401; phản hồi phiên chậm/cũ không làm hỏng đăng nhập, và workspace đợi phiên được kiểm tra. Phiếu yêu cầu QA, tour và tài khoản tạm được xóa cùng workspace.
+- Không đổi schema, migration, mật khẩu hay quyền của tài khoản hiện có. Thông tin triển khai public được cập nhật sau khi kiểm tra.

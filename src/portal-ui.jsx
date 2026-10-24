@@ -8,9 +8,7 @@ import {
   MapPin,
   CalendarDays,
   Users,
-  Check,
   X,
-  Compass,
   Clock,
   ChevronRight,
   ShieldCheck,
@@ -19,9 +17,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Send,
-  Globe,
   Mail,
-  ListTodo,
   Handshake,
   CheckCheck,
   Inbox,
@@ -333,7 +329,7 @@ export function createPortalUI({
     );
   }
 
-  function Portal({ workspace, user, onAuth, onWorkspace, notify }) {
+  function Portal({ workspace, user, onWorkspace, notify }) {
     const pending = useRef(0);
     const latest = useRef(0);
     const [data, setData] = useState(null),
@@ -419,95 +415,21 @@ export function createPortalUI({
             <span className="nav-divider" />
             <Button
               variant="ghost"
-              onClick={user ? onWorkspace : () => onAuth("login")}
+              onClick={onWorkspace}
+              data-track="portal:operations"
             >
-              {user ? "Về điều hành" : "Đăng nhập"}
+              {user ? "Về điều hành" : "Dành cho điều hành"}
               <ArrowUpRight size={16} />
             </Button>
-            {!user && (
-              <Button onClick={() => onAuth("register")}>
-                Dùng thử TaskHub
-                <ArrowRight size={16} />
-              </Button>
-            )}
           </nav>
         </header>
         <main>
-          <div className="portal-hero">
-            <div className="hero-copy">
-              <div className="eyebrow blue">
-                <span className="live-dot" />
-                TASKHUB ·{" "}
-                {workspace === "agency"
-                  ? "ĐIỀU HÀNH TOUR"
-                  : data?.agency || "CỔNG THÔNG TIN TOUR"}
-              </div>
-              <h1>
-                Lịch trình rõ ràng.
-                <br />
-                Khách hàng <em>yên tâm.</em>
-              </h1>
-              <p>
-                Quản lý tour, lịch khởi hành và công việc tại một nơi. Thông tin
-                được công khai từ điều hành để khách hàng cùng tra cứu.
-              </p>
-              <a className="btn" href="#journeys">
-                Xem cổng tour
-                <ArrowRight size={17} />
-              </a>
-              <div className="hero-trust">
-                <ShieldCheck size={17} />
-                Cùng một nguồn thông tin với đội ngũ điều hành
-              </div>
-            </div>
-            <div
-              className="capability-board"
-              aria-label="Ba chức năng của TaskHub"
-            >
-              <span className="eyebrow blue">MỘT NGUỒN THÔNG TIN</span>
-              <h2>
-                Từ điều hành
-                <br />
-                đến cổng khách hàng.
-              </h2>
-              {[
-                [
-                  Compass,
-                  "Quản lý tour",
-                  "Lịch trình, ngày khởi hành, giá và số chỗ",
-                ],
-                [
-                  Globe,
-                  "Cổng khách hàng",
-                  "Tra cứu thông tin tour đã công khai",
-                ],
-                [
-                  ListTodo,
-                  "Công việc theo tour",
-                  "Người phụ trách, thời hạn và tiến độ",
-                ],
-              ].map(([Icon, title, description]) => (
-                <div className="capability-row" key={title}>
-                  <span className="capability-icon">
-                    <Icon size={22} />
-                  </span>
-                  <div>
-                    <strong>{title}</strong>
-                    <p>{description}</p>
-                  </div>
-                  <Check size={16} aria-hidden="true" />
-                </div>
-              ))}
-              <span className="capability-note">
-                <RefreshCw size={14} /> Lịch và số chỗ dùng chung với điều hành
-              </span>
-            </div>
-          </div>
           <section id="journeys" className="journeys">
-            <div className="section-title">
+            <div className="section-title customer-heading">
               <div>
-                <div className="eyebrow blue">THÔNG TIN TỪ ĐIỀU HÀNH</div>
-                <h2>Cổng thông tin tour</h2>
+                <div className="eyebrow blue">DÀNH CHO KHÁCH HÀNG</div>
+                <h1>Cổng thông tin tour</h1>
+                <p>Tra cứu lịch trình, giá, số chỗ và gửi yêu cầu tư vấn.</p>
               </div>
               <span className={"sync-note " + (error ? "stale" : "")}>
                 {error ? <AlertCircle size={14} /> : <RefreshCw size={14} />}
@@ -724,43 +646,16 @@ export function createPortalUI({
               </p>
             </div>
           </section>
-          <section className="portal-cta">
-            <div>
-              <div className="eyebrow">
-                DÀNH CHO DOANH NGHIỆP LỮ HÀNH 10–50 NHÂN SỰ
-              </div>
-              <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
-              <p>
-                Tập trung lịch, số chỗ và công việc để người điều hành theo dõi.
-                Khách hàng tra cứu thông tin đã công khai trên một cổng riêng.
-              </p>
-            </div>
-            <Button
-              variant="light"
-              onClick={user ? onWorkspace : () => onAuth("register")}
-            >
-              {user ? "Mở điều hành" : "Trải nghiệm TaskHub"}
-              <ArrowUpRight size={18} />
-            </Button>
-          </section>
         </main>
         <footer className="portal-footer">
           <Logo />
-          <span>Ít thao tác hơn. Nhiều hành trình hơn.</span>
-          <span>Quản lý tour · Cổng khách hàng · Công việc</span>
+          <span>Lịch trình · Giá tour · Yêu cầu tư vấn</span>
           <a
             href="/images/tours/credits.html"
             target="_blank"
             rel="noopener noreferrer"
           >
             Nguồn ảnh
-          </a>
-          <a
-            href="https://github.com/skunlainro3-glitch/TaskHub/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Góp ý / báo lỗi
           </a>
         </footer>
         {reference && (

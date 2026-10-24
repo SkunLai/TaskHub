@@ -88,7 +88,47 @@
 .account-panel a {
   overflow-wrap: anywhere;
 }
+.operations-entry {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f1f6ff, #fff 75%);
+}
+.operations-entry-main {
+  max-width: 1240px;
+  margin: auto;
+  padding: 48px 34px 30px;
+}
+.operations-entry-intro {
+  max-width: 720px;
+}
+.operations-entry-intro h1 {
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.2;
+  margin: 16px 0;
+}
+.operations-entry-intro > p {
+  color: var(--text-secondary);
+  max-width: 650px;
+}
+.operations-entry-hint {
+  font-size: 13px;
+  margin: 18px 0 0;
+}
+.operations-entry .portal-cta {
+  margin: 32px 0 24px;
+}
+.operations-support {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
 @media (max-width: 700px) {
+  .operations-entry-main {
+    padding: 28px 20px;
+  }
+  .operations-entry > .portal-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
   .team-invite-form {
     grid-template-columns: 1fr;
   }

@@ -27,6 +27,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { TourMedia, TourImageCredit } from "./tour-media.jsx";
+import { startPolling } from "./polling.mjs";
 import {
   matchesTourSearch,
   matchesTourSchedule,
@@ -360,19 +361,18 @@ export function createPortalUI({
         setError("");
       } catch (e) {
         if (request === latest.current) setError(e.message);
+        throw e;
       } finally {
         pending.current -= 1;
       }
     }, [workspace]);
     useEffect(() => {
-      load();
+      return startPolling(load, { isBusy: () => pending.current > 0 });
+    }, [load]);
+    useEffect(() => {
       if (user && user.workspace === workspace)
         api("/events", "POST", { action: "portal_viewed" }).catch(() => {});
-      const timer = setInterval(() => {
-        if (!document.hidden && pending.current === 0) load();
-      }, 5000);
-      return () => clearInterval(timer);
-    }, [load, user?.id]);
+    }, [workspace, user?.id, user?.workspace]);
     const allTours = [...(data?.tours || []), ...(data?.catalog?.tours || [])];
     const schedule = { from, to, availableOnly };
     const scheduleActive = hasScheduleFilters(schedule);
@@ -633,7 +633,7 @@ export function createPortalUI({
                     ? "Đang hiển thị dữ liệu từ lần tải thành công gần nhất. Số chỗ có thể đã thay đổi."
                     : "Danh sách tour chưa tải được. Vui lòng thử lại khi kết nối ổn định."}
                 </p>
-                <Button variant="ghost" onClick={load}>
+                <Button variant="ghost" onClick={() => load().catch(() => {})}>
                   <RefreshCw size={16} />
                   Thử tải lại
                 </Button>
@@ -690,23 +690,27 @@ export function createPortalUI({
                     : "Xem " + references.length + " hành trình tham khảo"}
                 </Button>
                 <div id="reference-tour-list" hidden={!catalogOpen}>
-                  <div className="tour-grid">
-                    {references.map((t) => (
-                      <CatalogCard key={t.id} tour={t} onOpen={setReference} />
-                    ))}
-                  </div>
-                  <p className="catalog-attribution">
-                    Nguồn:{" "}
-                    <a
-                      href={data.catalog.source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {data.catalog.source.name}
-                    </a>{" "}
-                    · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin
-                    tham khảo có thể thay đổi.
-                  </p>
+                  {catalogOpen && (
+                    <>
+                      <div className="tour-grid">
+                        {references.map((t) => (
+                          <CatalogCard key={t.id} tour={t} onOpen={setReference} />
+                        ))}
+                      </div>
+                      <p className="catalog-attribution">
+                        Nguồn:{" "}
+                        <a
+                          href={data.catalog.source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {data.catalog.source.name}
+                        </a>{" "}
+                        · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin
+                        tham khảo có thể thay đổi.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             )}

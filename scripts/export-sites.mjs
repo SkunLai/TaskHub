@@ -215,7 +215,7 @@ put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
 put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
-for (const file of ['api.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','trial-ui.jsx','trial.css']) {
+for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','trial-ui.jsx','trial.css']) {
   put('app/'+file,readFileSync('src/'+file,'utf8'));
 }
 put('app/globals.css',readFileSync('src/styles.css','utf8'));

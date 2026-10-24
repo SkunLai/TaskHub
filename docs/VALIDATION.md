@@ -106,3 +106,11 @@ Migration0003 bổ sung bảng tài khoản; Sites version10 và Pages sourcef69
 89/89 kiểm tra trên SQLite và libSQL đạt. Các bộ trình duyệt local/public kiểm tra luồng cũ, tài khoản/nhân viên và sáu cải thiện UX; không ghi nhận lỗi JavaScript hoặc tràn ngang trong màn hình kiểm tra ở 320/390 px. Ẩn tour giữ nguyên số khách, phiếu, số thu và phiên bản phiếu. Không tự đổi số tiền để xóa tour. API production đạt sau phát hành; dữ liệu QA được xóa.
 
 Sites version11 và Pages runtime source96109bd đã phát hành; schema/migration/secrets và dữ liệu nghiệp vụ hiện có giữ nguyên. Xem RELEASE_0_5_1.md và metadata cloud để truy nguyên.
+
+## Giảm thời gian chờ giao diện — 24/10/2026
+
+- Một lần đo trên Pages trước sửa: tiêu đề hiện sau 2.831 ms, tour sau 3.665 ms; riêng GET session mất 2.105 ms. Điều hướng nội bộ trong cùng lần thử mất khoảng 128–193 ms gồm 100 ms chờ của bộ đo. Đây là số đo quan sát trên một thiết bị/kết nối, không phải SLA hay benchmark đại diện.
+- Cổng public tải song song với kiểm tra phiên. Điều hành và liên kết tài khoản vẫn đợi kiểm tra phiên; phản hồi phiên cũ không thể ghi đè đăng nhập vừa hoàn thành. Danh mục tham khảo chưa mở không dựng các thẻ vào DOM.
+- Đồng bộ đọc vẫn có nhịp cơ bản 5 giây sau khi lần trước kết thúc; không chồng yêu cầu, tạm ngưng khi tab ẩn/offline, tải ngay khi quay lại/online và giãn nhịp lỗi tối đa 30 giây. Không tự gửi lại thao tác ghi.
+- 93/93 kiểm tra tự động đạt; thêm kiểm tra lịch đồng bộ bằng đồng hồ giả. Full UI và UX 0.5.1 local đạt lại, gồm mạng chậm, khôi phục kết nối, tour/công việc/B2B/XLSX và mobile. Bộ performance-ui mới đạt: cố ý giữ response session, portal vẫn dùng được; đăng nhập mới không bị response cũ hủy; workspace chưa hiện khi phiên chưa được kiểm tra.
+- Không thêm dependency, đổi schema/migration hoặc sửa dữ liệu nghiệp vụ. Kết quả và mã triển khai public được ghi sau khi phát hành.

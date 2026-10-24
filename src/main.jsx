@@ -45,6 +45,7 @@ import { createPortalUI } from "./portal-ui.jsx";
 import { createAccountUI } from "./accounts-ui.jsx";
 import { createTrialUI } from "./trial-ui.jsx";
 import { api } from "./api.mjs";
+import { startPolling } from "./polling.mjs";
 import { tourDeletionSummary } from "./pooling-view.mjs";
 import { todayVietnam as todayVN } from "./dates.mjs";
 import {
@@ -1323,12 +1324,10 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     }
   }, []);
   useEffect(() => {
-    reload().catch((e) => setError(e.message));
-    const timer = setInterval(() => {
-      if (!document.hidden && pending.current === 0)
-        reload().catch((e) => setError(e.message));
-    }, 5000);
-    return () => clearInterval(timer);
+    return startPolling(reload, {
+      isBusy: () => pending.current > 0,
+      onError: (e) => setError(e.message),
+    });
   }, [reload]);
   async function changeTask(t, status) {
     setPendingTask(t.id);
@@ -2061,6 +2060,7 @@ const {
 });
 
 function App() {
+  const sessionRequest = useRef(0);
   const [user, setUser] = useState(null),
     [ready, setReady] = useState(false),
     [path, setPath] = useState(location.pathname),
@@ -2079,16 +2079,26 @@ function App() {
     window.scrollTo(0, 0);
   };
   const loadSession = useCallback(async () => {
+    const request = ++sessionRequest.current;
     try {
       const result = await api("/session");
+      if (request !== sessionRequest.current) return;
       setUser(result.user);
       setSessionError("");
     } catch (e) {
-      setSessionError(e.message);
+      if (request === sessionRequest.current) setSessionError(e.message);
     } finally {
-      setReady(true);
+      if (request === sessionRequest.current) setReady(true);
     }
   }, []);
+  const acceptUser = (u) => {
+    // A delayed initial session check must not undo a completed sign-in.
+    sessionRequest.current += 1;
+    setUser(u);
+    setReady(true);
+    setSessionError("");
+    navigate("/app");
+  };
   useEffect(() => {
     // Remove account tokens before any interaction collection or external link.
     if (accountLink) history.replaceState({}, "", location.pathname);
@@ -2108,6 +2118,7 @@ function App() {
     try {
       await flushInteractions();
       await api("/logout", "POST", {});
+      sessionRequest.current += 1;
       setUser(null);
       navigate("/");
     } catch (e) {
@@ -2116,7 +2127,9 @@ function App() {
   };
   const isApp = path === "/app";
   const workspace = path.startsWith("/portal/") ? path.split("/")[2] : "agency";
-  if (!ready)
+  // Public tours do not depend on sign-in; load both requests in parallel.
+  // Keep the private workspace and account links behind the session check.
+  if (!ready && (isApp || accountLink))
     return (
       <div className="initial-loading">
         <Logo />
@@ -2154,10 +2167,7 @@ function App() {
           link={accountLink}
           onClose={() => setAccountLink(null)}
           refreshSession={loadSession}
-          onUser={(u) => {
-            setUser(u);
-            navigate("/app");
-          }}
+          onUser={acceptUser}
         />
       )}
       {auth && !accountLink && (
@@ -2165,11 +2175,7 @@ function App() {
           mode={auth}
           setMode={setAuth}
           onClose={() => setAuth(null)}
-          onUser={(u) => {
-            setUser(u);
-            setSessionError("");
-            navigate("/app");
-          }}
+          onUser={acceptUser}
         />
       )}
       {toast && (

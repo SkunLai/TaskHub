@@ -1,5 +1,7 @@
 # TaskHub 0.5 — bàn giao 19/10/2026
 
+Đây là lịch sử phát hành 19/10. Ngày 24/10, chủ dự án yêu cầu xóa chức năng đo bài thử và xác minh email; hai chức năng này không còn trong mã hiện hành. Xem README và VALIDATION để kiểm tra trạng thái mới nhất.
+
 Web: https://taskhub-travel.pages.dev/ · PR: https://github.com/skunlainro3-glitch/TaskHub/pull/6.
 
 ## Đã bổ sung

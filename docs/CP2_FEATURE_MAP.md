@@ -34,6 +34,6 @@ Tài khoản người thử đã đồng ý có log nghiệp vụ và `ui_click`
 ## Bổ sung bản 0.5
 
 - Bộ mẫu tùy chọn 3 tour/3 việc/3 phiếu; hai phiếu xác nhận đã gồm trong số khách 22/18, phiếu thứ ba chờ chưa giữ chỗ. Tất cả là giả lập.
-- Bài thử có nút bắt đầu/kết thúc và thời gian máy chủ, kết quả tự khai; CSV giữ riêng với phản hồi. Thời gian có thể gồm đọc/suy nghĩ/tạm dừng, không phải độ trễ API hay bằng chứng danh tính.
+- Log nút/menu và thời điểm bấm phục vụ dữ liệu thao tác gốc CP3. Từ 24/10, không còn chức năng bắt đầu/kết thúc hay thống kê thời gian bài thử.
 - Ảnh minh họa có nguồn/giấy phép; fallback trung tính khi thiếu ảnh.
-- Xác minh email/khôi phục đã có logic an toàn; gửi thư thực tế còn cần kết nối nhà cung cấp.
+- Khôi phục mật khẩu giữ token an toàn; gửi thư thực tế còn cần nhà cung cấp. Xác minh email đã được xóa theo yêu cầu chủ dự án.

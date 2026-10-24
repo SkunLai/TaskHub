@@ -22,6 +22,7 @@ export async function openDatabase(dir = process.env.DATA_DIR || "./data") {
     CREATE TABLE IF NOT EXISTS pooling_audit(id TEXT PRIMARY KEY,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,pooling_id TEXT NOT NULL REFERENCES pooling(id) ON DELETE CASCADE,actor_id TEXT REFERENCES users(id) ON DELETE SET NULL,action TEXT NOT NULL,paid_before INTEGER NOT NULL,paid_after INTEGER NOT NULL,status_before TEXT NOT NULL,status_after TEXT NOT NULL,created TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS pooling_audit_workspace ON pooling_audit(workspace); CREATE INDEX IF NOT EXISTS pooling_audit_pooling ON pooling_audit(pooling_id);`);
   await db.exec(readFileSync(new URL('./pooling-triggers.sql',import.meta.url),'utf8'));
+  // Historical schema compatibility only; no active feature uses account_profiles.
   await db.exec(`CREATE TABLE IF NOT EXISTS account_profiles(user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,verified_at TEXT);
     CREATE TABLE IF NOT EXISTS account_tokens(token TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,purpose TEXT NOT NULL CHECK(purpose IN ('verify','reset')),expires INTEGER NOT NULL,used_at TEXT,created TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS account_tokens_user ON account_tokens(user_id,purpose);

@@ -94,9 +94,9 @@ Tài liệu trình diễn và giải thích kỹ thuật: [bàn giao FE/BE](docs
 
 Mục **Tài khoản & nhóm** cho phép chủ không gian tạo lời mời riêng theo email, chọn nhân viên **chỉ xem / được sửa**, đổi quyền và thu hồi truy cập. Nhân viên cùng đọc tour, công việc và B2B; không tính vào khảo sát. Tên người phụ trách việc vẫn là thông tin tự nhập. Xem [tài khoản và cấu hình email](docs/ACCOUNTS_AND_TEAM.md).
 
-Thẻ **Tài khoản & bảo mật** chỉ hiển thị tên, email và quyền hiện tại. Xác minh email đã dừng: giao diện không còn nút/trạng thái xác minh, API cũ trả410 và liên kết `?verify=` cũ được xóa khỏi thanh địa chỉ mà không thực hiện xác minh. Khôi phục mật khẩu giữ token dùng một lần/có hạn; production chưa kết nối dịch vụ gửi email nên không trả token khôi phục hoặc giả vờ đã gửi. Lời mời nhân viên sao chép thủ công vẫn hoạt động. Không dùng tài khoản Gmail cá nhân làm dịch vụ gửi thư ngầm.
+Thẻ **Tài khoản & bảo mật** chỉ hiển thị tên, email và quyền hiện tại. Xác minh email đã được xóa khỏi giao diện, API và hàm xử lý; đường dẫn API cũ không còn tồn tại. Khôi phục mật khẩu giữ token dùng một lần/có hạn; production chưa kết nối dịch vụ gửi email nên không trả token khôi phục hoặc giả vờ đã gửi. Lời mời nhân viên sao chép thủ công vẫn hoạt động. Không dùng tài khoản Gmail cá nhân làm dịch vụ gửi thư ngầm.
 
-Người thử có thể tự bấm **Bắt đầu đo**, thực hiện nhiệm vụ gợi ý rồi chọn kết quả; máy chủ ghi thời điểm và thời gian. Admin/reviewer xuất **Bài thử CSV**. Không dùng số tài khoản, bài thử, dữ liệu mẫu hoặc QA thay bằng chứng 20 người thật.
+CP3 mục 2.1–2.3 và phân công Tuấn yêu cầu người thử, phản hồi và log thao tác gốc; không yêu cầu chức năng đo bài thử. Phần đo thời gian, lịch sử, thống kê và CSV riêng đã được xóa khỏi mã nguồn theo yêu cầu chủ dự án. Log nút/menu có email, thời điểm và CSV khảo sát vẫn được giữ. Không dùng số tài khoản, dữ liệu mẫu hoặc QA thay bằng chứng 20 người thật.
 
 ## Bảo vệ / lưu dữ liệu
 

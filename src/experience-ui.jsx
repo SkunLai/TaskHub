@@ -89,7 +89,6 @@ export function createExperienceUI({
   money,
   date,
   roleNames,
-  TrialSummary,
 }) {
   function FeatureFeedback({ data, notify, reload }) {
     const saved = data.featureFeedback;
@@ -448,7 +447,6 @@ export function createExperienceUI({
     return (
       <>
         <ErrorBox error={error} />
-        <TrialSummary/>
         <div className="research-banner">
           <div>
             <Badge tone="blue">DỮ LIỆU KIỂM THỬ CÓ QUYỀN XEM</Badge>

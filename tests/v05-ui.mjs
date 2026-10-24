@@ -122,7 +122,7 @@ try {
     .waitFor();
   await noOverflow(
     page,
-    "Empty dashboard and trial controls",
+    "Empty dashboard and onboarding",
     "empty-dashboard",
   );
   page.once("dialog", (dialog) => dialog.accept());
@@ -155,51 +155,24 @@ try {
   assert.ok(data.tours.every((tour) => tour.title.includes("[Demo]")));
   await noOverflow(
     page,
-    "Populated dashboard and trial controls",
+    "Populated dashboard and onboarding",
     "sample-dashboard",
   );
   console.log(
     "v0.5 sample UI passed: optional isolated 3/3/3 scenario, correct seats and simulated payments; 320/390px fit",
   );
 
-  await page
-    .getByLabel("Chức năng muốn thử", { exact: true })
-    .selectOption("pooling");
-  const start = responseFor(page, "/trials", "POST");
-  await page.getByRole("button", { name: "Bắt đầu đo", exact: true }).click();
-  assert.equal((await start).status(), 201);
-  await page.getByText("Đang thử: Ghép tour B2B", { exact: true }).waitFor();
-  await page.getByRole("button", { name: "Mở chức năng", exact: true }).click();
-  await page
-    .getByRole("heading", { name: "Ghép tour B2B", exact: true })
-    .waitFor();
-  assert.equal(await page.locator(".pool-guide").count(), 1);
-  await noOverflow(page, "Simulated pooling ledger", "pooling");
-  await nav(page, "Tổng quan");
-  const trialResponse = await ownerContext.request.get(base + "/api/trials");
-  const trial = (await trialResponse.json()).active;
-  assert.ok(trial && trial.feature === "pooling");
-  const finish = responseFor(page, "/trials/" + trial.id, "PATCH");
-  await page
-    .getByRole("button", { name: "Tự hoàn thành", exact: true })
-    .click();
-  assert.equal((await finish).status(), 200);
-  await page.getByRole("button", { name: "Bắt đầu đo", exact: true }).waitFor();
-  await page.getByText("Lịch sử bài thử của bạn", { exact: true }).click();
-  await page
-    .locator(".trial-history")
-    .getByText("Ghép tour B2B", { exact: true })
-    .waitFor();
-  const trialData = await (
-    await ownerContext.request.get(base + "/api/trials")
-  ).json();
-  assert.equal(trialData.active, null);
-  assert.equal(trialData.trials.length, 1);
-  assert.equal(trialData.trials[0].result, "completed");
-  assert.ok(trialData.trials[0].duration_ms >= 0);
-  console.log(
-    "v0.5 trial UI passed: actual explicit start, feature navigation, server finish and private history",
-  );
+  assert.equal(await page.getByRole('heading',{name:'Đo một bài thử thực tế',exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'Bắt đầu đo',exact:true}).count(),0);
+  for(const [path,method] of [['/trials','GET'],['/trials','POST'],['/trials/removed','PATCH'],['/trials/summary','GET'],['/export/trials','GET']]) {
+    const removed=await ownerContext.request.fetch(base+'/api'+path,{method,headers:{'X-TaskHub':'1'},...(['POST','PATCH'].includes(method)?{data:{}}:{})});
+    assert.equal(removed.status(),404,'Removed API must not be available: '+path);
+  }
+  await nav(page,'Ghép tour B2B');
+  assert.equal(await page.locator('.pool-guide').count(),1);
+  await noOverflow(page,'Simulated pooling ledger','pooling');
+  await nav(page,'Tổng quan');
+  console.log('Removed timed-trial UI/API; demo, onboarding and B2B remain usable.');
 
   await nav(page, "Tài khoản & nhóm");
   const securityCard = page.locator('.account-panel').filter({ has: page.getByRole('heading', { name: 'Tài khoản & bảo mật', exact: true }) });
@@ -398,11 +371,11 @@ try {
   assert.equal(await staff.getByRole('dialog').count(), 0);
   for (const path of ['/account/verification/request','/account/verification/confirm']) {
     const retired = await staffContext.request.post(base + '/api' + path, { headers: { 'X-TaskHub': '1' }, data: { token: '2'.repeat(64) } });
-    assert.equal(retired.status(), 410);
+    assert.equal(retired.status(), 404);
   }
   assert.deepEqual(errors, []);
   console.log(
-    "V0.5 UI PASS: optional samples, explicit trials, invitations/permissions, safe self-deletion, recovery honesty, invalid links and mobile no-overflow; no browser errors. Disposable QA accounts removed.",
+    "V0.5 UI PASS: optional samples, removed features, invitations/permissions, safe self-deletion, recovery honesty, invalid links and mobile no-overflow; no browser errors. Disposable QA accounts removed.",
   );
 } catch (error) {
   // Avoid capturing live invite links/tokens in failure artifacts.

@@ -188,7 +188,7 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       const before = await request("/account/security", "GET", null, a.cookie);
       for (const path of ["/account/verification/request", "/account/verification/confirm"]) {
         const response = await request(path, "POST", { token: "2".repeat(64) }, a.cookie);
-        assert.equal(response.status, 410);
+        assert.equal(response.status, 404);
       }
       assert.deepEqual((await request("/account/security", "GET", null, a.cookie)).body, before.body);
     });

@@ -1,7 +1,6 @@
 import http from "node:http";
 import { createAccounts, deleteAccount, canManageTeam, workspacePermission } from './accounts.mjs';
 import { loadDemoWorkspace } from './demo.mjs';
-import { startFeatureTrial, finishFeatureTrial, ownFeatureTrials, trialResearchSummary, trialExportRows, trialFields } from './trials.mjs';
 import { referenceCatalog } from "./catalog.mjs";
 import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
@@ -186,7 +185,7 @@ async function userFor(req) {
   return (
     (await db
       .prepare(
-        "SELECT u.*,m.permission AS staff_permission,p.verified_at FROM users u JOIN sessions s ON s.user_id=u.id LEFT JOIN workspace_members m ON m.user_id=u.id LEFT JOIN account_profiles p ON p.user_id=u.id WHERE s.token=? AND s.expires>?",
+        "SELECT u.*,m.permission AS staff_permission FROM users u JOIN sessions s ON s.user_id=u.id LEFT JOIN workspace_members m ON m.user_id=u.id WHERE s.token=? AND s.expires>?",
       )
       .get(createHash("sha256").update(raw).digest("hex"), Date.now())) || null
   );
@@ -221,7 +220,6 @@ function safeUser(u) {
     email: u.email,
     workspace: u.workspace,
     role: u.role,
-    email_verified: Boolean(u.verified_at),
     workspace_permission: workspacePermission(u),
     can_manage_team: canManageTeam(u),
     can_delete_workspace: !['admin','reviewer','staff'].includes(u.role),
@@ -324,7 +322,7 @@ export const server = http.createServer(async (req, res) => {
     // Personal account actions do not mutate shared business data.
     if (p.startsWith('/api/') && method !== 'GET') {
       const actor = await userFor(req);
-      const personal = ['/api/login','/api/logout','/api/register','/api/account','/api/account/verification/request','/api/account/verification/confirm','/api/password/forgot','/api/password/reset','/api/events','/api/interactions'];
+      const personal = ['/api/login','/api/logout','/api/register','/api/account','/api/password/forgot','/api/password/reset','/api/events','/api/interactions'];
       if (actor?.role === 'staff' && workspacePermission(actor) === 'viewer' && !personal.includes(p))
         fail('Nhân viên chỉ xem không được chỉnh sửa dữ liệu.', 403);
     }
@@ -344,24 +342,6 @@ export const server = http.createServer(async (req, res) => {
     if (p === '/api/account/security' && method === 'GET') return json(res, await accounts.security(await required(req)));
     if (p === '/api/demo/load' && method === 'POST') {
       limited(req,'demo-load',5); return json(res,await loadDemoWorkspace(db,await required(req)));
-    }
-    if (p === '/api/trials' && method === 'GET') return json(res,await ownFeatureTrials(db,await required(req)));
-    if (p === '/api/trials/summary' && method === 'GET') {
-      await adminOnly(req); return json(res,await trialResearchSummary(db));
-    }
-    if (p === '/api/trials' && method === 'POST') {
-      limited(req,'trial-start',30); return json(res,await startFeatureTrial(db,await required(req),await body(req)),201);
-    }
-    const trialMatch=p.match(/^\/api\/trials\/([^/]+)$/);
-    if (trialMatch && method === 'PATCH') {
-      limited(req,'trial-finish',30); return json(res,await finishFeatureTrial(db,await required(req),trialMatch[1],await body(req)));
-    }
-    if (p === '/api/export/trials' && method === 'GET') {
-      await adminOnly(req); return download(res,await trialExportRows(db),'taskhub-trials',trialFields);
-    }
-    if (['/api/account/verification/request','/api/account/verification/confirm'].includes(p) && method === 'POST') {
-      // Retire old links without sending mail or changing account profiles.
-      fail('Chức năng này không còn được sử dụng.',410);
     }
     if (p === '/api/password/forgot' && method === 'POST') {
       limited(req,'password-forgot',5); return json(res,await accounts.forgot((await body(req)).email));
@@ -437,7 +417,7 @@ export const server = http.createServer(async (req, res) => {
       limited(req, "login", 30);
       const b = await body(req);
       const u = await db
-        .prepare("SELECT u.*,m.permission AS staff_permission,p.verified_at FROM users u LEFT JOIN workspace_members m ON m.user_id=u.id LEFT JOIN account_profiles p ON p.user_id=u.id WHERE u.email=?")
+        .prepare("SELECT u.*,m.permission AS staff_permission FROM users u LEFT JOIN workspace_members m ON m.user_id=u.id WHERE u.email=?")
         .get(email(b.email));
       const password = text(b.password, "mật khẩu", 128);
       if (!u || !verify(password, u.password))
@@ -767,7 +747,6 @@ export const server = http.createServer(async (req, res) => {
         featureFeedback,
         uniqueResponseCount: responseIds.size,
         readyToReview: readyIds.size,
-        trials: await trialResearchSummary(db),
         events: (await db.prepare("SELECT COUNT(*) AS count FROM events e JOIN users u ON u.id=e.user_id WHERE u.role NOT IN ('admin','reviewer','staff')").get())
           .count,
       });

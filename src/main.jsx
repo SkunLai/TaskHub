@@ -43,7 +43,7 @@ import { startInteractions, flushInteractions } from "./interactions.mjs";
 import { createExperienceUI } from "./experience-ui.jsx";
 import { createPortalUI } from "./portal-ui.jsx";
 import { createAccountUI } from "./accounts-ui.jsx";
-import { createTrialUI } from "./trial-ui.jsx";
+import { createDemoUI } from "./demo-ui.jsx";
 import { api } from "./api.mjs";
 import { startPolling } from "./polling.mjs";
 import { tourDeletionSummary } from "./pooling-view.mjs";
@@ -960,10 +960,7 @@ function Dashboard({
         </div>
       </div>
       {showTrial && (
-        <>
-          <DemoLoader data={data} reload={reload} notify={notify} />
-          <TrialPanel onNav={onNav} onPortal={onPortal} />
-        </>
+        <DemoLoader data={data} reload={reload} notify={notify} />
       )}
       {showTrial && (
         <section className="trial-checklist" aria-label="Lộ trình dùng thử">
@@ -1483,7 +1480,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           <div className="sidebar-tip">
             <Globe size={20} />
             <strong>
-              Ít thao tác hơn.
+              Không gian điều hành
               <br />
               Nhiều hành trình hơn.
             </strong>
@@ -2012,9 +2009,8 @@ const { Auth, AccountLink, AccountSettings, OperationsEntry } = createAccountUI(
   Logo,
   api,
 });
-const { DemoLoader, TrialPanel, TrialSummary } = createTrialUI({
+const { DemoLoader } = createDemoUI({
   Button,
-  Field,
   ErrorBox,
   api,
 });
@@ -2057,7 +2053,6 @@ const {
   money,
   date,
   roleNames,
-  TrialSummary,
 });
 
 function App() {

@@ -26,7 +26,7 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/main.jsx` | Ghép ứng dụng, tổng quan, tour/công việc và điều hướng. Đăng nhập và portal đã tách riêng. |
 | `src/portal-ui.jsx` | Portal, thẻ tour, danh mục và chi tiết/tư vấn. |
 | `src/accounts-ui.jsx` | Đăng nhập, lời mời, phục hồi và quản lý nhân viên. |
-| `src/trial-ui.jsx` | Nạp mẫu, bắt đầu/kết thúc bài thử và thống kê. |
+| `src/demo-ui.jsx`, `src/demo.css` | Nạp bộ mẫu giả lập tùy chọn vào không gian trống. |
 | `src/tour-media.jsx` | Ảnh minh họa có nguồn và xử lý ảnh lỗi. |
 | `src/operations-ui.jsx` | Biểu mẫu Excel/CSV, đổi số khách và ghép tour B2B. |
 | `src/experience-ui.jsx` | Phản hồi sáu nhóm tính năng, màn hình nghiên cứu và hướng dẫn. |
@@ -38,7 +38,7 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/interactions.mjs` | Gom và gửi mã thao tác nút/menu của người thử đã đồng ý. |
 | `server/index.mjs` | API, đăng nhập, phân quyền, kiểm tra đầu vào và các thao tác tour/công việc/tư vấn. |
 | `server/accounts.mjs` | Token email, thành viên và vòng đời tài khoản. |
-| `server/demo.mjs`, `server/trials.mjs` | Bộ mẫu tùy chọn và thời gian thử thực tế. |
+| `server/demo.mjs` | Bộ dữ liệu mẫu tùy chọn; không tạo bằng chứng người thử thật. |
 | `server/operations.mjs` | Nhập tour, các bước B2B và lưu tương tác. |
 | `server/feature-feedback.mjs` | Kiểm tra, lưu và xuất phản hồi sáu nhóm tính năng. |
 | `server/db.mjs`, `server/connection.mjs` | Khởi tạo bảng local và lớp truy vấn database. |

@@ -1,6 +1,6 @@
 // Export the existing TaskHub UI/API into a prepared Sites Vinext checkout.
 // Cloud writes use D1 atomic batches; local Node/Turso code stays unchanged.
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, existsSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
 const target = resolve(process.argv[2] || '');
@@ -12,7 +12,8 @@ put('lib/operations.mjs',readFileSync('server/operations.mjs','utf8'));
 put('lib/feature-feedback.mjs',readFileSync('server/feature-feedback.mjs','utf8'));
 put('lib/accounts.mjs',readFileSync('server/accounts.mjs','utf8'));
 put('lib/demo.mjs',readFileSync('server/demo.mjs','utf8'));
-put('lib/trials.mjs',readFileSync('server/trials.mjs','utf8'));
+// Remove generated sources for retired features from the retained cloud checkout.
+for (const file of ['lib/trials.mjs','app/trial-ui.jsx','app/trial.css']) rmSync(join(target,file),{force:true});
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')
@@ -223,7 +224,7 @@ put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
 put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
-for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','trial-ui.jsx','trial.css']) {
+for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','demo-ui.jsx','demo.css']) {
   put('app/'+file,readFileSync('src/'+file,'utf8'));
 }
 put('app/globals.css',readFileSync('src/styles.css','utf8'));

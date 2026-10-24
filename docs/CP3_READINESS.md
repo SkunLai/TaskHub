@@ -2,7 +2,7 @@
 
 **FE/BE của Tuấn đã có bản public và tài liệu bàn giao. Toàn bộ CP3 chưa hoàn thành.** Kiểm tra ngày 17/10: 0 tài khoản người thử, 0 phản hồi, 0 interaction event; chưa có bằng chứng 20 cá nhân đã thử thật.
 
-Cập nhật 19/10, bản 0.5: 3 tour, 3 việc, 2 B2B xác nhận và 1 chờ theo quy ước giả lập được chủ dự án cho phép quyết định. Có nhân viên cùng không gian, bộ mẫu tùy chọn và đo bài thử bằng thời gian máy chủ. Bảng tester chưa đủ căn cứ xác nhận 20 người thật.
+Cập nhật 24/10: 3 tour, 3 việc, 2 B2B xác nhận và 1 chờ theo quy ước giả lập được chủ dự án cho phép quyết định. Có nhân viên cùng không gian và bộ mẫu tùy chọn. Chức năng đo bài thử và xác minh email đã được xóa; log thao tác/CSV khảo sát vẫn giữ theo yêu cầu CP3. Bảng tester chưa đủ căn cứ xác nhận 20 người thật.
 
 Web: https://taskhub-travel.pages.dev/. Code mới tiếp tục đẩy lên `build`; giữ `dev` để chủ repo duyệt sau.
 

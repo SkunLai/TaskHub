@@ -176,8 +176,8 @@ export function createAccountUI({
                 <ShieldCheck size={20} />
                 <p>
                   Nhóm TaskHub thu email, vai trò, quy mô, phản hồi và lịch sử
-                  thao tác trong MVP, gồm nút/menu, thời gian bấm và thời gian
-                  bài thử do bạn chủ động bắt đầu, để đánh giá CP3. Không ghi
+                  thao tác trong MVP, gồm nút/menu và thời gian bấm, để đánh
+                  giá CP3. Không ghi
                   nội dung bạn gõ hoặc mật khẩu. Dữ liệu lưu tối đa khoảng 6
                   tháng, nhóm và giảng viên được xem; email không xuất hiện trên
                   cổng tour công khai. Không nhập thông tin khách hàng thật

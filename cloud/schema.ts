@@ -56,6 +56,7 @@ export const poolingAudit = sqliteTable('pooling_audit', {
   status_before:requiredText('status_before'),status_after:requiredText('status_after'),created:requiredText('created'),
 },t=>[index('pooling_audit_workspace').on(t.workspace),index('pooling_audit_pooling').on(t.pooling_id)]);
 // Additive account tables preserve the original users insert contract and data.
+// Preserve deployed schema/history; this table has no active application reader/writer.
 export const accountProfiles = sqliteTable('account_profiles', {
   user_id:text('user_id').primaryKey().references(()=>users.id,{onDelete:'cascade'}),verified_at:text('verified_at'),
 });

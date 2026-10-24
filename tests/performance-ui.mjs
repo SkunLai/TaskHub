@@ -18,6 +18,9 @@ const guest = await browser.newContext();
 mkdirSync('work', { recursive: true });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
+page.on('console', m => {
+  if (m.type() === 'error' && /Minified React error|hydration failed/i.test(m.text())) errors.push(m.text());
+});
 const request = (path, method = 'GET', data) => context.request.fetch(base + '/api' + path, {
   method, headers: { 'X-TaskHub': '1' }, ...(data ? { data } : {}),
 });

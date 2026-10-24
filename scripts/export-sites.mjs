@@ -207,8 +207,16 @@ export async function handleApi(request) {
 }
 `);
 put('app/api/[...path]/route.ts', `import {handleApi} from '../../../lib/route.mjs';\nexport const dynamic='force-dynamic';\nexport const GET=handleApi;export const POST=handleApi;export const PUT=handleApi;export const PATCH=handleApi;export const DELETE=handleApi;export const HEAD=handleApi;\n`);
-let ui=readFileSync('src/main.jsx','utf8').replaceAll('\r\n','\n').replace('import { createRoot } from "react-dom/client";\n','').replace('import "./styles.css";\n','').replace('function App() {','export default function App() {').replace('useState(location.pathname)','useState(typeof location === "undefined" ? "/" : location.pathname)').replace('createRoot(document.getElementById("root")).render(<App />);','');
-put('app/TaskHub.jsx','"use client";\n'+ui);
+let ui=readFileSync('src/main.jsx','utf8').replaceAll('\r\n','\n').replace('import { createRoot } from "react-dom/client";\n','').replace('import "./styles.css";\n','').replace('createRoot(document.getElementById("root")).render(<App />);','');
+// This retained SPA reads browser routes/account links. Mount it after hydration
+// so direct /app and /portal links have the same initial server/client markup.
+put('app/TaskHub.jsx','"use client";\n'+ui+`
+export default function HostedTaskHub() {
+  const [mounted,setMounted]=useState(false);
+  useEffect(()=>setMounted(true),[]);
+  return mounted ? <App/> : <div className="initial-loading"><Logo/><p>Đang mở TaskHub…</p></div>;
+}
+`);
 put('app/operations-ui.jsx',readFileSync('src/operations-ui.jsx','utf8'));
 put('app/operations-polish.css',readFileSync('src/operations-polish.css','utf8'));
 put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));

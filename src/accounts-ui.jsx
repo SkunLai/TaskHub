@@ -131,7 +131,7 @@ export function createAccountUI({
             label="Mật khẩu"
             hint={
               register
-                ? "Tối thiểu 8 ký tự. Email nhập tại đây chưa được xác minh."
+                ? "Tối thiểu 8 ký tự."
                 : undefined
             }
           >
@@ -300,8 +300,7 @@ export function createAccountUI({
       [busy, setBusy] = useState(false),
       [error, setError] = useState(""),
       [done, setDone] = useState(false);
-    const invite = link.kind === "invite",
-      verify = link.kind === "verify";
+    const invite = link.kind === "invite";
     useEffect(() => {
       let mounted = true;
       if (invite)
@@ -324,11 +323,7 @@ export function createAccountUI({
       try {
         const form = Object.fromEntries(new FormData(e.target));
         const r = await api(
-          invite
-            ? "/team/invites/accept"
-            : verify
-              ? "/account/verification/confirm"
-              : "/password/reset",
+          invite ? "/team/invites/accept" : "/password/reset",
           "POST",
           { ...form, token: link.token, consent: form.consent === "on" },
         );
@@ -348,11 +343,7 @@ export function createAccountUI({
     return (
       <Modal
         title={
-          invite
-            ? "Tham gia không gian làm việc"
-            : verify
-              ? "Xác minh email"
-              : "Đặt mật khẩu mới"
+          invite ? "Tham gia không gian làm việc" : "Đặt mật khẩu mới"
         }
         onClose={onClose}
         busy={busy}
@@ -361,9 +352,7 @@ export function createAccountUI({
         {done ? (
           <>
             <p className="success" role="status">
-              {verify
-                ? "Email đã được xác minh."
-                : "Đã đổi mật khẩu. Hãy đăng nhập lại bằng mật khẩu mới."}
+              Đã đổi mật khẩu. Hãy đăng nhập lại bằng mật khẩu mới.
             </p>
             <Button onClick={onClose}>Xong</Button>
           </>
@@ -402,7 +391,7 @@ export function createAccountUI({
                   </Field>
                 </>
               ))}
-            {!verify && (!invite || info) && (
+            {(!invite || info) && (
               <Field
                 label={invite ? "Mật khẩu tài khoản nhân viên" : "Mật khẩu mới"}
                 hint="Tối thiểu 8 ký tự."
@@ -434,21 +423,12 @@ export function createAccountUI({
                 </span>
               </label>
             )}
-            {verify && (
-              <p>
-                Nhấn xác nhận để chứng minh bạn có quyền truy cập email này. Xác
-                minh email không thay thế việc kiểm tra danh tính người tham
-                gia.
-              </p>
-            )}
             <Button disabled={busy || (invite && !info)}>
               {busy
                 ? "Đang xử lý…"
                 : invite
                   ? "Tham gia"
-                  : verify
-                    ? "Xác nhận email"
-                    : "Lưu mật khẩu mới"}
+                  : "Lưu mật khẩu mới"}
             </Button>
           </form>
         )}
@@ -521,46 +501,6 @@ export function createAccountUI({
               security?.workspace_permission || user.workspace_permission,
             )}
             .
-          </p>
-          <div className="account-security">
-            <Badge tone={security?.email_verified ? "blue" : "gray"}>
-              {security?.email_verified
-                ? "Email đã xác minh"
-                : "Email chưa xác minh"}
-            </Badge>
-            {!["admin", "reviewer"].includes(user.role) &&
-              !security?.email_verified && (
-                <Button
-                  variant="ghost"
-                  disabled={!!busy || !security?.mail_ready}
-                  onClick={() =>
-                    act("verify", async () => {
-                      const r = await api(
-                        "/account/verification/request",
-                        "POST",
-                        {},
-                      );
-                      notify(
-                        r.message ||
-                          "Nếu đủ điều kiện, email xác minh sẽ được gửi.",
-                      );
-                    })
-                  }
-                >
-                  Gửi email xác minh
-                </Button>
-              )}
-          </div>
-          {security && !security.mail_ready && (
-            <p className="muted">
-              Hệ thống chưa kết nối dịch vụ gửi email. Xác minh email và khôi
-              phục mật khẩu qua email sẽ khả dụng sau khi cấu hình; TaskHub
-              không tự đánh dấu email là đã xác minh.
-            </p>
-          )}
-          <p className="muted">
-            Không gian dùng thử lưu dữ liệu tối đa khoảng 6 tháng. Xóa tài khoản
-            tại Hướng dẫn & hỗ trợ; dữ liệu đã xuất cần nhóm xóa riêng.
           </p>
         </section>
         {security?.can_manage_team && (

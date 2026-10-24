@@ -184,6 +184,14 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
     );
     const a = await request("/register", "POST", participant("TesterA")),
       b = await request("/register", "POST", participant("TesterB"));
+    await t.test("retired email verification cannot send mail or change the account profile", async () => {
+      const before = await request("/account/security", "GET", null, a.cookie);
+      for (const path of ["/account/verification/request", "/account/verification/confirm"]) {
+        const response = await request(path, "POST", { token: "2".repeat(64) }, a.cookie);
+        assert.equal(response.status, 410);
+      }
+      assert.deepEqual((await request("/account/security", "GET", null, a.cookie)).body, before.body);
+    });
     await t.test(
       "duplicate concurrent signups return a conflict without orphan data",
       async () => {

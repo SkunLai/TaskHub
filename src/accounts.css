@@ -13,13 +13,6 @@
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
-.account-security {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin: 18px 0;
-}
 .account-message,
 .invite-result {
   padding: 16px;

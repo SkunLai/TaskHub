@@ -359,11 +359,9 @@ export const server = http.createServer(async (req, res) => {
     if (p === '/api/export/trials' && method === 'GET') {
       await adminOnly(req); return download(res,await trialExportRows(db),'taskhub-trials',trialFields);
     }
-    if (p === '/api/account/verification/request' && method === 'POST') {
-      limited(req,'verify-request',5); return json(res,await accounts.requestVerification(await required(req)));
-    }
-    if (p === '/api/account/verification/confirm' && method === 'POST') {
-      limited(req,'verify-confirm',10); return json(res,await accounts.confirmVerification((await body(req)).token));
+    if (['/api/account/verification/request','/api/account/verification/confirm'].includes(p) && method === 'POST') {
+      // Retire old links without sending mail or changing account profiles.
+      fail('Chức năng này không còn được sử dụng.',410);
     }
     if (p === '/api/password/forgot' && method === 'POST') {
       limited(req,'password-forgot',5); return json(res,await accounts.forgot((await body(req)).email));

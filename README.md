@@ -51,7 +51,7 @@ Bản 0.4 thêm sửa/xóa công việc có phiên bản, lọc việc quá hạ
 
 Bản 0.4.1 thêm tìm tour không dấu, lọc ngày/chỗ, số kết quả và đặt lại bộ lọc. Danh mục chưa có lịch/chỗ được giải thích riêng khi lọc lịch. Phần giới thiệu trên điện thoại gọn hơn; form nhập/lưu khóa các lối đóng trong lúc xử lý. API tư vấn kiểm tra lại khả dụng ngay lúc ghi dữ liệu, không tự giữ chỗ. Nhóm mới nhận code đọc [hướng dẫn mã nguồn](docs/CODE_GUIDE.md).
 
-B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot, Google login/xác minh email, gửi email tự động và reset mật khẩu chưa được xây. Người phụ trách là tên nhập, chưa có tài khoản nhân viên riêng hoặc thông báo đến người đó.
+B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot và Google login chưa triển khai. Xác minh email đã được bỏ theo yêu cầu chủ dự án. Khôi phục mật khẩu có luồng/token nhưng chưa có dịch vụ gửi email. Nhân viên có tài khoản riêng theo lời mời và quyền được cấp; người phụ trách công việc vẫn là tên nhập, chưa có thông báo tự động đến người đó.
 
 Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có tiền giao dịch thật. Tour, giá, lịch và người phụ trách phải do người quản lý nhập; bản cài mới không tự tạo dữ liệu kinh doanh. Giá SaaS chưa chốt; 500.000 VND/tháng trong CP2 là giả định, không dùng làm kết quả khảo sát. MVP thu mức sẵn sàng trả đơn giản, **không** triển khai mô hình Van Westendorp.
 
@@ -94,7 +94,7 @@ Tài liệu trình diễn và giải thích kỹ thuật: [bàn giao FE/BE](docs
 
 Mục **Tài khoản & nhóm** cho phép chủ không gian tạo lời mời riêng theo email, chọn nhân viên **chỉ xem / được sửa**, đổi quyền và thu hồi truy cập. Nhân viên cùng đọc tour, công việc và B2B; không tính vào khảo sát. Tên người phụ trách việc vẫn là thông tin tự nhập. Xem [tài khoản và cấu hình email](docs/ACCOUNTS_AND_TEAM.md).
 
-Email xác minh/khôi phục có token dùng một lần và có hạn. Production hiện chưa kết nối dịch vụ gửi email: giao diện báo rõ chưa khả dụng, không trả token khôi phục hoặc giả vờ đã gửi. Lời mời nhân viên sao chép thủ công vẫn hoạt động. Không dùng tài khoản Gmail cá nhân làm dịch vụ gửi thư ngầm.
+Thẻ **Tài khoản & bảo mật** chỉ hiển thị tên, email và quyền hiện tại. Xác minh email đã dừng: giao diện không còn nút/trạng thái xác minh, API cũ trả410 và liên kết `?verify=` cũ được xóa khỏi thanh địa chỉ mà không thực hiện xác minh. Khôi phục mật khẩu giữ token dùng một lần/có hạn; production chưa kết nối dịch vụ gửi email nên không trả token khôi phục hoặc giả vờ đã gửi. Lời mời nhân viên sao chép thủ công vẫn hoạt động. Không dùng tài khoản Gmail cá nhân làm dịch vụ gửi thư ngầm.
 
 Người thử có thể tự bấm **Bắt đầu đo**, thực hiện nhiệm vụ gợi ý rồi chọn kết quả; máy chủ ghi thời điểm và thời gian. Admin/reviewer xuất **Bài thử CSV**. Không dùng số tài khoản, bài thử, dữ liệu mẫu hoặc QA thay bằng chứng 20 người thật.
 

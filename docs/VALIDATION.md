@@ -125,3 +125,9 @@ Sites version11 và Pages runtime source96109bd đã phát hành; schema/migrati
 - Không đổi schema, migration, mật khẩu hay quyền của tài khoản hiện có. Thông tin triển khai public được cập nhật sau khi kiểm tra.
 - Public Pages sourcef32bc6f và Sites version15 đã phát hành, giữ D1/migration/secrets revision2. Full UI và v0.5 trên Pages đạt lại; bộ performance-ui đạt trên cả Pages và Sites, gồm khách gửi yêu cầu không có session, API nội bộ401 và các kiểm tra giao diện theo hai vai trò. QA được xóa sau kiểm tra.
 - Kiểm tra mở trực tiếp `/app` ở Sites phát hiện React418 do SPA đọc đường dẫn trình duyệt khác HTML SSR. Exporter nay dựng một trạng thái tải chung rồi mount SPA trên trình duyệt; kiểm tra lại không còn lỗi console/hydration. Pages không cần thay bản build vì thay đổi này chỉ ở exporter cho Sites. GitHub CI của sourcefc80251 đã đạt.
+
+## Thu gọn tài khoản và dừng xác minh email — 24/10/2026
+
+- Theo yêu cầu chủ dự án, thẻ Tài khoản & bảo mật chỉ còn tiêu đề/icon, tên/email của người đang đăng nhập và quyền hiện tại. Bỏ badge/nút xác minh, mô tả email provider và đoạn thời hạn lưu tại thẻ này. Thông báo dữ liệu tại đăng ký/Hướng dẫn vẫn giữ đúng thực tế.
+- Dừng hai API xác minh cũ bằng410, không gửi thư hay sửa trạng thái tài khoản; bỏ màn hình xác nhận và xóa tham số verify cũ khỏi URL. Giữ dữ liệu/cột lịch sử, không đánh dấu toàn bộ tài khoản là đã xác minh và không thay đổi quyền hoặc mật khẩu. Lời mời/khôi phục mật khẩu là luồng riêng, giữ hành vi hiện có.
+- 94/94 kiểm tra tự động đạt. V0.5 UI local đạt: đúng hai dòng nội dung trong thẻ, không badge/nút/mô tả, tên/email động, không tràn ở320/390px; mời, nhận, thu hồi quyền nhân viên và xử lý reset vẫn đúng. Performance-ui local đạt lại, khách và điều hành vẫn tách biệt. QA được xóa sau kiểm tra.

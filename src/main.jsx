@@ -2071,7 +2071,7 @@ function App() {
   const [accountLink, setAccountLink] = useState(() => {
     if (typeof location === "undefined") return null;
     const q = new URLSearchParams(location.search);
-    const kind = ["invite", "reset", "verify"].find((k) => q.has(k));
+    const kind = ["invite", "reset"].find((k) => q.has(k));
     return kind ? { kind, token: q.get(kind) } : null;
   });
   const navigate = (p) => {
@@ -2102,7 +2102,8 @@ function App() {
   };
   useEffect(() => {
     // Remove account tokens before any interaction collection or external link.
-    if (accountLink) history.replaceState({}, "", location.pathname);
+    if (accountLink || new URLSearchParams(location.search).has("verify"))
+      history.replaceState({}, "", location.pathname);
     const handler = () => setPath(location.pathname);
     window.addEventListener("popstate", handler);
     loadSession();

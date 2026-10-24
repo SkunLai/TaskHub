@@ -202,14 +202,12 @@ try {
   );
 
   await nav(page, "Tài khoản & nhóm");
-  await page
-    .getByText("Hệ thống chưa kết nối dịch vụ gửi email.", { exact: false })
-    .waitFor();
-  assert.ok(
-    await page
-      .getByRole("button", { name: "Gửi email xác minh", exact: true })
-      .isDisabled(),
-  );
+  const securityCard = page.locator('.account-panel').filter({ has: page.getByRole('heading', { name: 'Tài khoản & bảo mật', exact: true }) });
+  await securityCard.getByText('Quyền: Chủ không gian.', { exact: true }).waitFor();
+  assert.equal(await securityCard.locator('p').count(), 2);
+  assert.equal(await securityCard.locator('button,.badge,.muted').count(), 0);
+  assert.equal(await securityCard.locator('strong').textContent(), 'QA tự động v0.5 — không phải tester thật');
+  assert.ok((await securityCard.textContent()).includes(ownerEmail));
   await noOverflow(page, "Account security and invitation form", "account");
   const inviteLink = await createInvite(staffEmail);
   await staff.goto(inviteLink);
@@ -395,19 +393,13 @@ try {
     .getByText("Liên kết không hợp lệ hoặc đã hết hạn.", { exact: true })
     .waitFor();
   await staff.goto(base + "/?verify=" + "2".repeat(64));
-  await staff
-    .getByRole("dialog", { name: "Xác minh email", exact: true })
-    .waitFor();
   await staff.waitForFunction(() => location.search === "");
-  const verify = responseFor(staff, "/account/verification/confirm", "POST");
-  await staff
-    .getByRole("button", { name: "Xác nhận email", exact: true })
-    .click();
-  assert.equal((await verify).status(), 400);
-  await staff
-    .getByRole("alert")
-    .getByText("Liên kết không hợp lệ hoặc đã hết hạn.", { exact: true })
-    .waitFor();
+  await staff.getByRole('heading', { name: 'Cổng thông tin tour', exact: true }).waitFor();
+  assert.equal(await staff.getByRole('dialog').count(), 0);
+  for (const path of ['/account/verification/request','/account/verification/confirm']) {
+    const retired = await staffContext.request.post(base + '/api' + path, { headers: { 'X-TaskHub': '1' }, data: { token: '2'.repeat(64) } });
+    assert.equal(retired.status(), 410);
+  }
   assert.deepEqual(errors, []);
   console.log(
     "V0.5 UI PASS: optional samples, explicit trials, invitations/permissions, safe self-deletion, recovery honesty, invalid links and mobile no-overflow; no browser errors. Disposable QA accounts removed.",

@@ -942,9 +942,9 @@ function Dashboard({
             MỘT NGUỒN DỮ LIỆU CHUNG
           </Badge>
           <h2>
-            Lịch rõ ràng.
+            Lịch trình rõ ràng.
             <br />
-            Đội ngũ cùng nhịp.
+            Khách hàng yên tâm.
           </h2>
           <p>
             Một nơi theo dõi lịch khởi hành, số chỗ và công việc của đội ngũ.

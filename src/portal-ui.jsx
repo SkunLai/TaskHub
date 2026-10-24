@@ -443,9 +443,9 @@ export function createPortalUI({
                   : data?.agency || "CỔNG THÔNG TIN TOUR"}
               </div>
               <h1>
-                Lịch rõ ràng.
+                Lịch trình rõ ràng.
                 <br />
-                Đội ngũ <em>cùng nhịp.</em>
+                Khách hàng <em>yên tâm.</em>
               </h1>
               <p>
                 Quản lý tour, lịch khởi hành và công việc tại một nơi. Thông tin

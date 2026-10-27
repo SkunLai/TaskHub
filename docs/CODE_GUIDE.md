@@ -37,6 +37,11 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/import-tours.mjs` | Đọc tệp nhập thành các dòng để xem trước và gửi API. |
 | `src/interactions.mjs` | Gom và gửi mã thao tác nút/menu của người thử đã đồng ý. |
 | `server/index.mjs` | API, đăng nhập, phân quyền, kiểm tra đầu vào và các thao tác tour/công việc/tư vấn. |
+| `shared/analytics.mjs`, `server/analytics.mjs` | Kỳ báo cáo, công thức tổng hợp theo role/workspace; cùng định nghĩa cho giao diện và xuất số liệu. |
+| `src/analytics-ui.jsx`, `src/analytics.css` | Dashboard lọc ngày, biểu đồ, bảng và bộ lọc báo cáo. |
+| `shared/xlsx.mjs`, `src/export-file.mjs` | Xuất bảng XLSX bằng ZIP/OOXML, giữ số và ghi chữ an toàn. `fflate` đã có gián tiếp qua bộ đọc Excel, nay khai báo trực tiếp. |
+| `src/print-page.jsx`, `src/print-page.css` | Bản in riêng đặt ở body; In/Lưu PDF qua trình duyệt, không truyền tài liệu sang dịch vụ khác. |
+| `scripts/optimize-tour-images.py`, `src/tour-image-variants.mjs` | Tạo WebP từ ảnh đã có nguồn; danh sách 404 để không tải lại ảnh hỏng. Muốn cập nhật ảnh, sửa nguồn được nhóm duyệt rồi chạy lại script bằng Python/Pillow. |
 | `shared/access.mjs` | Chính sách bộ phận và quyền xem/sửa dùng chung frontend/backend. |
 | `shared/planning.mjs`, `server/planning.mjs` | Kiểm tra/công thức giả định kinh doanh; lưu kế hoạch theo workspace và phiên bản. |
 | `src/workflow-ui.jsx`, `src/planning-ui.jsx` | Sơ đồ vận hành và bản nháp giá trị/gói/doanh thu nội bộ. |

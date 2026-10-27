@@ -1,5 +1,17 @@
 # Xác nhận bản MVP 0.2 — 14/10/2026
 
+## Bổ sung 0.7.0 — 28/10/2026
+
+- Đọc bảng CP4_Timeline_TaskHub bằng quyền người dùng đã xác nhận, xuất bản chỉ đọc để đối chiếu Timeline/Phân công; không sửa Google Sheet. Đọc CP4 requirements/rubric, BMC/PPTX mẫu và hai file khảo sát. [Bàn giao Tuấn/Huy](CP4_TUAN_HUY_HANDOFF.md) ghi đúng từng STT, phần MVP cho slide, kịch bản 6 phút và thông tin nhóm còn cần cung cấp.
+- `npm test`: **101/101** đạt trên SQLite và libSQL. Thêm kiểm tra ngày/kỳ báo cáo, tỷ lệ lấp đầy có trọng số, phiếu chờ/hủy không cộng tổng tiền, role/workspace và dữ liệu cá nhân, tệp XLSX thật có số/tiếng Việt/chữ không thực thi công thức và giới hạn 5.000 dòng. API xuất sổ B2B chặn Sales; báo cáo không nạp liên hệ tư vấn vào thống kê.
+- Browser QA mới `tests/cp4-delivery-ui.mjs` đạt local và **https://taskhub-travel.pages.dev**: lọc báo cáo, tải rồi đọc lại XLSX báo cáo/công nợ/báo giá, thao tác In/Lưu PDF, ảnh responsive, bố cục 320/390/768/1440 px, không lỗi JavaScript trong các luồng đã thử. Bản in lịch trình dài 70 bước tạo PDF 3 trang, đã đọc lại trang cuối và rà ảnh; trang in nền trắng, không bị giới hạn bởi chiều cao modal. PDF dùng hộp thoại in của trình duyệt, chưa có dịch vụ tạo PDF phía máy chủ.
+- Lượt QA public đầu vướng bài kiểm tra bấm menu khi ứng dụng chưa tải xong. Đã thêm chờ tiêu đề Tổng quan rồi chạy lại toàn bộ bài delivery trên public thành công. Workspace/tài khoản QA đã xóa; dữ liệu tự động không được tính thành khảo sát thật.
+- Các bài hồi quy UI/CP4/UX/mạng chậm đạt local. [GitHub Actions runtime 40573003769](https://github.com/skunlainro3-glitch/TaskHub/actions/runs/40573003769) đạt unit/libSQL/build/Pages và các bài browser cho commit `0f919a5`. Vite/Pages và Sites Vinext build thành công; gắn tag `cp4-demo-v0.7.0` tại commit runtime này. `dev` không đổi.
+- 3 ảnh JPEG đã có nguồn được chuyển thành WebP 480/960 px; tổng bản 960 px là 196.398 byte so với 377.422 byte JPEG gốc (giảm khoảng 48%). Đây là kích thước tệp, không phải kết quả đo độ trễ 4G. 13 URL ảnh Én Việt đang trả 404 được nhận diện để dùng minh họa có nhãn; chưa có ảnh nguồn thay thế được nhóm duyệt. Nguồn nội dung tour vẫn giữ nguyên.
+- Backend Sites phiên bản 19, deployment `appgdep_6ae10170710c8191b5aa28ea8ef92001`, source cloud `fe6cb82`; Pages production `0f08d645-0f75-420b-9091-1694b7a94763`, source runtime `0f919a5`. Giữ D1/secrets/migration qua 0004, không thêm schema hoặc đặt lại dữ liệu. Chi tiết ở `cloud/site.json` và `cloud/pages/deployment.json`.
+- `/api/health` public trả 200/version **0.7.0**. Checksum dữ liệu nghiệp vụ trước/sau giống nhau: 3 tour, 3 công việc, 3 phiếu B2B, 2 yêu cầu tư vấn, 7 lịch sử B2B. Báo cáo không gian nhóm có nhãn giả lập. Không đưa phản hồi khảo sát/email nguồn vào dữ liệu public hoặc log web.
+- Chưa xác nhận Path 2/pre-approval, tính độc quyền/IP, SLA mạng, giá/gói hay người thử thật từ QA. Mốc freeze 30/10 và 03/11 vẫn là mốc tương lai cần nhóm thực hiện, không tự đánh dấu hoàn tất. Không gửi giảng viên hoặc sửa phần việc kinh doanh của thành viên khác.
+
 ## Bổ sung 0.6.0 — 27/10/2026
 
 - `npm test`: **95/95** đạt; cùng bộ kiểm tra đạt với driver libSQL. Bổ sung kiểm tra phân vai/API trái quyền, ẩn dữ liệu/CSV theo bộ phận, kế hoạch theo workspace, lưu cạnh tranh trả 409, số 0/ô trống/kết quả âm và ngưỡng dữ liệu cũ.

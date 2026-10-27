@@ -1,10 +1,10 @@
 {
   "project_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5",
   "url": "https://taskhub.ninaninohihi.chatgpt.site",
-  "source_commit": "8488329c2ee6260d25da0a1a750fdeb30e9f51cf",
-  "saved_version_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5~appgver_518769dbdcf08191a24d791e292c57dd",
-  "deployment_id": "appgdep_6ae06208aa8c8191a040b2caa7c269e0",
+  "source_commit": "fe6cb82f973d462a08d8677b843d3444f48636d0",
+  "saved_version_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5~appgver_fc326ef6d9688191b5e9f54122546f20",
+  "deployment_id": "appgdep_6ae10170710c8191b5aa28ea8ef92001",
   "access_mode": "public",
-  "database": "Existing D1 binding DB; additive migration 0004 for departments and workspace planning",
-  "verified_on": "2026-10-27"
+  "database": "Existing D1 binding DB; migrations unchanged through 0004; business records preserved",
+  "verified_on": "2026-10-28"
 }

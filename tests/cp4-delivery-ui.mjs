@@ -129,6 +129,7 @@ try {
     paid: 100000,
   });
   await page.goto(base + "/app");
+  await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
   await nav("Báo cáo vận hành");
   await page.locator(".analytics-bars").waitFor();
   await page.getByLabel("Báo cáo từ ngày", { exact: true }).fill("2026-11-01");

@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 import { TourMedia, TourImageCredit } from "./tour-media.jsx";
 import { SyncStatus } from "./sync-status.jsx";
+import { PrintPage } from "./print-page.jsx";
+import { downloadTable } from "./export-file.mjs";
+import { Printer, Download } from "lucide-react";
 import { startPolling } from "./polling.mjs";
 import {
   matchesTourSearch,
@@ -614,7 +617,11 @@ export function createPortalUI({
                     <>
                       <div className="tour-grid">
                         {references.map((t) => (
-                          <CatalogCard key={t.id} tour={t} onOpen={setReference} />
+                          <CatalogCard
+                            key={t.id}
+                            tour={t}
+                            onOpen={setReference}
+                          />
                         ))}
                       </div>
                       <p className="catalog-attribution">
@@ -626,8 +633,8 @@ export function createPortalUI({
                         >
                           {data.catalog.source.name}
                         </a>{" "}
-                        · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông tin
-                        tham khảo có thể thay đổi.
+                        · Ghi nhận {date(data.catalog.source.capturedOn)}. Thông
+                        tin tham khảo có thể thay đổi.
                       </p>
                     </>
                   )}
@@ -699,6 +706,34 @@ export function createPortalUI({
     const simulated = workspace === "agency";
     const departed = tour.departure < todayVN();
     const unavailable = departed || tour.reserved >= tour.capacity;
+    async function exportQuote() {
+      try {
+        await downloadTable("taskhub-tour.xlsx", {
+          name: "Thong tin tour",
+          headers: ["Thông tin", "Nội dung"],
+          widths: [28, 95],
+          rows: [
+            ["Tên tour", tour.title],
+            ["Điểm đến", tour.destination],
+            ["Khởi hành", tour.departure],
+            ["Thời lượng", tour.duration],
+            ["Giá / khách (VND)", tour.price],
+            ["Chỗ còn lúc xuất", tour.capacity - tour.reserved],
+            ["Mô tả", tour.description],
+            ...tour.itinerary.split("\n").map((line,i)=>["Lịch trình "+(i+1),line]),
+            ["Cập nhật", tour.updated],
+            [
+              "Lưu ý",
+              simulated
+                ? "Dữ liệu giả lập, không phải tour mở bán."
+                : "Thông tin tham khảo, cần xác nhận dịch vụ/giá/chỗ; không phải booking hoặc xác nhận thanh toán.",
+            ],
+          ],
+        });
+      } catch (e) {
+        notify("Chưa xuất được tệp: " + e.message, "error");
+      }
+    }
     async function submit(e) {
       e.preventDefault();
       if (unavailable) {
@@ -740,7 +775,7 @@ export function createPortalUI({
         wide
       >
         <div className="detail-cover">
-          <TourMedia tour={tour} />
+          <TourMedia tour={tour} large />
         </div>
         <TourImageCredit tour={tour} />
         <div className="detail-facts">
@@ -768,6 +803,28 @@ export function createPortalUI({
           </div>
         )}
         <p className="detail-description">{tour.description}</p>
+        <div className="button-row tour-document-actions">
+          <Button
+            variant="ghost"
+            type="button"
+            disabled={busy}
+            onClick={() => window.print()}
+            data-track="tour:print"
+          >
+            <Printer size={16} />
+            In / lưu báo giá PDF
+          </Button>
+          <Button
+            variant="ghost"
+            type="button"
+            disabled={busy}
+            onClick={exportQuote}
+            data-track="tour:quote-xlsx"
+          >
+            <Download size={16} />
+            Báo giá Excel
+          </Button>
+        </div>
         <h3>Lịch trình dự kiến</h3>
         <div className="itinerary">
           {tour.itinerary.split("\n").map((line, i) => (
@@ -783,7 +840,7 @@ export function createPortalUI({
         </p>
         {readOnly ? (
           <p className="workspace-notice">
-            Chế độ xem dành cho người đánh giá.
+            Chế độ xem. Vai trò hiện tại không chỉnh sửa thông tin tour.
           </p>
         ) : unavailable ? (
           <div className="tour-expired-notice">
@@ -855,6 +912,56 @@ export function createPortalUI({
             <ArrowRight size={17} />
           </Button>
         )}
+        <PrintPage>
+          <strong>TaskHub · Thông tin tour và giá tham khảo</strong>
+          <h1>{tour.title}</h1>
+          <p>
+            {tour.destination} · {tour.duration}
+          </p>
+          <table>
+            <tbody>
+              <tr>
+                <th>Ngày khởi hành</th>
+                <td>{date(tour.departure)}</td>
+              </tr>
+              <tr>
+                <th>Giá tham khảo / khách</th>
+                <td>{money(tour.price)}</td>
+              </tr>
+              <tr>
+                <th>Chỗ còn tại thời điểm xuất</th>
+                <td>{tour.capacity - tour.reserved}</td>
+              </tr>
+              <tr>
+                <th>Tình trạng lịch</th>
+                <td>
+                  {departed
+                    ? "Đã khởi hành"
+                    : tour.reserved >= tour.capacity
+                      ? "Đã đủ khách"
+                      : "Chưa khởi hành"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {simulated && (
+            <p>
+              <strong>DỮ LIỆU GIẢ LẬP. Không phải tour mở bán.</strong>
+            </p>
+          )}
+          <p>{tour.description}</p>
+          <h2>Lịch trình dự kiến</h2>
+          <p>{tour.itinerary}</p>
+          <p className="print-note">
+            Thông tin do người quản lý cung cấp, cập nhật{" "}
+            {tour.updated
+              ? new Date(tour.updated).toLocaleString("vi-VN",{timeZone:'Asia/Ho_Chi_Minh'})
+              : "chưa rõ"}
+            . Giá, chỗ và dịch vụ cần được xác nhận lại. Tài liệu này không giữ
+            chỗ, xác nhận đặt tour hoặc thanh toán. Vui lòng xác nhận chính sách
+            dịch vụ với đơn vị tổ chức trước khi đặt tour.
+          </p>
+        </PrintPage>
       </Modal>
     );
   }

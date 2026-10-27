@@ -48,6 +48,7 @@ import { createAccountUI } from "./accounts-ui.jsx";
 import { createDemoUI } from "./demo-ui.jsx";
 import { createPlanningUI } from "./planning-ui.jsx";
 import { Workflow } from "./workflow-ui.jsx";
+import { Analytics } from "./analytics-ui.jsx";
 import { SyncStatus } from "./sync-status.jsx";
 import { workspaceAccess } from "../shared/access.mjs";
 import { api } from "./api.mjs";
@@ -102,6 +103,7 @@ const roleNames = {
 };
 const navItems = [
   ["dashboard", "Tổng quan", LayoutDashboard],
+  ["analytics", "Báo cáo vận hành", BarChart3],
   ["tours", "Quản lý tour", Compass],
   ["tasks", "Công việc", ListTodo],
   ["pooling", "Ghép tour B2B", Handshake],
@@ -1424,6 +1426,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     ) || [];
   const descriptions = {
     dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
+    analytics: "Phân tích lịch tour, công việc và đối soát từ dữ liệu của không gian.",
     tours: "Dữ liệu điều hành và cổng khách hàng cùng một nguồn.",
     tasks: "Rõ người phụ trách. Đúng thời hạn. Không bỏ sót.",
     pooling: "Một nơi xác nhận khách ghép và theo dõi số tiền còn phải thu.",
@@ -1880,6 +1883,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 <AccountSettings user={{...user, department: data.department, workspace_permission: permission}} notify={notify} />
               )}
               {nav === "workflow" && <Workflow data={data} access={access} onNav={setNav} />}
+              {nav === "analytics" && <Analytics access={access} />}
               {nav === "business" && access.canReadPlanning && <BusinessPlanning access={access} notify={notify} onDirtyChange={setPlanningDirty} />}
               {nav === "research" &&
                 user.role !== "staff" &&
@@ -1891,7 +1895,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour · 0.6.0</span>
+            <span>TaskHub · Điều hành tour · 0.7.0</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>

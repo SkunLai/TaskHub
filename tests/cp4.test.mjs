@@ -311,6 +311,7 @@ test("role API blocks direct writes/exports, scopes planning and refreshes permi
     await denied(actors.sales, "/tours", "POST", qaTour);
     await denied(actors.sales, "/pooling", "POST", { tour_id: id });
     await denied(actors.sales, "/pooling/export", "GET");
+    await denied(actors.sales, "/pooling/export.xlsx", "GET");
     await denied(actors.sales, "/pooling/history/export", "GET");
     await denied(actors.accounting, "/tasks", "POST", {});
     await denied(actors.accounting, "/tours/" + id, "PATCH", {});
@@ -328,6 +329,16 @@ test("role API blocks direct writes/exports, scopes planning and refreshes permi
     assert.deepEqual((await state(actors.sales)).pooling, []);
     assert.deepEqual((await state(actors.sales)).poolingHistory, []);
     assert.deepEqual((await state(actors.accounting)).inquiries, []);
+    assert.equal((await request('/analytics','GET')).status,401);
+    const salesReport=await request('/analytics?from=2026-01-01&to=2026-12-31','GET',null,actors.sales.cookie);
+    assert.equal(salesReport.status,200);assert.equal(salesReport.body.pooling,null);assert.equal(salesReport.body.ledger,null);
+    assert.ok(!JSON.stringify(salesReport.body).includes('QA partner'));
+    const accountantReport=await request('/analytics','GET',null,actors.accounting.cookie);
+    assert.equal(accountantReport.body.inquiries,null);
+    assert.equal((await request('/analytics?from=2026-02-30','GET',null,owner.cookie)).status,400);
+    assert.equal((await request('/analytics?from=2026-01-01&to=2026-12-31','GET',null,other.cookie)).body.tours.total,0);
+    const excel=await fetch(base+'/api/pooling/export.xlsx',{headers:{Cookie:actors.accounting.cookie}});
+    assert.equal(excel.status,200);assert.match(excel.headers.get('content-type'),/spreadsheetml/);assert.equal(new Uint8Array(await excel.arrayBuffer())[0],80);
     assert.equal(
       (
         await request(

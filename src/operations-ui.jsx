@@ -9,7 +9,9 @@ import {
   RefreshCw,
   ShieldCheck,
   Search,
+  Printer,
 } from "lucide-react";
+import { PrintPage } from "./print-page.jsx";
 import { readTourFile, downloadTourTemplate } from "./import-tours.mjs";
 import "./operations-polish.css";
 import { filterPooling } from "./pooling-view.mjs";
@@ -712,6 +714,22 @@ export function createOperationsUI({
             </Button>
           )}
           <div className="pool-export-actions">
+            <Button
+              variant="ghost"
+              onClick={() => window.print()}
+              data-track="pooling:print"
+            >
+              <Printer size={16} />
+              In / lưu công nợ PDF
+            </Button>
+            <a
+              className="btn ghost"
+              href="/api/pooling/export.xlsx"
+              data-track="pooling:export-xlsx"
+            >
+              <Download size={16} />
+              Công nợ Excel
+            </a>
             <a
               className="btn ghost"
               href="/api/pooling/export"
@@ -833,14 +851,16 @@ export function createOperationsUI({
                           Ghi nhận thu
                         </Button>
                       )}
-                      {canManageDeals && <Button
-                        variant="ghost"
-                        disabled={!!busy || p.paid > 0}
-                        onClick={() => setCancel(p)}
-                        data-track="pooling:cancel"
-                      >
-                        Hủy phiếu
-                      </Button>}
+                      {canManageDeals && (
+                        <Button
+                          variant="ghost"
+                          disabled={!!busy || p.paid > 0}
+                          onClick={() => setCancel(p)}
+                          data-track="pooling:cancel"
+                        >
+                          Hủy phiếu
+                        </Button>
+                      )}
                     </>
                   )}
                   <Button
@@ -854,7 +874,10 @@ export function createOperationsUI({
                     Lịch sử phiếu
                   </Button>
                   {!readOnly && p.paid > 0 && p.status !== "cancelled" && (
-                    <small>Phiếu còn tiền đã ghi nhận; kiểm tra đối soát thực tế trước khi hủy.</small>
+                    <small>
+                      Phiếu còn tiền đã ghi nhận; kiểm tra đối soát thực tế
+                      trước khi hủy.
+                    </small>
                   )}
                 </div>
               </article>
@@ -965,6 +988,55 @@ export function createOperationsUI({
             </div>
           </Modal>
         )}
+        <PrintPage>
+          <strong>TaskHub · Đối soát tour ghép</strong>
+          <h1>Danh sách công nợ B2B</h1>
+          <p>
+            Lập lúc {new Date().toLocaleString("vi-VN",{timeZone:'Asia/Ho_Chi_Minh'})}. {visiblePools.length}/
+            {pools.length} phiếu theo bộ lọc đang chọn.
+            {simulated ? " DỮ LIỆU GIẢ LẬP, không phải giao dịch thật." : ""}
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Đối tác / tour</th>
+                <th>Ngày đi</th>
+                <th>Khách</th>
+                <th>Trạng thái</th>
+                <th>Thỏa thuận</th>
+                <th>Đã thu</th>
+                <th>Còn thu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visiblePools.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    {p.partner}
+                    <br />
+                    {p.tour_title}
+                  </td>
+                  <td>{date(p.departure)}</td>
+                  <td>{p.seats}</td>
+                  <td>{status[p.status]}</td>
+                  <td>{money(p.seats * p.unit_price)}</td>
+                  <td>{money(p.paid)}</td>
+                  <td>
+                    {p.status === "confirmed"
+                      ? money(p.seats * p.unit_price - p.paid)
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="print-note">
+            Chỉ phiếu đã xác nhận mới phát sinh khoản phải thu. Số thu là tổng
+            lũy kế do người có quyền ghi nhận; chưa xác minh giao dịch ngân
+            hàng, chưa phải hóa đơn. Bản PDF theo bộ lọc đang xem; Excel/CSV
+            xuất toàn bộ phiếu trong không gian.
+          </p>
+        </PrintPage>
       </>
     );
   }

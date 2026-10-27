@@ -3,6 +3,9 @@ import { createAccounts, deleteAccount, canManageTeam, workspacePermission } fro
 import { loadDemoWorkspace } from './demo.mjs';
 import { workspaceAccess, requireCapability } from '../shared/access.mjs';
 import { loadPlanning, savePlanning } from './planning.mjs';
+import { loadAnalytics } from './analytics.mjs';
+import { analyticsRows } from '../shared/analytics.mjs';
+import { tableXlsx, xlsxMime } from '../shared/xlsx.mjs';
 import { referenceCatalog } from "./catalog.mjs";
 import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
@@ -278,6 +281,11 @@ function download(res, rows, name, fields) {
   });
   res.end(csv(rows, fields));
 }
+function downloadXlsx(res, table, name) {
+  const bytes=tableXlsx(table);
+  res.writeHead(200,{'Content-Type':xlsxMime,'Content-Disposition':`attachment; filename="${name}.xlsx"`,'Cache-Control':'no-store'});
+  res.end(bytes);
+}
 const todayVietnam = () => new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
 function tourInput(b) {
   return [
@@ -323,7 +331,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.6.0" });
+      return json(res, { ok: true, version: "0.7.0" });
     }
     // Read-only members cannot bypass the interface by calling a write API.
     // Personal account actions do not mutate shared business data.
@@ -355,6 +363,13 @@ export const server = http.createServer(async (req, res) => {
       }
     }
     if (p==='/api/planning' && method==='GET') return json(res,await loadPlanning(db,await required(req)));
+    if (['/api/analytics','/api/analytics/export.xlsx'].includes(p) && method==='GET') {
+      const u=await required(req);
+      const report=await loadAnalytics(db,u,{from:url.searchParams.get('from')??undefined,to:url.searchParams.get('to')??undefined});
+      if(p==='/api/analytics')return json(res,report);
+      const rows=analyticsRows(report);
+      return downloadXlsx(res,{name:'Bao cao van hanh',headers:['Phần','Chỉ số','Giá trị','Đơn vị'],rows:rows.map(r=>[r.section,r.metric,r.value,r.unit]),widths:[28,44,28,22]},'taskhub-report');
+    }
     if (p==='/api/planning' && method==='PUT') return json(res,await savePlanning(db,await required(req),await body(req)));
     if (p === '/api/account/security' && method === 'GET') return json(res, await accounts.security(await required(req)));
     if (p === '/api/demo/load' && method === 'POST') {
@@ -562,10 +577,11 @@ export const server = http.createServer(async (req, res) => {
       const u=await required(req); limited(req,'interactions',120);
       return json(res,await recordInteractions(db,u,await body(req)));
     }
-    if (p === "/api/pooling/export" && method === "GET") {
+    if (['/api/pooling/export','/api/pooling/export.xlsx'].includes(p) && method === "GET") {
       const u=await required(req);
       requireCapability(u,'canReadPooling');
       const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,p.seats*p.unit_price-p.paid AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
+      if(p.endsWith('.xlsx'))return downloadXlsx(res,{name:'Cong no B2B',headers:['Đối tác','Tour','Khởi hành','Khách','Giá / khách (VND)','Thỏa thuận (VND)','Đã thu (VND)','Còn thu (VND)','Trạng thái','Ghi chú','Cập nhật'],rows:rows.map(r=>[r.partner,r.tour,r.departure,r.seats,r.unit_price,r.total,r.paid,r.status==='confirmed'?r.balance:'',r.status,r.note,r.updated]),widths:[26,38,16,10,23,23,23,23,18,50,26]},'taskhub-pooling');
       return download(res,rows,'taskhub-pooling');
     }
     if (p === '/api/pooling/history/export' && method === 'GET') {

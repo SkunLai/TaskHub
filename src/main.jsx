@@ -36,6 +36,8 @@ import {
   Handshake,
   Upload,
   Settings,
+  GitBranch,
+  Calculator,
 } from "lucide-react";
 import "./styles.css";
 import { createOperationsUI } from "./operations-ui.jsx";
@@ -44,6 +46,10 @@ import { createExperienceUI } from "./experience-ui.jsx";
 import { createPortalUI } from "./portal-ui.jsx";
 import { createAccountUI } from "./accounts-ui.jsx";
 import { createDemoUI } from "./demo-ui.jsx";
+import { createPlanningUI } from "./planning-ui.jsx";
+import { Workflow } from "./workflow-ui.jsx";
+import { SyncStatus } from "./sync-status.jsx";
+import { workspaceAccess } from "../shared/access.mjs";
 import { api } from "./api.mjs";
 import { startPolling } from "./polling.mjs";
 import { tourDeletionSummary } from "./pooling-view.mjs";
@@ -100,6 +106,8 @@ const navItems = [
   ["tasks", "Công việc", ListTodo],
   ["pooling", "Ghép tour B2B", Handshake],
   ["inbox", "Yêu cầu tư vấn", Inbox],
+  ["workflow", "Quy trình vận hành", GitBranch],
+  ["business", "Giá trị & doanh thu", Calculator],
   ["research", "Phản hồi MVP", BarChart3],
   ["account", "Tài khoản & nhóm", Settings],
 ];
@@ -894,6 +902,7 @@ function TaskEditor({
 
 function Dashboard({
   data,
+  access,
   onNav,
   onTask,
   onTour,
@@ -933,7 +942,7 @@ function Dashboard({
       Inbox,
       "Chờ đội ngũ liên hệ tư vấn",
     ],
-  ];
+  ].filter((s) => s[0] !== "Yêu cầu mới" || access.canReadInquiries);
   return (
     <>
       <div className="welcome-banner">
@@ -1272,12 +1281,16 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     [menu, setMenu] = useState(false),
     [query, setQuery] = useState(""),
     [tourFilter, setTourFilter] = useState("all"),
-    [last, setLast] = useState(""),
+    [lastSuccess, setLastSuccess] = useState(null),
     [pendingTask, setPendingTask] = useState(""),
     [pendingLead, setPendingLead] = useState(""),
     [leadQuery, setLeadQuery] = useState(""),
     [leadStatus, setLeadStatus] = useState("");
   const [poolTourFilter, setPoolTourFilter] = useState("");
+  const [planningDirty, setPlanningDirty] = useState(false);
+  const leavePlanning = () => !planningDirty || confirm("Bản nháp kế hoạch chưa lưu. Rời khỏi và bỏ thay đổi?");
+  const changeNav = (id) => { if(id!==nav && leavePlanning()) {setPlanningDirty(false);setNav(id);} };
+  const access = data?.access || workspaceAccess({ ...user, workspace_permission: permission });
   const [mobile, setMobile] = useState(
     () => matchMedia("(max-width: 650px)").matches,
   );
@@ -1314,7 +1327,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       setPermission(d.workspace_permission || user.workspace_permission);
       setRoundTrip(Math.round(performance.now() - started));
       setError("");
-      setLast(new Date().toLocaleTimeString("vi-VN"));
+      setLastSuccess(Date.now());
       return d;
     } finally {
       pending.current -= 1;
@@ -1383,9 +1396,15 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         .toLocaleLowerCase("vi")
         .includes(leadQuery.toLocaleLowerCase("vi")),
   );
-  const allowedNav = navItems.filter(
-    (i) => user.role !== "staff" || i[0] !== "research",
+  const allowedNav = navItems.filter(([id]) =>
+    (user.role !== "staff" || id !== "research") &&
+    (id !== "inbox" || access.canReadInquiries) &&
+    (id !== "pooling" || access.canReadPooling) &&
+    (id !== "business" || access.canReadPlanning),
   );
+  useEffect(() => {
+    if (!allowedNav.some(([id]) => id === nav)) { setNav("dashboard"); setEditor(null); }
+  }, [nav, access.canReadInquiries, access.canReadPooling, access.canReadPlanning]);
   const current = allowedNav.find((i) => i[0] === nav);
   const minimumReserved = (id) =>
     (data?.pooling || [])
@@ -1410,6 +1429,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     pooling: "Một nơi xác nhận khách ghép và theo dõi số tiền còn phải thu.",
     inbox: "Tiếp nhận yêu cầu ngay cả ngoài giờ làm việc.",
     account: "Gửi lời mời và phân quyền cho người cùng làm việc.",
+    workflow: "Các bước vận hành, người phụ trách và phạm vi của từng vai trò.",
+    business: "Bản nháp nội bộ: lượng hóa giá trị, soạn gói và dự tính doanh thu.",
     research: ["admin", "reviewer"].includes(user.role)
       ? "Theo dõi phản hồi và xuất dữ liệu cho nhóm."
       : "Đánh giá đúng những tính năng bạn đã tự dùng hoặc xem demo.",
@@ -1461,7 +1482,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               aria-current={nav === id ? "page" : undefined}
               data-track={"nav:" + id}
               onClick={() => {
-                setNav(id);
+                changeNav(id);
                 setMenu(false);
               }}
             >
@@ -1484,7 +1505,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               <br />
               Nhiều hành trình hơn.
             </strong>
-            <button onClick={onPortal}>
+            <button onClick={()=>{if(leavePlanning())onPortal();}}>
               Mở cổng khách hàng
               <ArrowUpRight size={15} />
             </button>
@@ -1498,22 +1519,14 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             <div>
               <strong>{user.name}</strong>
               <small>
-                {readOnly
-                  ? user.role === "staff"
-                    ? "Nhân viên · chỉ xem"
-                    : "Người đánh giá · chỉ xem"
-                  : user.role === "admin"
-                    ? "Quản trị"
-                    : user.role === "staff"
-                      ? "Nhân viên · được sửa"
-                      : "Người tham gia dùng thử"}
+                {access.label}{readOnly ? " · chỉ xem" : ""}
               </small>
             </div>
             <button
               className="icon-btn"
               title="Đăng xuất"
               aria-label="Đăng xuất"
-              onClick={onLogout}
+              onClick={()=>{if(leavePlanning())onLogout();}}
             >
               <LogOut size={17} />
             </button>
@@ -1541,7 +1554,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               <span className="live-dot" />
               {user.workspace === "agency" ? "Dữ liệu giả lập" : "Bản dùng thử"}
             </Badge>
-            <button className="text-btn" onClick={onPortal}>
+            <button className="text-btn" onClick={()=>{if(leavePlanning())onPortal();}}>
               <Globe size={16} />
               Cổng khách hàng
               <ArrowUpRight size={14} />
@@ -1564,7 +1577,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   {date(new Date().toISOString().slice(0, 10))}
                 </span>
               )}
-              {nav === "tours" && !readOnly && (
+              {nav === "tours" && access.canEditTours && (
                 <Button
                   variant="ghost"
                   onClick={() => setEditor({ type: "import" })}
@@ -1573,7 +1586,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   Nhập Excel
                 </Button>
               )}
-              {nav === "tours" && !readOnly && (
+              {nav === "tours" && access.canEditTours && (
                 <Button
                   variant="ghost"
                   disabled={!data?.catalog?.tours.length}
@@ -1583,13 +1596,13 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   Danh mục Én Việt
                 </Button>
               )}
-              {nav === "tours" && !readOnly && (
+              {nav === "tours" && access.canEditTours && (
                 <Button onClick={() => setEditor({ type: "tour" })}>
                   <Plus size={17} />
                   Tạo tour
                 </Button>
               )}
-              {nav === "tasks" && !readOnly && (
+              {nav === "tasks" && access.canEditTasks && (
                 <Button
                   disabled={!data?.tours.length}
                   onClick={() => setEditor({ type: "task" })}
@@ -1598,7 +1611,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   Giao công việc
                 </Button>
               )}
-              {nav === "pooling" && !readOnly && (
+              {nav === "pooling" && access.canManageDeals && (
                 <Button
                   disabled={!data?.tours.length}
                   onClick={() => setEditor({ type: "pooling" })}
@@ -1625,14 +1638,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   ? "Không gian dùng chung. Chỉ truy cập dữ liệu theo quyền chủ không gian đã cấp; không nhập thông tin khách hàng thật."
                   : "Không gian dùng thử riêng. Nhập dữ liệu của bạn hoặc dùng bộ mẫu giả lập; không nhập thông tin khách hàng thật."}
             </span>
-            <span
-              title="Thời gian tải API ở lần thành công gần nhất trên trình duyệt này; gồm mạng và máy chủ, không phải cam kết hiệu năng."
-              className={"sync-time " + (error ? "stale" : "")}
-            >
-              {error
-                ? "Đồng bộ gián đoạn"
-                : `Cập nhật ${last || "…"}${roundTrip === null ? "" : " · " + roundTrip + " ms"}`}
-            </span>
+            <SyncStatus lastSuccess={lastSuccess} error={error} roundTrip={roundTrip} />
           </div>
           <ErrorBox error={error} />
           {error && (
@@ -1657,7 +1663,8 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             <>
               {nav === "dashboard" && (
                 <Dashboard
-                  readOnly={readOnly}
+                  access={access}
+                  readOnly={!access.canEditTasks}
                   showTrial={
                     !["admin", "reviewer", "staff"].includes(user.role)
                   }
@@ -1704,12 +1711,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                         tour={t}
                         onOpen={(tour) => setEditor({ type: "tour", tour })}
                         onSeats={
-                          readOnly
+                          !access.canEditTours
                             ? undefined
                             : (tour) => setEditor({ type: "seats", tour })
                         }
                         onTask={
-                          readOnly
+                          !access.canEditTasks
                             ? undefined
                             : (tour) => setEditor({ type: "task", tour })
                         }
@@ -1745,7 +1752,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               )}
               {nav === "tasks" && (
                 <Tasks
-                  readOnly={readOnly}
+                  readOnly={!access.canEditTasks}
                   data={data}
                   onNew={() => setEditor({ type: "task" })}
                   onChange={changeTask}
@@ -1753,20 +1760,22 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                   pendingId={pendingTask}
                 />
               )}{" "}
-              {nav === "pooling" && (
+              {nav === "pooling" && access.canReadPooling && (
                 <Pooling
                   data={data}
                   simulated={user.workspace === "agency"}
                   tourFilter={poolTourFilter}
                   onTourFilter={setPoolTourFilter}
                   readOnly={readOnly}
+                  canManageDeals={access.canManageDeals}
+                  canRecordReceipts={access.canRecordReceipts}
                   onNew={() => setEditor({ type: "pooling" })}
                   onPayment={(pool) => setEditor({ type: "pooling", pool })}
                   reload={reload}
                   notify={notify}
                 />
               )}
-              {nav === "inbox" && (
+              {nav === "inbox" && access.canReadInquiries && (
                 <section className="panel">
                   <div className="panel-header">
                     <h3>
@@ -1820,7 +1829,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                               <td>{i.note || "—"}</td>
                               <td>
                                 <select
-                                  disabled={readOnly || pendingLead === i.id}
+                                  disabled={!access.canEditInquiries || pendingLead === i.id}
                                   aria-label={
                                     "Trạng thái yêu cầu của " + i.name
                                   }
@@ -1868,8 +1877,10 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 </section>
               )}
               {nav === "account" && (
-                <AccountSettings user={user} notify={notify} />
+                <AccountSettings user={{...user, department: data.department, workspace_permission: permission}} notify={notify} />
               )}
+              {nav === "workflow" && <Workflow data={data} access={access} onNav={setNav} />}
+              {nav === "business" && access.canReadPlanning && <BusinessPlanning access={access} notify={notify} onDirtyChange={setPlanningDirty} />}
               {nav === "research" &&
                 user.role !== "staff" &&
                 (["admin", "reviewer"].includes(user.role) ? (
@@ -1880,12 +1891,12 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour · 0.5.1</span>
+            <span>TaskHub · Điều hành tour · 0.6.0</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>
       </div>
-      {editor?.type === "tour" && readOnly && (
+      {editor?.type === "tour" && !access.canEditTours && editor.tour && (
         <TourDetails
           tour={editor.tour}
           workspace={user.workspace}
@@ -1894,7 +1905,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           notify={notify}
         />
       )}
-      {editor?.type === "tour" && !readOnly && (
+      {editor?.type === "tour" && access.canEditTours && (
         <TourEditor
           tour={editor.tour}
           prefill={editor.prefill}
@@ -1913,7 +1924,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           }}
         />
       )}
-      {editor?.type === "task" && !readOnly && (
+      {editor?.type === "task" && access.canEditTasks && (
         <TaskEditor
           tours={data.tours}
           defaultTourId={editor.tour?.id}
@@ -1928,14 +1939,14 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           }}
         />
       )}
-      {editor?.type === "catalog" && !readOnly && data?.catalog && (
+      {editor?.type === "catalog" && access.canEditTours && data?.catalog && (
         <CatalogPicker
           catalog={data.catalog}
           onClose={() => setEditor(null)}
           onUse={(prefill) => setEditor({ type: "tour", prefill })}
         />
       )}
-      {editor?.type === "import" && !readOnly && (
+      {editor?.type === "import" && access.canEditTours && (
         <ImportTours
           onClose={() => setEditor(null)}
           onSave={async (count) => {
@@ -1944,7 +1955,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           }}
         />
       )}
-      {editor?.type === "seats" && !readOnly && (
+      {editor?.type === "seats" && access.canEditTours && (
         <SeatEditor
           onRefresh={refreshEditor}
           tour={editor.tour}
@@ -1956,7 +1967,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           }}
         />
       )}
-      {editor?.type === "pooling" && !readOnly && (
+      {editor?.type === "pooling" && (editor.pool ? access.canRecordReceipts : access.canManageDeals) && (
         <PoolingEditor
           onRefresh={refreshEditor}
           tours={data.tours}
@@ -1971,7 +1982,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       {help && (
         <Help
           user={user}
-          onNav={(nav) => (nav === "portal" ? onPortal() : setNav(nav))}
+          onNav={(nav) => nav === "portal" ? leavePlanning() && onPortal() : allowedNav.some(([id])=>id===nav) && changeNav(nav)}
           onClose={() => setHelp(false)}
           onDelete={async () => {
             if (
@@ -2014,6 +2025,7 @@ const { DemoLoader } = createDemoUI({
   ErrorBox,
   api,
 });
+const BusinessPlanning = createPlanningUI({Button, Field, ErrorBox, api, money});
 const { TourCard, CatalogPicker, Portal, TourDetails } = createPortalUI({
   Modal,
   Button,

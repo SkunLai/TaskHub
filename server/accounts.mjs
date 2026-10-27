@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID, createHash } from "node:crypto";
+import { validDepartment } from '../shared/access.mjs';
 
 const fail = (message, status = 400) => {
   throw Object.assign(Error(message), { status });
@@ -151,6 +152,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
         mail_ready: deliveryReady,
         can_manage_team: canManageTeam(user),
         workspace_permission: workspacePermission(user),
+        department: user.department || user.staff_department || null,
         managed_account: protectedUser(user),
         can_delete_workspace: user.role !== "staff" && !protectedUser(user),
       };
@@ -202,12 +204,12 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
       requireOwner(user);
       const members = await db
         .prepare(
-          "SELECT u.id,u.name,u.email,u.role,m.permission,m.created FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace=? ORDER BY m.created",
+          "SELECT u.id,u.name,u.email,u.role,m.permission,m.department,m.created FROM workspace_members m JOIN users u ON u.id=m.user_id WHERE m.workspace=? ORDER BY m.created",
         )
         .all(user.workspace);
       const invitations = await db
         .prepare(
-          "SELECT id,email,permission,expires,created FROM workspace_invites WHERE workspace=? AND used_at IS NULL AND expires>? ORDER BY created",
+          "SELECT id,email,permission,department,expires,created FROM workspace_invites WHERE workspace=? AND used_at IS NULL AND expires>? ORDER BY created",
         )
         .all(user.workspace, Date.now());
       return { members, invitations };
@@ -216,7 +218,8 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
       requireOwner(user);
       if (!origin) fail("Chưa cấu hình địa chỉ web để tạo liên kết mời.", 503);
       const email = accountEmail(body.email),
-        access = permission(body.permission);
+        access = permission(body.permission),
+        department = validDepartment(body.department);
       if (await db.prepare("SELECT id FROM users WHERE email=?").get(email))
         fail(
           "Email đã có tài khoản. MVP chưa chuyển tài khoản giữa các không gian; hãy mời bằng email khác.",
@@ -237,7 +240,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
           [user.workspace, email],
         ],
         [
-          "INSERT INTO workspace_invites(id,token,workspace,email,permission,invited_by,expires,used_at,created) VALUES (?,?,?,?,?,?,?,NULL,?)",
+          "INSERT INTO workspace_invites(id,token,workspace,email,permission,invited_by,expires,used_at,created,department) VALUES (?,?,?,?,?,?,?,NULL,?,?)",
           [
             id,
             digest(raw),
@@ -247,6 +250,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
             user.id,
             expires,
             timestamp(),
+            department,
           ],
         ],
       ]);
@@ -254,6 +258,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
         id,
         email,
         permission: access,
+        department,
         expires,
         url: origin + "/?invite=" + raw,
       };
@@ -270,6 +275,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
         workspace_name: row.workspace_name,
         email_hint: name.slice(0, 2) + "***@" + domain,
         permission: row.permission,
+        department: row.department,
         expires: row.expires,
       };
     },
@@ -308,7 +314,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
           [id, email, name, hashPassword(pass), created, token, marker],
         ],
         [
-          "INSERT INTO workspace_members(user_id,workspace,permission,created) SELECT ?,workspace,permission,? FROM workspace_invites WHERE token=? AND used_at=? AND changes()=1",
+          "INSERT INTO workspace_members(user_id,workspace,permission,created,department) SELECT ?,workspace,permission,?,department FROM workspace_invites WHERE token=? AND used_at=? AND changes()=1",
           [id, created, token, marker],
         ],
       ]);
@@ -316,7 +322,7 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
         fail("Lời mời không hợp lệ hoặc đã được sử dụng.", 409);
       return await db
         .prepare(
-          "SELECT u.*,m.permission AS staff_permission FROM users u JOIN workspace_members m ON m.user_id=u.id WHERE u.id=?",
+          "SELECT u.*,m.permission AS staff_permission,m.department FROM users u JOIN workspace_members m ON m.user_id=u.id WHERE u.id=?",
         )
         .get(id);
     },
@@ -330,11 +336,15 @@ export function createAccounts(db, settings, { hashPassword, sendMail } = {}) {
     },
     async updateMember(user, id, body) {
       requireOwner(user);
+      const columns=[],values=[];
+      if (body.permission !== undefined) { columns.push('permission=?'); values.push(permission(body.permission)); }
+      if (body.department !== undefined) { columns.push('department=?'); values.push(validDepartment(body.department)); }
+      if (!columns.length) fail('Chưa có thay đổi quyền hoặc vai trò.');
       const result = await db
         .prepare(
-          "UPDATE workspace_members SET permission=? WHERE user_id=? AND workspace=?",
+          "UPDATE workspace_members SET "+columns.join(',')+" WHERE user_id=? AND workspace=?",
         )
-        .run(permission(body.permission), id, user.workspace);
+        .run(...values, id, user.workspace);
       if (!result.changes) fail("Không tìm thấy nhân viên.", 404);
       return { ok: true };
     },

@@ -1,5 +1,7 @@
 # Đối chiếu TaskHub với CP3 — 19/10/2026
 
+Cập nhật 27/10: có phân vai theo bộ phận và API, sơ đồ vận hành, cảnh báo dữ liệu cũ, bảng tính giá trị/gói/doanh thu nội bộ. Xem [bổ sung theo mentor](CP4_MENTOR_REVIEW.md). Các mục chưa hoàn thành về khảo sát, giá và Path 2 vẫn cần bằng chứng/phê duyệt riêng; không suy ra từ chức năng mới.
+
 **FE/BE của Tuấn đã có bản public và tài liệu bàn giao. Toàn bộ CP3 chưa hoàn thành.** Kiểm tra ngày 17/10: 0 tài khoản người thử, 0 phản hồi, 0 interaction event; chưa có bằng chứng 20 cá nhân đã thử thật.
 
 Cập nhật 24/10: 3 tour, 3 việc, 2 B2B xác nhận và 1 chờ theo quy ước giả lập được chủ dự án cho phép quyết định. Có nhân viên cùng không gian và bộ mẫu tùy chọn. Chức năng đo bài thử và xác minh email đã được xóa; log thao tác/CSV khảo sát vẫn giữ theo yêu cầu CP3. Bảng tester chưa đủ căn cứ xác nhận 20 người thật.

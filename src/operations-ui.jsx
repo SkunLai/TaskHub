@@ -517,6 +517,8 @@ export function createOperationsUI({
   function Pooling({
     data,
     readOnly,
+    canManageDeals = !readOnly,
+    canRecordReceipts = !readOnly,
     onNew,
     onPayment,
     reload,
@@ -738,7 +740,7 @@ export function createOperationsUI({
               Tạo phiếu từ thỏa thuận với đối tác. Không cần nhập dữ liệu khách
               hàng cá nhân.
             </span>
-            {!readOnly && (
+            {canManageDeals && (
               <span className="pool-empty-action">
                 <Button disabled={!data.tours.length} onClick={onNew}>
                   Tạo phiếu ghép
@@ -809,9 +811,9 @@ export function createOperationsUI({
                   </details>
                 )}
                 <div className="pool-card-actions">
-                  {!readOnly && p.status !== "cancelled" && (
+                  {p.status !== "cancelled" && (
                     <>
-                      {p.status === "pending" ? (
+                      {p.status === "pending" && canManageDeals && (
                         <Button
                           disabled={!!busy}
                           onClick={() => action(p, "confirm")}
@@ -820,7 +822,8 @@ export function createOperationsUI({
                           Xác nhận ghép
                           <Check size={16} />
                         </Button>
-                      ) : (
+                      )}
+                      {p.status === "confirmed" && canRecordReceipts && (
                         <Button
                           variant="ghost"
                           disabled={!!busy}
@@ -830,14 +833,14 @@ export function createOperationsUI({
                           Ghi nhận thu
                         </Button>
                       )}
-                      <Button
+                      {canManageDeals && <Button
                         variant="ghost"
                         disabled={!!busy || p.paid > 0}
                         onClick={() => setCancel(p)}
                         data-track="pooling:cancel"
                       >
                         Hủy phiếu
-                      </Button>
+                      </Button>}
                     </>
                   )}
                   <Button

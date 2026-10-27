@@ -1,5 +1,7 @@
 # TaskHub — CP3 MVP
 
+Bản 0.6.0 bổ sung phân vai điều hành/kinh doanh/kế toán/quản lý, sơ đồ vận hành, cảnh báo dữ liệu cũ và bảng tính giá trị/gói/doanh thu nội bộ. Xem [đối chiếu góp ý mentor và hướng dẫn demo](docs/CP4_MENTOR_REVIEW.md). Chưa có giá mở bán, SLA hoặc chấp thuận Path 2.
+
 Web app hỗ trợ doanh nghiệp du lịch nhỏ và vừa. Local dùng React/Vite + Node.js 24 + SQLite; web công khai dùng Sites Workers + D1 từ cùng nguồn FE/BE.
 
 **Web:** https://taskhub-travel.pages.dev/ — hoạt động độc lập với máy chủ repo.

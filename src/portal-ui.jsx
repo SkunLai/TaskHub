@@ -23,6 +23,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { TourMedia, TourImageCredit } from "./tour-media.jsx";
+import { SyncStatus } from "./sync-status.jsx";
 import { startPolling } from "./polling.mjs";
 import {
   matchesTourSearch,
@@ -341,7 +342,7 @@ export function createPortalUI({
       [availableOnly, setAvailableOnly] = useState(false),
       [selected, setSelected] = useState(null),
       [reference, setReference] = useState(null),
-      [last, setLast] = useState("");
+      [lastSuccess, setLastSuccess] = useState(null);
     const [catalogOpen, setCatalogOpen] = useState(false);
     useEffect(() => {
       if (query || destination) setCatalogOpen(true);
@@ -353,7 +354,7 @@ export function createPortalUI({
         const d = await api("/public/" + workspace);
         if (request !== latest.current) return;
         setData(d);
-        setLast(new Date().toLocaleTimeString("vi-VN"));
+        setLastSuccess(Date.now());
         setError("");
       } catch (e) {
         if (request === latest.current) setError(e.message);
@@ -431,10 +432,7 @@ export function createPortalUI({
                 <h1>Cổng thông tin tour</h1>
                 <p>Tra cứu lịch trình, giá, số chỗ và gửi yêu cầu tư vấn.</p>
               </div>
-              <span className={"sync-note " + (error ? "stale" : "")}>
-                {error ? <AlertCircle size={14} /> : <RefreshCw size={14} />}
-                {error ? "Chưa thể cập nhật" : `Cập nhật ${last || "…"}`}
-              </span>
+              <SyncStatus lastSuccess={lastSuccess} error={error} compact />
             </div>
             {workspace === "agency" && (
               <div className="portal-notice" role="note">

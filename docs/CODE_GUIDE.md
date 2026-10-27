@@ -37,6 +37,10 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/import-tours.mjs` | Đọc tệp nhập thành các dòng để xem trước và gửi API. |
 | `src/interactions.mjs` | Gom và gửi mã thao tác nút/menu của người thử đã đồng ý. |
 | `server/index.mjs` | API, đăng nhập, phân quyền, kiểm tra đầu vào và các thao tác tour/công việc/tư vấn. |
+| `shared/access.mjs` | Chính sách bộ phận và quyền xem/sửa dùng chung frontend/backend. |
+| `shared/planning.mjs`, `server/planning.mjs` | Kiểm tra/công thức giả định kinh doanh; lưu kế hoạch theo workspace và phiên bản. |
+| `src/workflow-ui.jsx`, `src/planning-ui.jsx` | Sơ đồ vận hành và bản nháp giá trị/gói/doanh thu nội bộ. |
+| `src/sync-status.jsx`, `src/sync-state.mjs` | Trạng thái mới/cũ/offline dựa trên lần đọc thành công. |
 | `server/accounts.mjs` | Token email, thành viên và vòng đời tài khoản. |
 | `server/demo.mjs` | Bộ dữ liệu mẫu tùy chọn; không tạo bằng chứng người thử thật. |
 | `server/operations.mjs` | Nhập tour, các bước B2B và lưu tương tác. |

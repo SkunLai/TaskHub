@@ -30,6 +30,12 @@ export async function openDatabase(dir = process.env.DATA_DIR || "./data") {
     CREATE INDEX IF NOT EXISTS workspace_members_workspace ON workspace_members(workspace);
     CREATE TABLE IF NOT EXISTS workspace_invites(id TEXT PRIMARY KEY,token TEXT UNIQUE NOT NULL,workspace TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,email TEXT NOT NULL,permission TEXT NOT NULL CHECK(permission IN ('viewer','editor')),invited_by TEXT REFERENCES users(id) ON DELETE SET NULL,expires INTEGER NOT NULL,used_at TEXT,created TEXT NOT NULL);
     CREATE INDEX IF NOT EXISTS workspace_invites_workspace ON workspace_invites(workspace);`);
+  for (const table of ['workspace_members','workspace_invites']) {
+    const columns = await db.prepare('PRAGMA table_info('+table+')').all();
+    if (!columns.some(column => column.name === 'department'))
+      await db.exec("ALTER TABLE "+table+" ADD COLUMN department TEXT NOT NULL DEFAULT 'general'");
+  }
+  await db.exec(`CREATE TABLE IF NOT EXISTS workspace_planning(workspace TEXT PRIMARY KEY REFERENCES workspaces(id) ON DELETE CASCADE,payload TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 1,updated TEXT NOT NULL,updated_by TEXT REFERENCES users(id) ON DELETE SET NULL);`);
   if (!db.remote)
     await db.exec("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
   return db;

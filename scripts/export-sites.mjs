@@ -11,6 +11,8 @@ put('lib/catalog.mjs', 'export const referenceCatalog = '+readFileSync('catalog/
 put('lib/operations.mjs',readFileSync('server/operations.mjs','utf8'));
 put('lib/feature-feedback.mjs',readFileSync('server/feature-feedback.mjs','utf8'));
 put('lib/accounts.mjs',readFileSync('server/accounts.mjs','utf8'));
+put('lib/planning.mjs',readFileSync('server/planning.mjs','utf8'));
+for(const file of ['access.mjs','planning.mjs']) put('shared/'+file,readFileSync('shared/'+file,'utf8'));
 put('lib/demo.mjs',readFileSync('server/demo.mjs','utf8'));
 // Remove generated sources for retired features from the retained cloud checkout.
 for (const file of ['lib/trials.mjs','app/trial-ui.jsx','app/trial.css']) rmSync(join(target,file),{force:true});
@@ -224,7 +226,7 @@ put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
 put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
-for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','demo-ui.jsx','demo.css']) {
+for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','demo-ui.jsx','demo.css','sync-status.jsx','sync-state.mjs','workflow-ui.jsx','planning-ui.jsx','workspace-tools.css']) {
   put('app/'+file,readFileSync('src/'+file,'utf8'));
 }
 put('app/globals.css',readFileSync('src/styles.css','utf8'));

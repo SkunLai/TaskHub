@@ -1,6 +1,8 @@
 import http from "node:http";
 import { createAccounts, deleteAccount, canManageTeam, workspacePermission } from './accounts.mjs';
 import { loadDemoWorkspace } from './demo.mjs';
+import { workspaceAccess, requireCapability } from '../shared/access.mjs';
+import { loadPlanning, savePlanning } from './planning.mjs';
 import { referenceCatalog } from "./catalog.mjs";
 import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
 import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
@@ -176,6 +178,10 @@ const log = async (user, action, entity = "") => {
       .run(randomUUID(), user.id, action, entity, now());
 };
 async function userFor(req) {
+  if (!Object.hasOwn(req,'userLookup')) req.userLookup=lookupUser(req);
+  return req.userLookup;
+}
+async function lookupUser(req) {
   const raw = (req.headers.cookie || "")
     .split(";")
     .map((s) => s.trim())
@@ -185,7 +191,7 @@ async function userFor(req) {
   return (
     (await db
       .prepare(
-        "SELECT u.*,m.permission AS staff_permission FROM users u JOIN sessions s ON s.user_id=u.id LEFT JOIN workspace_members m ON m.user_id=u.id WHERE s.token=? AND s.expires>?",
+        "SELECT u.*,m.permission AS staff_permission,m.department FROM users u JOIN sessions s ON s.user_id=u.id LEFT JOIN workspace_members m ON m.user_id=u.id WHERE s.token=? AND s.expires>?",
       )
       .get(createHash("sha256").update(raw).digest("hex"), Date.now())) || null
   );
@@ -221,6 +227,7 @@ function safeUser(u) {
     workspace: u.workspace,
     role: u.role,
     workspace_permission: workspacePermission(u),
+    department: u.department || null,
     can_manage_team: canManageTeam(u),
     can_delete_workspace: !['admin','reviewer','staff'].includes(u.role),
   };
@@ -316,7 +323,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.5.1" });
+      return json(res, { ok: true, version: "0.6.0" });
     }
     // Read-only members cannot bypass the interface by calling a write API.
     // Personal account actions do not mutate shared business data.
@@ -339,6 +346,16 @@ export const server = http.createServer(async (req, res) => {
       const u = await userFor(req);
       return json(res, { user: u ? safeUser(u) : null });
     }
+    if (method!=='GET') {
+      const actor=await userFor(req);
+      if(actor) {
+        if(/^\/api\/tours(?:\/|$)/.test(p)) requireCapability(actor,'canEditTours');
+        if(/^\/api\/tasks(?:\/|$)/.test(p)) requireCapability(actor,'canEditTasks');
+        if(/^\/api\/inquiries\//.test(p)) requireCapability(actor,'canEditInquiries');
+      }
+    }
+    if (p==='/api/planning' && method==='GET') return json(res,await loadPlanning(db,await required(req)));
+    if (p==='/api/planning' && method==='PUT') return json(res,await savePlanning(db,await required(req),await body(req)));
     if (p === '/api/account/security' && method === 'GET') return json(res, await accounts.security(await required(req)));
     if (p === '/api/demo/load' && method === 'POST') {
       limited(req,'demo-load',5); return json(res,await loadDemoWorkspace(db,await required(req)));
@@ -417,7 +434,7 @@ export const server = http.createServer(async (req, res) => {
       limited(req, "login", 30);
       const b = await body(req);
       const u = await db
-        .prepare("SELECT u.*,m.permission AS staff_permission FROM users u LEFT JOIN workspace_members m ON m.user_id=u.id WHERE u.email=?")
+        .prepare("SELECT u.*,m.permission AS staff_permission,m.department FROM users u LEFT JOIN workspace_members m ON m.user_id=u.id WHERE u.email=?")
         .get(email(b.email));
       const password = text(b.password, "mật khẩu", 128);
       if (!u || !verify(password, u.password))
@@ -520,18 +537,21 @@ export const server = http.createServer(async (req, res) => {
           db.prepare('SELECT a.*,u.name AS actor_name FROM pooling_audit a LEFT JOIN users u ON u.id=a.actor_id WHERE a.workspace=? ORDER BY a.created DESC,a.id DESC LIMIT 200').all(u.workspace),
         ]);
       const completedActions = actionRows.map((e) => e.action);
+      const access=workspaceAccess(u);
       return json(res, {
         tours,
         workspace_permission: workspacePermission(u),
+        department:u.department || null,
+        access,
         tasks,
-        inquiries,
+        inquiries:access.canReadInquiries?inquiries:[],
         activity,
         completedActions,
         catalog: referenceCatalog,
-        pooling,
+        pooling:access.canReadPooling?pooling:[],
         feedback: feedback || null,
         featureFeedback: parseFeatureFeedback(featureFeedback),
-        poolingHistory,
+        poolingHistory:access.canReadPooling?poolingHistory:[],
       });
     }
     if (p === "/api/tours/import" && method === "POST") {
@@ -544,22 +564,27 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/pooling/export" && method === "GET") {
       const u=await required(req);
+      requireCapability(u,'canReadPooling');
       const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,p.seats*p.unit_price-p.paid AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
       return download(res,rows,'taskhub-pooling');
     }
     if (p === '/api/pooling/history/export' && method === 'GET') {
       const u=await required(req);
+      requireCapability(u,'canReadPooling');
       const rows=await db.prepare('SELECT a.id,a.pooling_id,p.partner,t.title AS tour,u.name AS actor_name,a.action,a.paid_before,a.paid_after,a.status_before,a.status_after,a.created FROM pooling_audit a JOIN pooling p ON p.id=a.pooling_id JOIN tours t ON t.id=p.tour_id LEFT JOIN users u ON u.id=a.actor_id WHERE a.workspace=? ORDER BY a.created,a.id').all(u.workspace);
       return download(res,rows,'taskhub-pooling-history',['id','pooling_id','partner','tour','actor_name','action','paid_before','paid_after','status_before','status_after','created']);
     }
     if (p === "/api/pooling" && method === "POST") {
       const u=await required(req);
+      requireCapability(u,'canManageDeals');
       return json(res,await createPooling(db,u,await body(req)),201);
     }
     const poolMatch=p.match(/^\/api\/pooling\/([^/]+)$/);
     if(poolMatch && method==='PATCH') {
       const u=await required(req);
-      return json(res,await updatePooling(db,u,poolMatch[1],await body(req)));
+      const input=await body(req);
+      requireCapability(u,input.action==='payment'?'canRecordReceipts':'canManageDeals');
+      return json(res,await updatePooling(db,u,poolMatch[1],input));
     }
     if (p === "/api/events" && method === "POST") {
       const u = await required(req),

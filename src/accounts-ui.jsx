@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowRight, ShieldCheck, Users, Copy } from "lucide-react";
 import "./accounts.css";
+import { departmentNames } from '../shared/access.mjs';
 export function createAccountUI({
   Modal,
   Button,
@@ -367,7 +368,7 @@ export function createAccountUI({
                     Không gian <strong>{info.workspace_name}</strong> ·{" "}
                     {info.permission === "editor"
                       ? "Được chỉnh sửa"
-                      : "Chỉ xem"}
+                      : "Chỉ xem"} · {departmentNames[info.department] || 'Nhân viên tổng hợp'}
                     . Lời mời dành cho {info.email_hint}.
                   </p>
                   <Field label="Tên hiển thị">
@@ -500,6 +501,7 @@ export function createAccountUI({
             {permissionLabel(
               security?.workspace_permission || user.workspace_permission,
             )}
+            {user.role==='staff' && ' · '+(departmentNames[security?.department || user.department] || 'Nhân viên tổng hợp')}
             .
           </p>
         </section>
@@ -543,6 +545,11 @@ export function createAccountUI({
                   disabled={!!busy}
                   placeholder="nhanvien@congty.vn"
                 />
+              </Field>
+              <Field label="Vai trò nhân viên" hint="Vai trò giới hạn nghiệp vụ; quyền xem/sửa được chọn riêng.">
+                <select name="department" defaultValue="operations" disabled={!!busy}>
+                  {Object.entries(departmentNames).map(([id,label])=><option key={id} value={id}>{label}</option>)}
+                </select>
               </Field>
               <Field label="Quyền truy cập">
                 <select
@@ -598,6 +605,10 @@ export function createAccountUI({
                   </div>
                   {m.role === "staff" ? (
                     <>
+                      <select aria-label={'Vai trò của '+m.name} value={m.department || 'general'} disabled={!!busy}
+                        onChange={e=>act(m.id,()=>api('/team/members/'+m.id,'PATCH',{department:e.target.value}))}>
+                        {Object.entries(departmentNames).map(([id,label])=><option key={id} value={id}>{label}</option>)}
+                      </select>
                       <select
                         aria-label={"Quyền của " + m.name}
                         value={
@@ -646,7 +657,7 @@ export function createAccountUI({
                     <div>
                       <strong>{i.email}</strong>
                       <small>
-                        {permissionLabel(i.permission)} · hết hạn{" "}
+                        {departmentNames[i.department] || 'Nhân viên tổng hợp'} · {permissionLabel(i.permission)} · hết hạn{" "}
                         {new Date(i.expires).toLocaleString("vi-VN")}
                       </small>
                     </div>

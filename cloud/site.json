@@ -1,9 +1,9 @@
 {
   "project_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5",
   "url": "https://taskhub.ninaninohihi.chatgpt.site",
-  "source_commit": "fe6cb82f973d462a08d8677b843d3444f48636d0",
-  "saved_version_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5~appgver_fc326ef6d9688191b5e9f54122546f20",
-  "deployment_id": "appgdep_6ae10170710c8191b5aa28ea8ef92001",
+  "source_commit": "677732663e315e10aa5374f9b2dbdeef02addba0",
+  "saved_version_id": "appgprj_6ad0126b16248191ac4c95b63367bcc5~appgver_81217d8bec648191aed4a586f47a3d60",
+  "deployment_id": "appgdep_6ae10aaa556c81919777c003dfb77b37",
   "access_mode": "public",
   "database": "Existing D1 binding DB; migrations unchanged through 0004; business records preserved",
   "verified_on": "2026-10-28"

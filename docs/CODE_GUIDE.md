@@ -149,4 +149,4 @@ npm run build
 
 Nếu thay giao diện/luồng thao tác, chạy `npm run test:ui` trên môi trường thử theo [README](../README.md). Kiểm tra dữ liệu cũ, thao tác sai, mất mạng và xung đột phiên bản khi có liên quan. Không lấy tài khoản QA hoặc dữ liệu DEMO làm bằng chứng người dùng thật.
 
-Code mới đưa lên `build`, ghi rõ thay đổi và cách kiểm tra. `dev` để chủ repo duyệt. Các con số kiểm thử, deployment và mốc demo thực tế nằm ở [VALIDATION.md](VALIDATION.md) và [CP3_DEMO_RELEASE.md](CP3_DEMO_RELEASE.md); chỉ cập nhật kết quả sau khi đã chạy thành công.
+Code mới đưa lên `build`, ghi rõ thay đổi và cách kiểm tra. `dev` để chủ repo duyệt. Các con số kiểm thử/deployment nằm ở [VALIDATION.md](VALIDATION.md); bản demo hiện hành, kịch bản và việc Tuấn/Huy còn cần làm trực tiếp nằm ở [CP4_TUAN_HUY_HANDOFF.md](CP4_TUAN_HUY_HANDOFF.md). [CP3_DEMO_RELEASE.md](CP3_DEMO_RELEASE.md) giữ các mốc dự phòng cũ.

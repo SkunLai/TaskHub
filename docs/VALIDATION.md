@@ -1,5 +1,16 @@
 # Xác nhận bản MVP 0.2 — 14/10/2026
 
+## Bổ sung 0.6.0 — 27/10/2026
+
+- `npm test`: **95/95** đạt; cùng bộ kiểm tra đạt với driver libSQL. Bổ sung kiểm tra phân vai/API trái quyền, ẩn dữ liệu/CSV theo bộ phận, kế hoạch theo workspace, lưu cạnh tranh trả 409, số 0/ô trống/kết quả âm và ngưỡng dữ liệu cũ.
+- `tests/cp4-ui.mjs` đạt trên Node local, preview Workers/D1 và **https://taskhub-travel.pages.dev**: workflow 5 bước; phân vai/đổi quyền khi đang đăng nhập; bảng tính/lưu/xung đột và giữ bản nhập; cảnh báo bỏ bản nháp; mất mạng/phục hồi. Rà bố cục 320/390/768/1440 px, không tràn ngang hoặc lỗi JavaScript trong các luồng đã chạy. Bài QA chờ dữ liệu/response trước khi kiểm tra, không giả định mạng public nhanh như local.
+- Các bài hồi quy `v05-ui`, `ux051-ui`, `performance-ui` đạt local; GitHub Actions [run 40474237999](https://github.com/skunlainro3-glitch/TaskHub/actions/runs/40474237999) đạt unit/libSQL/build/Pages và toàn bộ các luồng browser, gồm CP4, cho commit runtime `d3bcba1`.
+- Build Vite/Pages và Sites Vinext thành công. Backend Sites phiên bản 18 triển khai thành công; migration 0004 chỉ thêm cột/bảng. Pages deployment `ce4bd834-0c29-4f86-a4f4-8a9e55926dbb` trỏ source `d3bcba1`. Thông tin đầy đủ ở `cloud/site.json` và `cloud/pages/deployment.json`.
+- `/api/health` public trả 200/version 0.6.0. Checksum trước/sau giống nhau cho workspace trình diễn: 3 tour, 3 công việc, 3 phiếu B2B, 2 yêu cầu tư vấn, 7 bản ghi lịch sử B2B. Kế hoạch mới có version 0 và chưa có giả định giá/doanh thu.
+- Các tài khoản/workspace QA bị xóa. Không dùng kết quả tự động làm bằng chứng người thử thật, kết quả thị trường, SLA hoặc chấp thuận Path 2. Xem [phạm vi và thông tin còn thiếu](CP4_MENTOR_REVIEW.md).
+
+Các mục phía dưới là lịch sử kiểm tra theo thời điểm, không phải trạng thái phát hành hiện tại.
+
 - `npm run build`: thành công, tạo FE production.
 - `npm test`: 13/13 test pass (12 trường hợp con và test tổng). Cùng bộ test đạt trên SQLite local và driver libSQL với database file; chưa thay thế kiểm tra database Turso thật.
 - `npm run test:ui`: pass trên Edge chạy ẩn, kiểm tra portal/workspace ở 320/390/768/1440 px; ảnh desktop 1440×1050, mobile 390×844. Các luồng: tìm kiếm/xóa bộ lọc → mất mạng/tải lại → đăng ký/đồng ý → sửa số chỗ → kiểm tra portal → gửi/nhận yêu cầu tư vấn → tạo việc/chuyển hoàn thành → phản hồi. Menu mobile đóng bằng Escape. Không có lỗi JavaScript hoặc tràn ngang trong các màn hình kiểm tra.

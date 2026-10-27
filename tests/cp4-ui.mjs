@@ -38,7 +38,7 @@ try {
   const accepted=await api(staff,'/team/invites/accept','POST',{token:new URL(invite.url).searchParams.get('invite'),email,name:'CP4 QA member',password,consent:true});
   const memberId=accepted.user.id;
   await page.goto(base+'/app');await page.getByRole('heading',{name:'Tổng quan',exact:true}).waitFor();
-  await nav(page,'Quy trình vận hành');assert.equal(await page.locator('.workflow-steps > li').count(),5);await layout(page,'workflow');
+  await nav(page,'Quy trình vận hành');await page.locator('.workflow-steps > li').last().waitFor();assert.equal(await page.locator('.workflow-steps > li').count(),5);await layout(page,'workflow');
   await nav(page,'Giá trị & doanh thu');await page.getByRole('button',{name:'Lưu bản nháp',exact:true}).waitFor();
   await page.getByLabel('Số thao tác mỗi tháng',{exact:true}).fill('120');
   await page.getByLabel('Số phút trước khi áp dụng / thao tác',{exact:true}).fill('15');
@@ -64,8 +64,9 @@ try {
   assert.equal(await page.getByLabel('Nguồn số liệu, thời điểm đo hoặc giả định của nhóm',{exact:true}).inputValue(),'Unsaved QA');
   page.once('dialog',d=>d.dismiss());await page.locator('aside nav').getByRole('button',{name:'Quản lý tour',exact:true}).click();
   assert.ok(await page.getByRole('heading',{name:'Giá trị & doanh thu',exact:true}).isVisible());
+  const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/planning')&&r.request().method()==='GET');
   page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Tải bản đã lưu',exact:true}).click();
-  await page.getByLabel('Nguồn số liệu, thời điểm đo hoặc giả định của nhóm',{exact:true}).waitFor();
+  assert.equal((await refreshed).status(),200);await page.getByText(/^Bản lưu lúc /).waitFor();
   await nav(page,'Tài khoản & nhóm');await layout(page,'accounts');
   await member.goto(base+'/app');await member.locator('.profile').getByText('Kinh doanh',{exact:true}).waitFor();
   assert.equal(await member.locator('aside nav').getByRole('button',{name:'Ghép tour B2B',exact:true}).count(),0);
@@ -90,6 +91,6 @@ try {
   assert.deepEqual(errors,[]);
   console.log('CP4 UI passed: workflow; role-specific navigation/actions; calculations/save/conflict/draft guard; offline recovery; 320/390/768/1440px layouts.');
 } finally {
-  if(created)await owner.request.delete(base+'/api/account',{headers:{'X-TaskHub':'1'}});
+  if(created){const removed=await owner.request.delete(base+'/api/account',{headers:{'X-TaskHub':'1'}});assert.equal(removed.status(),200,'QA workspace cleanup');}
   await browser.close();
 }

@@ -12,6 +12,7 @@ import {
   Printer,
 } from "lucide-react";
 import { PrintPage } from "./print-page.jsx";
+import { downloadWorkbook } from "./export-file.mjs";
 import { readTourFile, downloadTourTemplate } from "./import-tours.mjs";
 import "./operations-polish.css";
 import { filterPooling } from "./pooling-view.mjs";
@@ -271,7 +272,7 @@ export function createOperationsUI({
       }
     }
     return (
-      <Modal title="Cập nhật số khách" subtitle={current.title} onClose={close}>
+      <Modal title="Cập nhật số khách" subtitle={current.title} onClose={close} busy={busy}>
         <form onSubmit={submit}>
           <ErrorBox error={error} />
           <ConflictRecovery
@@ -395,6 +396,7 @@ export function createOperationsUI({
             : "Ghi nhận thỏa thuận với đối tác; xác nhận chỗ ở bước tiếp theo."
         }
         onClose={close}
+        busy={busy}
       >
         <form onSubmit={submit}>
           <ErrorBox error={error} />
@@ -534,10 +536,28 @@ export function createOperationsUI({
       [history, setHistory] = useState(null);
     const [query, setQuery] = useState(""),
       [statusFilter, setStatusFilter] = useState("");
+    const [exporting, setExporting] = useState(false),
+      [exportError, setExportError] = useState("");
+    const exportPending = useRef(false);
     const pending = useRef(false);
     const pools = data.pooling || [],
       confirmed = pools.filter((p) => p.status === "confirmed"),
       tours = Object.fromEntries(data.tours.map((t) => [t.id, t]));
+    async function exportWorkbook(e) {
+      e.preventDefault();
+      if (exportPending.current) return;
+      exportPending.current = true;
+      setExporting(true);
+      setExportError("");
+      try {
+        await downloadWorkbook("/api/pooling/export.xlsx", "taskhub-cong-no.xlsx");
+      } catch (e) {
+        setExportError(e.message);
+      } finally {
+        exportPending.current = false;
+        setExporting(false);
+      }
+    }
     async function action(row, kind) {
       if (pending.current) return;
       pending.current = true;
@@ -589,7 +609,7 @@ export function createOperationsUI({
       const d = new Date(value);
       return Number.isNaN(d.valueOf())
         ? "Không rõ thời điểm"
-        : d.toLocaleString("vi-VN");
+        : d.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
     };
     return (
       <>
@@ -726,9 +746,12 @@ export function createOperationsUI({
               className="btn ghost"
               href="/api/pooling/export.xlsx"
               data-track="pooling:export-xlsx"
+              onClick={exportWorkbook}
+              aria-busy={exporting}
+              aria-disabled={exporting}
             >
               <Download size={16} />
-              Công nợ Excel
+              {exporting ? "Đang tải Excel…" : "Công nợ Excel"}
             </a>
             <a
               className="btn ghost"
@@ -748,9 +771,10 @@ export function createOperationsUI({
             </a>
           </div>
         </div>
+        <ErrorBox error={exportError} />
         <p className="muted pool-export-note">
-          CSV gồm toàn bộ phiếu trong không gian, không giới hạn theo bộ lọc
-          đang chọn.
+          Excel và CSV gồm toàn bộ phiếu trong không gian. PDF chỉ gồm các
+          phiếu theo bộ lọc đang chọn.
         </p>
         {!pools.length ? (
           <Empty title="Chưa có phiếu ghép tour">

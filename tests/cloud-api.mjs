@@ -41,8 +41,9 @@ try {
   assert.equal(portal.body.tours.find(t=>t.id===tour.id).version,tour.version+1);
   const task=await req('/tasks','POST',{tour_id:tour.id,title:'Atomic D1 QA',assignee:'QA',due:tour.departure,priority:'high'},ac);
   assert.equal(task.status,201);
-  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done'},bc)).status,404);
-  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done'},ac)).status,200);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done',version:1},bc)).status,409);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done'},ac)).status,400);
+  assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done',version:1},ac)).status,200);
   assert.equal((await req('/events','POST',{action:'portal_viewed'},ac)).status,200);
   const feedback={portal:4,operations:5,sync:4,ease:4,intent:'maybe',price:0,liked:'Automated QA',disliked:'=1+1'};
   assert.equal((await req('/feedback','POST',feedback,ac)).status,200);

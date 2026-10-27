@@ -1311,6 +1311,19 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     document.querySelector(".drawer-close")?.focus();
     const close = (e) => {
       if (e.key === "Escape") setMenu(false);
+      if (e.key === "Tab") {
+        const controls = [...document.querySelectorAll(
+          '#workspace-nav button:not(:disabled), #workspace-nav a[href]',
+        )].filter((el) => el.getClientRects().length);
+        const first = controls[0], last = controls.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     document.addEventListener("keydown", close);
     return () => {
@@ -1420,15 +1433,13 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           (tourFilter === "draft" && !t.published) ||
           (tourFilter === "past" && t.departure < todayVN()) ||
           (tourFilter === "upcoming" && t.departure >= todayVN())) &&
-        (t.title + " " + t.destination)
-          .toLocaleLowerCase("vi")
-          .includes(query.toLocaleLowerCase("vi")),
+        matchesTourSearch(t, query),
     ) || [];
   const descriptions = {
-    dashboard: "Mọi thông tin cần thiết cho một ngày điều hành.",
+    dashboard: "Lịch khởi hành, số chỗ và công việc cần theo dõi.",
     analytics: "Phân tích lịch tour, công việc và đối soát từ dữ liệu của không gian.",
     tours: "Dữ liệu điều hành và cổng khách hàng cùng một nguồn.",
-    tasks: "Rõ người phụ trách. Đúng thời hạn. Không bỏ sót.",
+    tasks: "Theo dõi người phụ trách, thời hạn và trạng thái công việc.",
     pooling: "Một nơi xác nhận khách ghép và theo dõi số tiền còn phải thu.",
     inbox: "Tiếp nhận yêu cầu ngay cả ngoài giờ làm việc.",
     account: "Gửi lời mời và phân quyền cho người cùng làm việc.",
@@ -1504,9 +1515,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           <div className="sidebar-tip">
             <Globe size={20} />
             <strong>
-              Không gian điều hành
-              <br />
-              Nhiều hành trình hơn.
+              Cổng thông tin tour
             </strong>
             <button onClick={()=>{if(leavePlanning())onPortal();}}>
               Mở cổng khách hàng
@@ -1568,7 +1577,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           <div className="page-title">
             <div>
               <div className="eyebrow blue">
-                TASKHUB · ĐIỀU HÀNH CÙNG MỘT NHỊP
+                TASKHUB · ĐIỀU HÀNH TOUR
               </div>
               <h1>{current?.[1]}</h1>
               <p>{descriptions[nav]}</p>
@@ -1577,7 +1586,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               {nav === "dashboard" && (
                 <span className="today">
                   <CalendarDays size={16} />
-                  {date(new Date().toISOString().slice(0, 10))}
+                  {date(todayVN())}
                 </span>
               )}
               {nav === "tours" && access.canEditTours && (
@@ -1895,7 +1904,7 @@ function Workspace({ user, onLogout, onPortal, notify }) {
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour · 0.7.0</span>
+            <span>TaskHub · Điều hành tour · 0.7.1</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>

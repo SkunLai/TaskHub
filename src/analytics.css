@@ -17,6 +17,23 @@
 .analytics-meta > span {
   overflow-wrap: anywhere;
 }
+.analytics-definitions {
+  color: var(--muted);
+  font-size: 14px;
+}
+.analytics-definitions summary {
+  color: var(--navy);
+  cursor: pointer;
+  padding: 10px 0;
+}
+.analytics-definitions ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+.analytics-definitions li + li {
+  margin-top: 6px;
+}
 .analytics-filter {
   padding: 20px;
   display: flex;

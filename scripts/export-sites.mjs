@@ -235,7 +235,7 @@ for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour
 }
 put('app/globals.css',readFileSync('src/styles.css','utf8'));
 for(const [file,relative] of [['app/page.tsx','./TaskHub'],['app/app/page.tsx','../TaskHub'],['app/portal/[workspace]/page.tsx','../../TaskHub']]) put(file,`import TaskHub from '${relative}';\nexport default function Page(){return <TaskHub/>;}\n`);
-put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'TaskHub · Điều hành tour, cùng một nhịp',description:'TaskHub hỗ trợ doanh nghiệp lữ hành quản lý tour, lịch/số chỗ và công việc.',icons:{icon:'/favicon.svg'}};\nexport default function Layout({children}:{children:React.ReactNode}){return <html lang="vi"><body>{children}</body></html>;}\n`);
+put('app/layout.tsx',`import './globals.css';\nexport const metadata={title:'TaskHub · Quản lý tour và lịch khởi hành',description:'TaskHub hỗ trợ doanh nghiệp lữ hành quản lý tour, lịch/số chỗ và công việc.',icons:{icon:'/favicon.svg'}};\nexport default function Layout({children}:{children:React.ReactNode}){return <html lang="vi"><body>{children}</body></html>;}\n`);
 put('README.md',`# TaskHub cloud\n\nGenerated from the TaskHub FE/BE by scripts/export-sites.mjs. Uses Sites Workers and persistent D1, independent of the owner's PC. Runtime credentials are private environment secrets. No CP2 or local personal data is imported.\n`);
 copyFileSync('cloud/schema.ts',join(target,'db/schema.ts'));
 copyFileSync('cloud/favicon.svg',join(target,'public/favicon.svg'));

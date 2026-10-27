@@ -1,4 +1,6 @@
-# Đối chiếu TaskHub với CP3 — 19/10/2026
+# Đối chiếu TaskHub với CP3 — rà soát 28/10/2026
+
+Tài liệu giữ lại các phép kiểm tra CP3 theo ngày, đồng thời cập nhật những chức năng đã thay đổi. **Trạng thái bàn giao hiện hành của Tuấn/Huy nằm ở [bàn giao CP4](CP4_TUAN_HUY_HANDOFF.md); kết quả phát hành nằm ở [xác nhận kiểm tra](VALIDATION.md).** Số đếm khảo sát ngày 17/10 bên dưới là ảnh chụp tại thời điểm đó, không phải số hiện tại. File khảo sát CP3 gửi sau có 22 dòng tự khai báo; chưa đủ căn cứ để tự xác nhận 20 cá nhân thử thật hoặc cộng với CP2 thành người độc lập.
 
 Cập nhật 27/10: có phân vai theo bộ phận và API, sơ đồ vận hành, cảnh báo dữ liệu cũ, bảng tính giá trị/gói/doanh thu nội bộ. Xem [bổ sung theo mentor](CP4_MENTOR_REVIEW.md). Các mục chưa hoàn thành về khảo sát, giá và Path 2 vẫn cần bằng chứng/phê duyệt riêng; không suy ra từ chức năng mới.
 
@@ -24,22 +26,22 @@ Chủ dự án xác nhận đợt này chỉ làm FE/BE và bàn giao. Không l�
 
 | Yêu cầu | Đã có | Giới hạn/bằng chứng còn thiếu |
 | --- | --- | --- |
-| Uses | Tour/lịch/giá/chỗ, công việc, tư vấn; nhập XLSX/CSV; B2B tối giản với phiếu, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV | Đã có nhân viên chỉ xem/được sửa; chưa có đối tác tự duyệt; không gọi đây là B2B đầy đủ hoặc P3 được giải quyết hoàn toàn. |
+| Uses | Tour/lịch/giá/chỗ, công việc, tư vấn; nhập XLSX/CSV; B2B tối giản với phiếu, xác nhận chỗ, ghi nhận thu/còn phải thu, lịch sử, CSV/Excel và bản in; báo cáo vận hành | Có nhân viên theo bộ phận và quyền xem/sửa; chưa có đối tác tự duyệt; không gọi đây là B2B đầy đủ hoặc P3 được giải quyết hoàn toàn. |
 | Specs | SQLite local; public Pages/gateway và Workers/D1; kiểm tra phiên bản, sức chứa, phân quyền và timeout | Polling 5 giây khi tab hiển thị, không phải WebSocket. QA không phải chứng nhận SLA hoặc tải thương mại. |
 | Interface/Packaging | Web tiếng Việt, xanh dương nhạt, responsive; đã rà 320/390/768/1440 px và luồng lỗi mạng | Cần phản hồi và thử trên thiết bị/mạng của người dùng thực tế. |
 | Special Features (mục rubric) | Có thể demo dữ liệu tour/việc dùng chung; gọi đây là **core feature**, theo góp ý mentor | Chưa chứng minh tính độc nhất, innovation hoặc lợi thế thị trường; cần đối chiếu đối thủ/bằng chứng, không suy ra đủ Path 2. |
 | Support | Hướng dẫn trong app, Phản hồi MVP, README và tài liệu bàn giao | Chưa được cung cấp kênh công khai/người trực hoặc mức dịch vụ. Không tự thêm SLA. |
 | Giá | Form thu willingness-to-pay đơn giản, cho phép 0; tool tổng hợp mô tả dữ liệu thật | Chưa chốt chiến lược/giá. 500.000 VND/tháng ở CP2 là giả định, không phải giá đã kiểm chứng. Không có Price Map/Van Westendorp. |
-| MVP testing | Consent, email tự nhập, vai trò/quy mô, log và form 6 nhóm tính năng với tự dùng/xem demo/chưa thử, quan trọng/dễ dùng/ý định theo tính năng, giá tùy chọn và ý kiến mở | Gửi email xác minh/khôi phục cần nhà cung cấp email; chưa xác nhận 20 người thật. Phản hồi phiên bản cũ giữ riêng, không tự chuyển thang đo. |
+| MVP testing | Consent, email tự nhập, vai trò/quy mô, log và form 6 nhóm tính năng với tự dùng/xem demo/chưa thử, quan trọng/dễ dùng/ý định theo tính năng, giá tùy chọn và ý kiến mở | Xác minh email đã được xóa theo yêu cầu chủ dự án. Khôi phục mật khẩu qua thư chỉ hoạt động sau khi cấu hình dịch vụ gửi thư. Chưa xác nhận 20 người thật. Phản hồi phiên bản cũ giữ riêng, không tự chuyển thang đo. |
 | RAW data | Xuất interactions/feedback CSV có email theo quyền quản trị/reviewer | Nhóm phải xuất bản gốc, đối chiếu người thật và cấp quyền phụ lục; không đưa raw data lên repo public. |
 | Nút/menu | `ui_click`/`ui_change` cho tài khoản người thử đã đồng ý; mã điều khiển, khu vực, thời gian thiết bị/server; chống ghi trùng lô gửi lại | Không ghi nội dung gõ/mật khẩu. Mất mạng/đóng trình duyệt đột ngột có thể thiếu log; admin/reviewer không tính. |
-| Bộ câu hỏi cho An | 12 câu, 6 nhóm tính năng; đánh giá quan trọng, ý định dùng và dễ dùng theo từng tính năng; Sheet raw để trống | Chưa phải kết quả khảo sát hoặc bằng chứng đã có 20 người. |
+| Bộ câu hỏi cho An | 12 câu, 6 nhóm tính năng; đánh giá quan trọng, ý định dùng và dễ dùng theo từng tính năng; Sheet raw để trống tại lúc bàn giao | Bộ câu hỏi không phải kết quả khảo sát hoặc bằng chứng đã có 20 người. Không suy ra trạng thái Sheet hiện tại từ lần đọc cũ. |
 | Tổng hợp dữ liệu | `survey:report` cho CSV Người thử/Đánh giá tính năng bản 0.4 hoặc hai tab raw của An; `research:report` cho Phản hồi bản trước/Tương tác CSV | Không cộng số email giữa hai nguồn. Không tự loại người xem demo vì thiếu log, xác minh người thật, chọn giá hoặc kết luận Iterate/Persevere. |
-| Demo và reviewer | Kịch bản demo trực tiếp, tài khoản reviewer chỉ xem/xuất; bộ giả lập có 3 tour, 3 phiếu B2B chờ và 2 công việc | Còn đối chiếu khách/thu B2B và TASK-03. Chưa chuyển thông tin hoặc cấp quyền mới cho giảng viên theo yêu cầu chủ dự án. |
+| Demo và reviewer | Kịch bản demo trực tiếp, tài khoản reviewer chỉ xem/xuất; bộ giả lập có 3 tour, 3 công việc, 2 phiếu B2B xác nhận và 1 phiếu chờ theo quy ước đã được chủ dự án cho phép | Các quy ước khách/thu B2B và TASK-03 chỉ dành cho demo, không xác minh giao dịch thật. Chưa chuyển thông tin hoặc cấp quyền mới cho giảng viên theo yêu cầu chủ dự án. |
 
 Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [đọc và sửa mã nguồn](CODE_GUIDE.md), [khảo sát và tổng hợp CSV](CP3_TESTING_GUIDE.md), [chạy trên máy](../README.md), [vận hành public](PAGES_DEPLOYMENT.md).
 
-## Kiểm chứng ngày 17–18/10
+## Lịch sử kiểm chứng ngày 17–18/10
 
 - 40 kiểm tra Node/API, gateway và công cụ tổng hợp đạt trên SQLite và libSQL ở đợt 18/10, gồm B2B giữ/hoàn chỗ, đối soát, nhập tệp và quyền/giới hạn log. UI kiểm tra thêm XLSX thật, thao tác nhanh và luồng B2B. Không dùng QA làm khảo sát.
 - Bản 0.4 nâng lên 58 kiểm tra, thêm sửa/xóa việc có phiên bản, khảo sát 6 tính năng/CSV, khóa tư vấn tour đã khởi hành và audit B2B. Hướng dẫn mới có lối mở từng chức năng và bảng P1–P3/S-1–S-4 ngay trong app.
@@ -50,7 +52,7 @@ Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [đọc và 
 
 ## Việc còn lại cần người thật hoặc quyết định của nhóm
 
-1. Hoàn tất phần dữ liệu còn thiếu: khách đã giữ có gồm B2B không, khoản thu B2B-102, tour của TASK-03; duyệt liên hệ hỗ trợ công khai. Bộ 3 tour/3 phiếu B2B chờ/2 công việc đã được nhập, không cần nhập lại. Cung cấp GitHub username nếu cần quyền push.
+1. Cung cấp ảnh nguồn thay thế, liên hệ hỗ trợ công khai được duyệt và phân quyền nhân viên thực tế. Quy ước demo về khách B2B, tiền B2B-102 và tour của TASK-03 đã được chủ dự án cho phép quyết định, ghi tại [dữ liệu giả lập của nhóm](OWNER_DEMO_DATA_2026-10-18.md); không còn là thông tin chặn demo. Không nhập lại hoặc sửa lịch sử thành giao dịch thật. Cung cấp GitHub username nếu cần quyền push.
 2. Tuyển và xác nhận ít nhất 20 cá nhân thử thật, ưu tiên phân khúc mục tiêu; ghi kênh tuyển, thời gian, tiêu chí và giới hạn mẫu thuận tiện. Mời trên 20 người theo timeline để dự phòng.
 3. Đối chiếu logs với phản hồi, đọc/mã hóa ý kiến mở, phân tích kết quả; chốt chiến lược và mức giá có căn cứ.
 4. Quyết định Iterate/Persevere sau dữ liệu thật, giải thích thay đổi hoặc lý do giữ sản phẩm.
@@ -60,6 +62,6 @@ Hướng dẫn chi tiết: [bàn giao FE/BE](CP3_FE_BE_HANDOFF.md), [đọc và 
 
 Không gửi email, nộp bài, book lịch hoặc thay đổi nội dung của thành viên khác trong đợt hoàn thiện FE/BE này.
 
-## Kiểm tra và giới hạn 0.5
+## Lịch sử kiểm tra và giới hạn 0.5
 
 86 kiểm tra đạt trên SQLite và libSQL. Hai bộ trình duyệt kiểm tra các luồng cũ và bổ sung nạp mẫu/bài thử/mời nhân viên/quyền xem-sửa/xóa staff/khôi phục khi chưa có email provider. Migration 0003 bổ sung bảng, giữ nguyên migration cũ. Không có tester thật, paid pilot, quyết định giá, slide/BMC hoặc quyền giảng viên tự phát sinh từ lần nâng cấp này.

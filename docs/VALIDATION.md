@@ -1,5 +1,14 @@
 # Xác nhận bản MVP 0.2 — 14/10/2026
 
+## Rà cuối 0.7.1 — 28/10/2026
+
+- Đối chiếu lại Timeline Tuấn/Huy, CP4 requirements/rubric và chức năng thực tế. Không phát hiện thêm tính năng MVP bắt buộc còn thiếu trong phạm vi FE/BE. Không đánh dấu tập demo/ghép slide/freeze tương lai, người thử thật, giá/gói hay Path 2 đã hoàn tất. Bàn giao cập nhật ở [CP4_TUAN_HUY_HANDOFF](CP4_TUAN_HUY_HANDOFF.md).
+- Sửa PATCH trạng thái công việc bắt buộc phiên bản: thiếu trả 400, bản cũ trả 409, không ghi đè. CSV công nợ để trống số còn phải thu của phiếu chờ/hủy, thống nhất XLSX/dashboard. Server local trả MIME ảnh JPEG/WebP/ICO chuẩn. `npm test` **101/101** đạt trên SQLite và libSQL; tests kiểm tra cả thiếu/stale version và công nợ ngoài trạng thái xác nhận.
+- Sửa báo cáo để bấm Xem báo cáo cùng kỳ vẫn tải lại sau lỗi; lượt đọc lỗi kích hoạt backoff; phân biệt lỗi kỳ nhập, tải số liệu và xuất tệp. Excel dashboard/B2B được tải bằng fetch có kiểm status/MIME và timeout, báo lỗi tại trang thay vì điều hướng app sang JSON.
+- Sửa ngày Tổng quan/lịch sử B2B theo giờ Việt Nam, tìm tour nội bộ/danh mục không dấu, vòng Tab/Shift+Tab menu mobile, nhãn quyền tài khoản cập nhật theo polling và nút đóng khi form đang gửi. Giảm slogan, rút gọn nhãn dữ liệu giả lập; gom định nghĩa báo cáo vào mục mở rộng. Không thêm giá/liên hệ/ảnh nguồn hoặc tuyên bố người dùng thật.
+- Toàn bộ browser suites `ui`, `v05-ui`, `cp4-ui`, `cp4-delivery-ui`, `ux051-ui`, `performance-ui` đạt local. Delivery QA bổ sung lỗi tải báo cáo rồi retry cùng kỳ, Excel 401/403 vẫn giữ app và tải lại thành công, tìm `da nang`, vòng bàn phím menu mobile. Có kiểm tra responsive 320/390/768/1440 px, các luồng mất mạng/đọc chậm/xung đột, role và các tệp Excel/PDF; không lỗi JavaScript trong những luồng đã chạy. Các dữ liệu/tài khoản QA riêng được xóa, không tính thành khảo sát thật.
+- Build Vite/Pages và backend Sites Vinext đạt. Không thay schema/migration hoặc bí mật triển khai. Kết quả public, CI và mã triển khai được ghi tiếp sau phát hành.
+
 ## Bổ sung 0.7.0 — 28/10/2026
 
 - Đọc bảng CP4_Timeline_TaskHub bằng quyền người dùng đã xác nhận, xuất bản chỉ đọc để đối chiếu Timeline/Phân công; không sửa Google Sheet. Đọc CP4 requirements/rubric, BMC/PPTX mẫu và hai file khảo sát. [Bàn giao Tuấn/Huy](CP4_TUAN_HUY_HANDOFF.md) ghi đúng từng STT, phần MVP cho slide, kịch bản 6 phút và thông tin nhóm còn cần cung cấp.

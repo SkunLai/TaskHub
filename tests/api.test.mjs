@@ -371,9 +371,9 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       assert.equal(created.status, 201);
       taskId = created.body.id;
       assert.equal(
-        (await request("/tasks/" + taskId, "PATCH", { status: "done" }, bc))
+        (await request("/tasks/" + taskId, "PATCH", { status: "done", version: 1 }, bc))
           .status,
-        404,
+        409,
       );
       assert.equal(
         (await request("/tasks/" + taskId, "PATCH", { status: "invalid" }, ac))
@@ -381,7 +381,7 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         400,
       );
       assert.equal(
-        (await request("/tasks/" + taskId, "PATCH", { status: "done" }, ac))
+        (await request("/tasks/" + taskId, "PATCH", { status: "done", version: 1 }, ac))
           .status,
         200,
       );

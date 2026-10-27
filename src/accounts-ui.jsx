@@ -43,7 +43,7 @@ export function createAccountUI({
               <div className="eyebrow">
                 DÀNH CHO DOANH NGHIỆP LỮ HÀNH 10–50 NHÂN SỰ
               </div>
-              <h2>Để mỗi chuyến đi vận hành trôi chảy.</h2>
+              <h2>Quản lý lịch, số chỗ và công việc tại một nơi.</h2>
               <p>
                 Tập trung lịch, số chỗ và công việc để người điều hành theo dõi.
                 Khách hàng tra cứu thông tin đã công khai trên một cổng riêng.
@@ -95,8 +95,8 @@ export function createAccountUI({
         busy={busy}
         title={
           register
-            ? "Cùng thử một cách làm việc mới"
-            : "Chào mừng anh/chị trở lại"
+            ? "Tạo không gian dùng thử"
+            : "Đăng nhập TaskHub"
         }
         subtitle={
           register
@@ -114,7 +114,7 @@ export function createAccountUI({
                 autoComplete="name"
                 required
                 maxLength="80"
-                placeholder="Anh/chị muốn được gọi là gì?"
+                placeholder="Nhập tên của bạn"
               />
             </Field>
           )}
@@ -499,9 +499,9 @@ export function createAccountUI({
           <p>
             Quyền:{" "}
             {permissionLabel(
-              security?.workspace_permission || user.workspace_permission,
+              user.workspace_permission || security?.workspace_permission,
             )}
-            {user.role==='staff' && ' · '+(departmentNames[security?.department || user.department] || 'Nhân viên tổng hợp')}
+            {user.role==='staff' && ' · '+(departmentNames[user.department || security?.department] || 'Nhân viên tổng hợp')}
             .
           </p>
         </section>

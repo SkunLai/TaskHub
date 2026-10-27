@@ -89,7 +89,7 @@ test('polished API: additive data, six-feature research, guarded task CRUD and p
       assert.equal(unknown.willingnessToPay.n,0);assert.equal(unknown.willingnessToPay.unknown,1);
     });
     let tour,task;
-    await t.test('tasks support edit/delete with optimistic versions while old PATCH stays compatible',async()=>{
+    await t.test('all task mutations require optimistic versions and reject stale or unversioned status changes',async()=>{
       const created=await request('/tours','POST',{...qaTour,title:'QA task tour'},cookie);assert.equal(created.status,201);tour=(await workspace()).tours.find(t=>t.id===created.body.id);
       const body={tour_id:tour.id,title:'First task',assignee:'QA assignee',due:'2026-12-01',priority:'normal'};
       const made=await request('/tasks','POST',body,cookie);assert.equal(made.status,201);task=(await workspace()).tasks.find(t=>t.id===made.body.id);assert.equal(task.version,1);
@@ -101,7 +101,10 @@ test('polished API: additive data, six-feature research, guarded task CRUD and p
       assert.equal((await request('/tasks/'+task.id,'DELETE',{version:current.version},b.cookie)).status,409);
       assert.equal((await request('/tasks/'+task.id,'DELETE',{version:current.version},reviewer.cookie)).status,403);
       assert.equal((await request('/tasks/'+task.id,'PATCH',{status:'doing',version:current.version},cookie)).status,200);
-      assert.equal((await request('/tasks/'+task.id,'PATCH',{status:'done'},cookie)).status,200,'Legacy clients may omit version');
+      assert.equal((await request('/tasks/'+task.id,'PATCH',{status:'done'},cookie)).status,400,'Missing version must not bypass overwrite protection');
+      current=(await workspace()).tasks.find(t=>t.id===task.id);assert.equal(current.status,'doing');assert.equal(current.version,3);
+      assert.equal((await request('/tasks/'+task.id,'PATCH',{status:'done',version:current.version},cookie)).status,200);
+      assert.equal((await request('/tasks/'+task.id,'PATCH',{status:'todo',version:current.version},cookie)).status,409,'A stale click must not undo the newer status');
       current=(await workspace()).tasks.find(t=>t.id===task.id);assert.equal(current.version,4);
       assert.equal((await request('/tours/'+tour.id,'PUT',{...tour,published:true,reserved:tour.reserved-1},cookie)).status,200);
       assert.equal((await request('/events','POST',{action:'portal_viewed'},cookie)).status,200);

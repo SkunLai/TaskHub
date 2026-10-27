@@ -331,7 +331,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.7.0" });
+      return json(res, { ok: true, version: "0.7.1" });
     }
     // Read-only members cannot bypass the interface by calling a write API.
     // Personal account actions do not mutate shared business data.
@@ -580,7 +580,7 @@ export const server = http.createServer(async (req, res) => {
     if (['/api/pooling/export','/api/pooling/export.xlsx'].includes(p) && method === "GET") {
       const u=await required(req);
       requireCapability(u,'canReadPooling');
-      const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,p.seats*p.unit_price-p.paid AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
+      const rows=await db.prepare("SELECT p.partner,t.title AS tour,t.departure,p.seats,p.unit_price,p.seats*p.unit_price AS total,p.paid,CASE WHEN p.status='confirmed' THEN p.seats*p.unit_price-p.paid ELSE NULL END AS balance,p.status,p.note,p.updated FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created").all(u.workspace);
       if(p.endsWith('.xlsx'))return downloadXlsx(res,{name:'Cong no B2B',headers:['Đối tác','Tour','Khởi hành','Khách','Giá / khách (VND)','Thỏa thuận (VND)','Đã thu (VND)','Còn thu (VND)','Trạng thái','Ghi chú','Cập nhật'],rows:rows.map(r=>[r.partner,r.tour,r.departure,r.seats,r.unit_price,r.total,r.paid,r.status==='confirmed'?r.balance:'',r.status,r.note,r.updated]),widths:[26,38,16,10,23,23,23,23,18,50,26]},'taskhub-pooling');
       return download(res,rows,'taskhub-pooling');
     }
@@ -695,11 +695,11 @@ export const server = http.createServer(async (req, res) => {
       const u = await required(req),
         b = await body(req);
       const status = choice(b.status, ["todo", "doing", "done"], "trạng thái");
-      if (b.version !== undefined) integer(b.version, 'phiên bản', 1, 1000000000);
-      const sql='UPDATE tasks SET status=?,version=version+1 WHERE id=? AND workspace=?'+(b.version === undefined ? '' : ' AND version=?');
-      const args=[status,taskMatch[1],u.workspace,...(b.version === undefined ? [] : [b.version])];
+      integer(b.version, 'phiên bản', 1, 1000000000);
+      const sql='UPDATE tasks SET status=?,version=version+1 WHERE id=? AND workspace=? AND version=?';
+      const args=[status,taskMatch[1],u.workspace,b.version];
       const result=await db.batch([[sql,args],...(['admin','reviewer','staff'].includes(u.role)?[]:[['INSERT INTO events SELECT ?,?,?,?,? WHERE changes()=1',[randomUUID(),u.id,'task_status_changed',status,now()]]])]);
-      if (!result[0].changes) fail(b.version === undefined ? 'Không tìm thấy công việc.' : 'Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.', b.version === undefined ? 404 : 409);
+      if (!result[0].changes) fail('Công việc đã thay đổi hoặc không còn tồn tại. Tải lại trước khi sửa.', 409);
       return json(res, { ok: true });
     }
     if (taskMatch && method === 'PUT') {
@@ -850,6 +850,10 @@ export const server = http.createServer(async (req, res) => {
       ".css": "text/css; charset=utf-8",
       ".svg": "image/svg+xml",
       ".png": "image/png",
+      ".jpg": "image/jpeg",
+      ".jpeg": "image/jpeg",
+      ".webp": "image/webp",
+      ".ico": "image/x-icon",
     };
     res.writeHead(200, {
       "Content-Type": types[extname(file)] || "application/octet-stream",

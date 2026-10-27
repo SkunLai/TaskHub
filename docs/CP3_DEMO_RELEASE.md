@@ -1,5 +1,7 @@
 # Bản demo cố định — 19/10/2026
 
+Đây là hướng dẫn bản CP3 theo thời điểm. Dùng [bàn giao Tuấn/Huy CP4](CP4_TUAN_HUY_HANDOFF.md) và [xác nhận phát hành](VALIDATION.md) cho bản hiện hành; các tag CP3 bên dưới chỉ là mốc dự phòng, không bị di chuyển.
+
 - Web: https://taskhub-travel.pages.dev/
 - Nhánh làm việc của nhóm: `build`; `dev` giữ để chủ repo duyệt.
 - Bản hiện tại: 0.5.0. Có bộ mẫu tùy chọn và nhân viên dùng chung. Các tag cũ là bản dự phòng; không di chuyển.

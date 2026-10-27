@@ -56,7 +56,7 @@ export function Workflow({ data, access, onNav }) {
   return (
     <div className="workspace-tools">
       <section className="panel workflow-intro">
-        <h2>Một quy trình, rõ từng người phụ trách</h2>
+        <h2>Quy trình và người phụ trách</h2>
         <p>
           Hiện tại: <strong>{access.label}</strong>. Mỗi bước dùng chung nguồn
           tour/lịch/chỗ; quyền chỉnh sửa phụ thuộc vai trò và quyền được cấp.

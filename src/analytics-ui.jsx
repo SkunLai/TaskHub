@@ -4,6 +4,7 @@ import { analyticsRange } from "../shared/analytics.mjs";
 import { api } from "./api.mjs";
 import { startPolling } from "./polling.mjs";
 import { PrintPage } from "./print-page.jsx";
+import { downloadWorkbook } from "./export-file.mjs";
 import "./analytics.css";
 
 const money = (n) => new Intl.NumberFormat("vi-VN").format(n) + " ₫";
@@ -62,6 +63,9 @@ export function Analytics({ access }) {
     [draft, setDraft] = useState(initial),
     [report, setReport] = useState(null),
     [error, setError] = useState(""),
+    [filterError, setFilterError] = useState(""),
+    [exportError, setExportError] = useState(""),
+    [exporting, setExporting] = useState(false),
     [busy, setBusy] = useState(false);
   const pending = useRef(false),
     request = useRef(0);
@@ -82,6 +86,7 @@ export function Analytics({ access }) {
       }
     } catch (e) {
       if (id === request.current) setError(e.message);
+      throw e;
     } finally {
       if (id === request.current) {
         pending.current = false;
@@ -91,6 +96,7 @@ export function Analytics({ access }) {
   }
   useEffect(() => {
     setReport(null);
+    setError("");
     pending.current = false;
     const stop = startPolling(load, { interval: 30000, maxInterval: 60000 });
     return () => {
@@ -98,6 +104,7 @@ export function Analytics({ access }) {
       request.current++;
     };
   }, [query, access.canReadPooling, access.canReadInquiries]);
+  const reload = () => void load().catch(() => {});
   const r =
     report &&
     report.range.from === filter.from &&
@@ -112,7 +119,7 @@ export function Analytics({ access }) {
         [
           "Khách đã giữ",
           r.tours.reserved,
-          "Ảnh chụp số chỗ hiện tại, không phải lượt mua",
+          "Số khách đang giữ chỗ trên các tour trong kỳ",
         ],
         [
           "Tỷ lệ lấp đầy",
@@ -134,10 +141,12 @@ export function Analytics({ access }) {
         onSubmit={(e) => {
           e.preventDefault();
           try {
-            setFilter(analyticsRange(draft));
-            setError("");
+            const next = analyticsRange(draft);
+            setFilterError("");
+            if (next.from === filter.from && next.to === filter.to) reload();
+            else setFilter(next);
           } catch (e) {
-            setError(e.message);
+            setFilterError(e.message);
           }
         }}
       >
@@ -168,17 +177,19 @@ export function Analytics({ access }) {
           type="button"
           className="btn ghost"
           disabled={busy}
-          onClick={load}
+          onClick={reload}
         >
           <RefreshCw size={16} />
           Tải lại
         </button>
       </form>
+      {filterError && <div className="error" role="alert">{filterError}</div>}
       {error && (
         <div className="error" role="alert">
-          {error} Báo cáo cũ không được dùng làm số liệu mới.
+          {error} {r ? "Số liệu bên dưới chưa được cập nhật. Bấm Tải lại để kiểm tra." : "Bấm Tải lại để thử lại."}
         </div>
       )}
+      {exportError && <div className="error" role="alert">{exportError}</div>}
       {!r ? (
         <p className="loading">
           {error
@@ -196,9 +207,23 @@ export function Analytics({ access }) {
               <a
                 className="btn ghost"
                 href={"/api/analytics/export.xlsx?" + query}
+                aria-disabled={exporting}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (exporting) return;
+                  setExporting(true);
+                  setExportError("");
+                  try {
+                    await downloadWorkbook("/api/analytics/export.xlsx?" + query, "taskhub-bao-cao.xlsx");
+                  } catch (e) {
+                    setExportError(e.message);
+                  } finally {
+                    setExporting(false);
+                  }
+                }}
               >
                 <Download size={16} />
-                Báo cáo Excel
+                {exporting ? "Đang tải Excel…" : "Báo cáo Excel"}
               </a>
               <button
                 className="btn ghost"
@@ -210,11 +235,15 @@ export function Analytics({ access }) {
               </button>
             </div>
           </div>
-          <p className="muted">
-            Tự tải lại sau khoảng 30 giây khi đang xem. Tour/B2B tính theo ngày
-            khởi hành; công việc theo hạn; tư vấn theo ngày gửi (giờ Việt Nam).
-            Không phải báo cáo doanh thu SaaS.
-          </p>
+          <details className="analytics-definitions">
+            <summary>Cách tính số liệu</summary>
+            <ul>
+              <li>Tour và phiếu B2B theo ngày khởi hành; công việc theo hạn; yêu cầu tư vấn theo ngày gửi, giờ Việt Nam.</li>
+              <li>Số chỗ và trạng thái là dữ liệu hiện tại, không phải số đặt tour mới phát sinh trong kỳ.</li>
+              {r.pooling && <li>Công nợ chỉ cộng phiếu đã xác nhận. Khoản thu do nhân viên ghi nhận, chưa đối chiếu ngân hàng và không phải doanh thu thuê bao TaskHub.</li>}
+              <li>Số liệu tự cập nhật khoảng 30 giây khi đang xem. Có thể bấm Tải lại để kiểm tra ngay.</li>
+            </ul>
+          </details>
           <div className="stat-grid">
             {stats.map(([label, value, note]) => (
               <section className="stat-card" key={label}>
@@ -252,10 +281,6 @@ export function Analytics({ access }) {
                 trước.
               </p>
             )}
-            <p className="muted">
-              Số chỗ là trạng thái hiện tại của tour trong tháng, không phải
-              lịch sử phát sinh booking.
-            </p>
           </section>
           <section className="panel analytics-panel">
             <h2>Công việc và yêu cầu tư vấn</h2>
@@ -302,11 +327,7 @@ export function Analytics({ access }) {
                 {r.pooling.confirmed} phiếu xác nhận · {r.pooling.pending} chờ ·{" "}
                 {r.pooling.cancelled} đã hủy.
               </p>
-              <p className="muted">
-                Chỉ phiếu xác nhận góp vào ba tổng tiền. Phiếu chờ/hủy vẫn có
-                trong bảng để đối chiếu. Đây là sổ ghi nhận nội bộ, chưa xác
-                minh giao dịch ngân hàng.
-              </p>
+              <p className="muted">Tổng tiền chỉ tính phiếu đã xác nhận. Các khoản thu do nhân viên ghi nhận.</p>
               <div className="table-wrap">
                 <table>
                   <thead>
@@ -350,6 +371,7 @@ export function Analytics({ access }) {
               Lập lúc {new Date(r.generated).toLocaleString("vi-VN",{timeZone:'Asia/Ho_Chi_Minh'})}. {r.today}{" "}
               theo giờ Việt Nam.
             </p>
+            {error && <p><strong>Chưa tải lại được dữ liệu. Kiểm tra thời điểm lập trước khi sử dụng báo cáo.</strong></p>}
             <table>
               <tbody>
                 {stats.map(([label, value, note]) => (

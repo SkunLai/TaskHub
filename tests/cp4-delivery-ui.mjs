@@ -130,6 +130,19 @@ try {
   });
   await page.goto(base + "/app");
   await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
+  await nav("Quản lý tour");
+  await page.getByRole("textbox", {name:"Tìm tour nội bộ",exact:true}).fill("da nang");
+  await page.getByRole("button", {name:"QA Đà Nẵng delivery",exact:true}).waitFor();
+  await page.getByRole("textbox", {name:"Tìm tour nội bộ",exact:true}).fill("");
+  await page.setViewportSize({width:390,height:844});
+  await page.getByRole("button",{name:"Mở menu",exact:true}).click();
+  const closeMenu = page.getByRole("button",{name:"Đóng menu điều hành",exact:true});
+  await closeMenu.press("Shift+Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("aria-label")), "Đăng xuất");
+  await page.getByRole("button",{name:"Đăng xuất",exact:true}).press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute("aria-label")), "Đóng menu điều hành");
+  await closeMenu.press("Escape");
+  await page.setViewportSize({width:1440,height:1000});
   await nav("Báo cáo vận hành");
   await page.locator(".analytics-bars").waitFor();
   await page.getByLabel("Báo cáo từ ngày", { exact: true }).fill("2026-11-01");
@@ -140,10 +153,32 @@ try {
   await page.getByRole("button", { name: "Xem báo cáo", exact: true }).click();
   assert.equal((await loaded).status(), 200);
   await page.getByText("2026-11-01 đến 2026-11-30", { exact: false }).waitFor();
+  // Failed reads must stay visible and retrying the same dates must load again.
+  await page.route("**/api/analytics?*", (route) => route.fulfill({
+    status: 503, contentType: "application/json", body: JSON.stringify({message:"QA chưa tải được số liệu"}),
+  }));
+  await page.getByRole("button", { name: "Tải lại", exact: true }).click();
+  await page.getByRole("alert").filter({hasText:"QA chưa tải được số liệu"}).waitFor();
+  assert.equal(await page.getByRole("button", {name:"In / lưu PDF",exact:true}).isEnabled(), false);
+  await page.unroute("**/api/analytics?*");
+  const retried = page.waitForResponse(r => r.url().includes("/api/analytics?from=2026-11-01"));
+  await page.getByRole("button", {name:"Xem báo cáo",exact:true}).click();
+  assert.equal((await retried).status(), 200);
+  await page.getByRole("button", {name:"In / lưu PDF",exact:true}).waitFor({state:"visible"});
+  await page.getByRole("alert").filter({hasText:"QA chưa tải được số liệu"}).waitFor({state:"detached"});
+  // An expired/failed export reports the error without replacing the app with JSON.
+  await page.route("**/api/analytics/export.xlsx?*", route => route.fulfill({
+    status:401,contentType:"application/json",body:JSON.stringify({message:"QA phiên tải tệp đã hết hạn"}),
+  }));
+  await page.getByRole("link", {name:"Báo cáo Excel",exact:true}).click();
+  await page.getByRole("alert").filter({hasText:"QA phiên tải tệp đã hết hạn"}).waitFor();
+  assert.equal(new URL(page.url()).pathname, "/app");
+  await page.unroute("**/api/analytics/export.xlsx?*");
   const rows = await download(
     page.getByRole("link", { name: "Báo cáo Excel", exact: true }),
   );
   assert.ok(rows.some((r) => r[1] === "Còn phải thu" && r[2] === 100000));
+  await page.getByRole("alert").filter({hasText:"QA phiên tải tệp đã hết hạn"}).waitFor({state:"detached"});
   await layout("analytics");
   await page.getByRole("button", { name: "In / lưu PDF", exact: true }).click();
   assert.equal(await page.evaluate(() => window.__prints), 1);
@@ -153,6 +188,13 @@ try {
   });
   await nav("Ghép tour B2B");
   await page.getByText("QA B2B delivery", { exact: true }).waitFor();
+  await page.route("**/api/pooling/export.xlsx", route => route.fulfill({
+    status:403,contentType:"application/json",body:JSON.stringify({message:"QA không có quyền xuất sổ"}),
+  }));
+  await page.getByRole("link",{name:"Công nợ Excel",exact:true}).click();
+  await page.getByRole("alert").filter({hasText:"QA không có quyền xuất sổ"}).waitFor();
+  assert.equal(new URL(page.url()).pathname,"/app");
+  await page.unroute("**/api/pooling/export.xlsx");
   const ledger = await download(
     page.getByRole("link", { name: "Công nợ Excel", exact: true }),
   );

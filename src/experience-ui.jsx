@@ -450,7 +450,7 @@ export function createExperienceUI({
         <div className="research-banner">
           <div>
             <Badge tone="blue">DỮ LIỆU KIỂM THỬ CÓ QUYỀN XEM</Badge>
-            <h2>Phản hồi theo đúng trải nghiệm.</h2>
+            <h2>Kết quả đánh giá MVP</h2>
             <p>
               Tách người tự dùng và người xem demo. Điểm chưa đánh giá không
               được đổi thành 0.
@@ -767,7 +767,7 @@ export function createExperienceUI({
           <details>
             <summary>Dữ liệu và quyền riêng tư</summary>
             <p>
-              Đăng ký tự nguyện. Email và vai trò do người dùng nhập. Xác minh email chỉ hoạt động khi kết nối dịch vụ gửi thư và không thay thế kiểm tra danh tính. Nhóm ghi thao tác nghiệp vụ và mã nút/menu/thời
+              Đăng ký tự nguyện. Email và vai trò do người dùng nhập. Nhóm ghi thao tác nghiệp vụ và mã nút/menu/thời
               gian, không ghi nội dung gõ hoặc mật khẩu. Dữ liệu nghiên cứu chỉ
               dành cho nhóm và người đánh giá được cấp quyền, lưu tối đa khoảng
               6 tháng.

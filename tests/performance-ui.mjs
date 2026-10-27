@@ -73,7 +73,7 @@ try {
   await page.getByRole('button', { name: 'Dành cho điều hành', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, '/app');
   await page.getByRole('heading', { name: 'Điều hành tour cùng TaskHub', exact: true }).waitFor();
-  await page.getByRole('heading', { name: 'Để mỗi chuyến đi vận hành trôi chảy.', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Quản lý lịch, số chỗ và công việc tại một nơi.', exact: true }).waitFor();
   assert.equal(await page.locator('.tour-card').count(), 0);
   for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });

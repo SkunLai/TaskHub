@@ -2,6 +2,8 @@
 
 Đối chiếu [CP4_Timeline_TaskHub](https://docs.google.com/spreadsheets/d/1qvVwdp1zHSm48SIosN7uZZ6Z6SBhFfcXPWIKeYPNG_4/edit?gid=1199392845#gid=1199392845), tab Timeline và Phân công; CP4 Paths Requirements trang 3; rubric MVP Demonstration; phản hồi trong hai file khảo sát người dùng cung cấp. Không chỉnh bảng phân công hoặc phần slide/P&L của thành viên khác.
 
+Rà lại bản **0.7.1**: kiểm tra chức năng thực tế, sửa bảo vệ phiên bản khi đổi trạng thái việc, thống nhất công nợ CSV/Excel, phục hồi báo cáo và lỗi tải Excel; sửa ngày giờ Việt Nam, tìm không dấu, menu bàn phím và thông tin quyền đang đăng nhập. Giảm khẩu hiệu và gom định nghĩa báo cáo vào “Cách tính số liệu”. Dữ liệu trình diễn vẫn có nhãn giả lập; không đưa lại chức năng AI, xác minh email hoặc đo thời gian bài thử đã bỏ. Kết quả cụ thể tại [VALIDATION](VALIDATION.md).
+
 ## Đúng phạm vi và trạng thái
 
 | Người / STT Timeline | Việc giao | Kết quả FE/BE và bàn giao |
@@ -37,6 +39,8 @@ Tab Phân công tổng hợp đang ghi export ở Tuấn, còn Timeline giao cho
 3. Đăng nhập sẵn tài khoản chủ/điều hành; nếu demo role, chuẩn bị tài khoản Kinh doanh hoặc Kế toán đã được chủ mời. Không đưa mật khẩu/liên kết lời mời lên slide hoặc GitHub.
 4. Mở sẵn Báo cáo vận hành đúng kỳ ngày khởi hành của tour. Thử nút In và tải Excel trước giờ trình bày. Tắt thông báo cá nhân trên máy.
 5. Dùng tag/bản phát hành đã kiểm tra; kiểm tra link public và bản local. Chạy local bằng Node 24+, `npm ci`, tạo `.env` từ `.env.example` với mật khẩu quản trị riêng, `npm run dev`. Có thể dùng bộ mẫu tùy chọn trong workspace trống.
+
+Bản rà 0.7.1 có tag `cp4-demo-v0.7.1`; tag `cp4-demo-v0.7.0` giữ làm mốc dự phòng. Chưa coi việc Tuấn tập demo, ghép nội dung vào slide hay freeze đúng lịch đã hoàn tất chỉ vì code đã phát hành.
 
 ## Demo live 6 phút
 

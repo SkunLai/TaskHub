@@ -261,11 +261,7 @@ export function createPortalUI({
   function CatalogPicker({ catalog, onClose, onUse }) {
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState(null);
-    const tours = catalog.tours.filter((t) =>
-      (t.title + " " + t.code + " " + t.destination)
-        .toLocaleLowerCase("vi")
-        .includes(query.toLocaleLowerCase("vi")),
-    );
+    const tours = catalog.tours.filter((t) => matchesTourSearch(t, query));
     if (selected)
       return (
         <CatalogDetails
@@ -443,10 +439,8 @@ export function createPortalUI({
                 <p>
                   <strong>Không gian trình diễn TaskHub</strong>
                   <br />
-                  Dữ liệu giả lập phục vụ trình diễn, không phải thông tin mở
-                  bán thực tế. Lịch, giá và số chỗ của các tour từ điều hành
-                  dùng để kiểm thử; yêu cầu gửi tại đây không tạo đặt tour hoặc
-                  thanh toán.
+                  Dữ liệu giả lập để dùng thử. Không mở bán, nhận đặt tour
+                  hoặc thanh toán thực tế.
                 </p>
               </div>
             )}
@@ -593,7 +587,7 @@ export function createPortalUI({
                 <div className="catalog-heading">
                   <div>
                     <div className="eyebrow blue">DỮ LIỆU TOUR TỪ ÉN VIỆT</div>
-                    <h3>Khám phá hành trình quốc tế</h3>
+                    <h3>Tour quốc tế tham khảo</h3>
                   </div>
                   <span>{references.length} hành trình</span>
                 </div>
@@ -867,10 +861,10 @@ export function createPortalUI({
             <ErrorBox error={error} />
             <div className="form-grid">
               <Field label="Tên">
-                <input name="name" required maxLength="80" />
+                <input name="name" autoComplete="name" required maxLength="80" />
               </Field>
               <Field label="Email">
-                <input name="email" type="email" required maxLength="254" />
+                <input name="email" type="email" autoComplete="email" required maxLength="254" />
               </Field>
             </div>
             <Field label="Số khách">

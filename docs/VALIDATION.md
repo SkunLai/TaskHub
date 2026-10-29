@@ -1,5 +1,14 @@
 # Xác nhận bản MVP 0.2 — 14/10/2026
 
+## Rút gọn giao diện 0.7.2 — 29/10/2026
+
+- Theo các ảnh/yêu cầu của chủ dự án: gỡ menu/form Phản hồi MVP và câu hỏi mức phí; banner workspace dài, thẻ không gian dùng thử, hero minh họa Tổng quan, badge Chưa giữ chỗ tự động; màn Hướng dẫn; dòng DÀNH CHO KHÁCH HÀNG; liên kết góp ý GitHub và Nguồn ảnh ở chân trang. Mã component/CSS không còn dùng được gỡ, không chỉ ẩn bằng CSS. Ghi công/giấy phép ảnh trong chi tiết ảnh vẫn giữ.
+- CP3 yêu cầu khảo sát và raw interactions, không bắt buộc khảo sát/hướng dẫn nằm trong sản phẩm. Khảo sát mới dùng công cụ ngoài web do nhóm chọn; đợt này không tạo Form/Sheet/link mới hoặc giả định đã đủ người thử. Log có đồng ý, bảo vệ workspace/role và cảnh báo offline/dữ liệu cũ được giữ. Xuất log/khảo sát lịch sử theo quyền và tự xóa tài khoản chuyển về Tài khoản & nhóm.
+- `/api/feedback` và `/api/feedback/features` trả 404 cho mọi role; bỏ hàm ghi và validator chỉ phục vụ form. Workspace không còn truy vấn/trả feedback/featureFeedback/completedActions. Bảng và dữ liệu cũ không bị xóa; API/CSV đọc lịch sử vẫn được phân quyền. Không đổi schema/migration hoặc nhập dữ liệu khảo sát vào web.
+- Sửa form mời nhân viên: chuyển mô tả vai trò xuống dưới hàng nhập, thống nhất chiều cao input/select/nút; 4 cột desktop, 2 cột tablet, 1 cột mobile. Có assertion tọa độ cho ba ô/nút và kiểm tra không tràn 320/390/768/1440 px. Tên, quyền và API mời nhân viên giữ nguyên.
+- `npm test`: **101/101** đạt trên SQLite và libSQL. Full UI, v05, CP4, CP4 delivery, UX051 và performance browser suites đạt local sau điều chỉnh locator reviewer theo nhãn chỉ xem đang có. Bao gồm xác nhận UI đã gỡ, raw click logs còn ghi, reviewer đọc export ở Tài khoản, staff tự xóa giữ nghiệp vụ chung, các luồng tour/task/B2B/import/Excel/PDF và mạng chậm/xung đột. Dữ liệu QA riêng đã xóa.
+- Vite/Pages và Sites Vinext build thành công, không warning cú pháp CSS. Kết quả public/CI và mã triển khai được ghi tiếp sau phát hành.
+
 ## Rà cuối 0.7.1 — 28/10/2026
 
 - Đối chiếu lại Timeline Tuấn/Huy, CP4 requirements/rubric và chức năng thực tế. Không phát hiện thêm tính năng MVP bắt buộc còn thiếu trong phạm vi FE/BE. Không đánh dấu tập demo/ghép slide/freeze tương lai, người thử thật, giá/gói hay Path 2 đã hoàn tất. Bàn giao cập nhật ở [CP4_TUAN_HUY_HANDOFF](CP4_TUAN_HUY_HANDOFF.md).

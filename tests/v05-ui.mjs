@@ -117,12 +117,15 @@ try {
   registered = true;
   await page.getByRole("heading", { name: "Tổng quan", exact: true }).waitFor();
   assert.equal((await workspace(ownerContext)).tours.length, 0);
+  assert.equal(await page.locator('.welcome-banner,.workspace-switch,.app-main > .workspace-notice').count(),0);
+  assert.equal(await page.getByRole('button',{name:'Phản hồi MVP',exact:true}).count(),0);
+  assert.equal(await page.locator('.feature-feedback-form').count(),0);
   await page
     .getByRole("button", { name: "Dùng dữ liệu mẫu", exact: true })
     .waitFor();
   await noOverflow(
     page,
-    "Empty dashboard and onboarding",
+    "Empty dashboard without survey or decorative hero",
     "empty-dashboard",
   );
   page.once("dialog", (dialog) => dialog.accept());
@@ -155,7 +158,7 @@ try {
   assert.ok(data.tours.every((tour) => tour.title.includes("[Demo]")));
   await noOverflow(
     page,
-    "Populated dashboard and onboarding",
+    "Populated dashboard without survey or decorative hero",
     "sample-dashboard",
   );
   console.log(
@@ -271,9 +274,9 @@ try {
   );
 
   await staff
-    .getByRole("button", { name: "Hướng dẫn & hỗ trợ", exact: true })
+    .getByRole("button", { name: "Tài khoản & nhóm", exact: true })
     .click();
-  await staff.getByText("Dữ liệu và quyền riêng tư", { exact: true }).click();
+  await staff.getByText("Xóa tài khoản", { exact: true }).click();
   staff.once("dialog", (dialog) => dialog.accept());
   const removeStaff = responseFor(staff, "/account", "DELETE");
   await staff

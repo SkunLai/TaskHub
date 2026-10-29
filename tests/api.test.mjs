@@ -102,7 +102,6 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
           ["/tasks", "POST", {}],
           ["/tasks/nonexistent", "PATCH", { status: "done" }],
           ["/inquiries/fake", "PATCH", { status: "closed" }],
-          ["/feedback", "POST", {}],
           ["/account", "DELETE", {}],
           ["/public/agency/inquiries", "POST", {}],
         ])
@@ -438,57 +437,31 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
       password: "Test-admin-secret-2026!",
     });
     await t.test(
-      "feedback is real, upserted once, CSV protected and formula-safe",
+      "retired feedback APIs cannot write; protected historical CSV stays formula-safe",
       async () => {
-        assert.equal(
-          (await request("/feedback", "POST", { ...feedback, ease: 8 }, ac))
-            .status,
-          400,
-        );
-        assert.equal(
-          (await request("/feedback", "POST", feedback, ac)).status,
-          200,
-        );
-        assert.equal(
-          (await request("/feedback", "POST", feedback, ac)).status,
-          200,
-        );
-        const research = (await request("/research", "GET", null, admin.cookie))
-          .body;
-        assert.equal(research.participants, 2);
-        assert.equal(research.feedback.length, 1);
-        assert.equal(research.readyToReview, 0);
-        assert.equal(research.feedback[0].has_test_flow, 0);
-        await request("/events", "POST", { action: "portal_viewed" }, ac);
-        // Interaction after feedback must not qualify an earlier response.
-        const beforeResubmit = (
-          await request("/research", "GET", null, admin.cookie)
-        ).body;
-        assert.equal(beforeResubmit.readyToReview, 0);
-        await request("/feedback", "POST", feedback, ac);
-        const afterResubmit = (
-          await request("/research", "GET", null, admin.cookie)
-        ).body;
-        assert.equal(afterResubmit.readyToReview, 1);
-        assert.equal(afterResubmit.feedback[0].has_test_flow, 1);
-        const csv = await request(
-          "/export/feedback",
-          "GET",
-          null,
-          admin.cookie,
-        );
-        assert.equal(csv.status, 200);
-        assert.match(csv.body, /testera@example.test/);
-        assert.ok(csv.body.includes("'=HYPERLINK"));
-        assert.ok(!csv.body.includes("password"));
-        const before = (await request("/research", "GET", null, admin.cookie))
-          .body.events;
-        await request("/public/" + ws);
-        await request("/public/" + ws);
-        assert.equal(
-          (await request("/research", "GET", null, admin.cookie)).body.events,
-          before,
-        );
+        for(const route of ['/feedback','/feedback/features']) {
+          assert.equal((await request(route,'POST',feedback,ac)).status,404);
+          assert.equal((await request(route,'POST',feedback)).status,404);
+        }
+        // Fixture models a row collected before the form was removed.
+        const raw = new DatabaseSync(join(dir,'taskhub.sqlite'));
+        raw.prepare('INSERT INTO feedback VALUES (?,?,?,?,?,?,?,?,?,?)').run(a.body.user.id,feedback.portal,feedback.operations,feedback.sync,feedback.ease,feedback.intent,feedback.price,feedback.liked,feedback.disliked,'2000-01-01T00:00:00.000Z');
+        raw.close();
+        const research = (await request('/research','GET',null,admin.cookie)).body;
+        assert.equal(research.participants,2);assert.equal(research.feedback.length,1);
+        assert.equal(research.feedback[0].has_test_flow,0);assert.equal(research.readyToReview,0);
+        await request('/events','POST',{action:'portal_viewed'},ac);
+        assert.equal((await request('/feedback','POST',feedback,ac)).status,404);
+        const archived = (await request('/research','GET',null,admin.cookie)).body;
+        assert.equal(archived.feedback[0].created,'2000-01-01T00:00:00.000Z');
+        assert.equal(archived.readyToReview,0,'Later interactions cannot qualify an older response');
+        const csv = await request('/export/feedback','GET',null,admin.cookie);
+        assert.equal(csv.status,200);assert.match(csv.body,/testera@example.test/);
+        assert.ok(csv.body.includes("'=HYPERLINK"));assert.ok(!csv.body.includes('password'));
+        assert.equal((await request('/export/feedback','GET',null,ac)).status,403);
+        const before=(await request('/research','GET',null,admin.cookie)).body.events;
+        await request('/public/'+ws);await request('/public/'+ws);
+        assert.equal((await request('/research','GET',null,admin.cookie)).body.events,before);
       },
     );
     await t.test(
@@ -498,7 +471,8 @@ test("MVP: consent, isolation, seat sync, concurrency, exports, persistence and 
         await start();
         const after = (await request("/workspace", "GET", null, ac)).body;
         assert.equal(after.tasks.find((t) => t.id === taskId).status, "done");
-        assert.equal(after.feedback.price, 0);
+        assert.equal(Object.hasOwn(after,'feedback'),false);
+        assert.equal((await request('/research','GET',null,admin.cookie)).body.feedback[0].price,0);
         assert.equal(after.inquiries.length, 1);
         assert.equal((await request("/logout", "POST", {}, bc)).status, 200);
         assert.equal(

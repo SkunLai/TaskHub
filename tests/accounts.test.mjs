@@ -161,8 +161,8 @@ test('shared staff API enforces viewer/editor permissions and excludes staff fro
     assert.ok((await request('/workspace','GET',null,owner.cookie)).body.tours.some(t=>t.id===tour.body.id));
     assert.equal((await request('/events','POST',{action:'portal_viewed'},staff.cookie)).status,200);
     assert.deepEqual((await request('/interactions','POST',{events:[{id:randomUUID(),kind:'click',control:'test',area:'workspace',at:now()}]},staff.cookie)).body,{count:0});
-    assert.equal((await request('/feedback','POST',{},staff.cookie)).status,400);
-    assert.equal((await request('/feedback/features','POST',{},staff.cookie)).status,403);
+    assert.equal((await request('/feedback','POST',{},staff.cookie)).status,404);
+    assert.equal((await request('/feedback/features','POST',{},staff.cookie)).status,404);
     const research=(await request('/research','GET',null,admin.cookie)).body;assert.equal(research.participants,1);assert.equal(research.events,1,'Only owner test_started is research data');
     assert.equal((await request('/account','DELETE',null,staff.cookie)).status,200);
     assert.equal((await request('/session','GET',null,staff.cookie)).body.user,null);

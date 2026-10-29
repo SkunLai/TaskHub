@@ -1,5 +1,11 @@
 # TaskHub — CP3 MVP
 
+Cập nhật 29/10/2026: gỡ màn Hướng dẫn và các liên kết góp ý GitHub, dòng DÀNH CHO KHÁCH HÀNG, liên kết Nguồn ảnh ở chân trang; ghi công ảnh vẫn nằm trong chi tiết ảnh. Xuất dữ liệu và tự xóa tài khoản chuyển về Tài khoản & nhóm. Form mời nhân viên được căn hàng và kiểm tra responsive.
+
+Bản **0.7.2** gỡ mục **Phản hồi MVP**, biểu mẫu đánh giá tính năng và câu hỏi mức sẵn sàng trả khỏi web theo yêu cầu chủ dự án. CP3 vẫn cần khảo sát tối thiểu 20 cá nhân và dữ liệu tương tác gốc; yêu cầu không bắt buộc biểu mẫu phải nằm trong sản phẩm. Nhóm thu phản hồi bằng Google Forms/Sheet hoặc công cụ bên ngoài do nhóm chọn. Đợt này không tạo hay công bố liên kết khảo sát mới.
+
+Log nghiệp vụ/nút/menu có đồng ý và bản xuất dữ liệu cũ chỉ đọc dành cho admin/reviewer được giữ; không xóa phản hồi đã có. Các banner dài, thẻ “không gian dùng thử”, khối minh họa trên Tổng quan và badge “Chưa giữ chỗ tự động” được gỡ khỏi giao diện. Phân quyền, tách dữ liệu workspace, nhãn dữ liệu giả lập cần thiết và cảnh báo mạng/dữ liệu cũ vẫn giữ. Xem [bàn giao hiện hành](docs/CP4_TUAN_HUY_HANDOFF.md) và [kết quả kiểm tra](docs/VALIDATION.md).
+
 Bản 0.7.0 bổ sung [báo cáo vận hành, xuất PDF/XLSX, ảnh 4G và bàn giao Tuấn/Huy](docs/CP4_TUAN_HUY_HANDOFF.md). Mở **Báo cáo vận hành**, **Ghép tour B2B**, hoặc chi tiết tour để dùng các chức năng mới; PDF sử dụng hộp thoại In/Lưu PDF của trình duyệt.
 
 Bản 0.6.0 bổ sung phân vai điều hành/kinh doanh/kế toán/quản lý, sơ đồ vận hành, cảnh báo dữ liệu cũ và bảng tính giá trị/gói/doanh thu nội bộ. Xem [đối chiếu góp ý mentor và hướng dẫn demo](docs/CP4_MENTOR_REVIEW.md). Chưa có giá mở bán, SLA hoặc chấp thuận Path 2.
@@ -16,7 +22,7 @@ Bản 0.5 dùng bộ dữ liệu giả lập đã được chủ dự án cho ph
 
 Giao diện chạy trên Cloudflare Pages; gateway dùng tiếp backend/database cloud hiện có. Xem [vận hành Pages](docs/PAGES_DEPLOYMENT.md); `npm run build:pages` tạo gói FE/gateway từ cùng nguồn. URL Sites cũ vẫn hoạt động và dùng cùng dữ liệu.
 
-Bàn giao nền tảng: [bản 0.5](docs/RELEASE_0_5.md). Cập nhật giao diện mới nhất: [bản 0.5.1](docs/RELEASE_0_5_1.md).
+Lịch sử bàn giao nền tảng: [bản 0.5](docs/RELEASE_0_5.md) và [bản 0.5.1](docs/RELEASE_0_5_1.md). Đây là các mốc cũ; trạng thái hiện hành nằm trong bàn giao Tuấn/Huy và VALIDATION.
 
 ## Chạy trên máy anh
 
@@ -34,7 +40,7 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 - Nếu chuyển sang máy khác: cài Node.js **24 LTS**, chạy `npm ci` trước. Không dùng Node 18/20 vì backend dùng `node:sqlite`.
 - Dữ liệu nằm trong `data/taskhub.sqlite` (và tệp WAL/SHM khi chạy). `data/` và `.env` đã được bỏ khỏi Git.
 
-## Phạm vi bản 0.5.0
+## Phạm vi hiện hành 0.7.2
 
 | CP2 / CP3                         | MVP chạy được                                                                                     | Cách kiểm tra                                  |
 | --------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
@@ -44,8 +50,8 @@ Mở http://127.0.0.1:5173. Frontend dùng port 5173; API port 3001. Dừng bằ
 | Giảm thao tác nhập tour | Nhập XLSX/CSV có xem trước; chọn nội dung có nguồn và đổi số chỗ/giao việc ngay trên thẻ | Nhập tệp thành bản nháp, kiểm tra portal sau khi công khai |
 | Lịch / số chỗ dùng chung          | API điều hành và portal dùng cùng SQLite; portal đọc lại mỗi 5 giây khi tab đang hiển thị         | Sửa số khách hoặc ngày, kiểm tra portal        |
 | Tránh cập nhật sai                | Kiểm tra số khách không vượt sức chứa; phiên bản tour để từ chối ghi đè bản cũ                    | Thử vượt sức chứa hoặc sửa đồng thời ở hai tab |
-| CP3: người dùng thử thật          | Đăng ký tự nguyện; log thao tác; đánh giá riêng 6 nhóm tính năng, tách tự dùng/xem demo/chưa thử và mức phí tùy chọn | Tester chọn đúng trải nghiệm rồi gửi phản hồi |
-| CP3: dữ liệu gốc                  | Quản trị xuất `taskhub-interactions.csv` và `taskhub-feedback.csv` có email                       | Phản hồi MVP → tải CSV                         |
+| CP3: người dùng thử thật          | Đăng ký tự nguyện và log thao tác; nhóm thu phản hồi bằng khảo sát bên ngoài, không còn form đánh giá/giá trên web | Tester dùng MVP rồi trả lời công cụ khảo sát do nhóm cung cấp |
+| CP3: dữ liệu gốc                  | Admin/reviewer xuất nhật ký tương tác; các bản xuất phản hồi lịch sử chỉ đọc vẫn được bảo vệ quyền | Tài khoản & nhóm → Nhật ký thao tác CSV; bản xuất lịch sử theo quyền |
 
 Đã bổ sung **B2B tối giản** (phiếu ghép, xác nhận chỗ, ghi nhận thu/còn phải thu và CSV), nhập **XLSX/CSV** tối đa 20 tour/đợt, chọn nội dung tour trong hai lần chạm và đổi số chỗ/giao việc ngay trên thẻ. Xem [bảng P1–P3/S-1–S-4](docs/CP2_FEATURE_MAP.md) và [bản demo cố định](docs/CP3_DEMO_RELEASE.md).
 
@@ -57,7 +63,7 @@ Bản 0.4.1 thêm tìm tour không dấu, lọc ngày/chỗ, số kết quả v�
 
 B2B chưa có đối tác tự đăng nhập/duyệt; net price chỉ theo từng phiếu, chưa quản lý net/markup toàn tour hoặc nhà cung cấp. Thanh toán, chatbot và Google login chưa triển khai. Xác minh email đã được bỏ theo yêu cầu chủ dự án. Khôi phục mật khẩu có luồng/token nhưng chưa có dịch vụ gửi email. Nhân viên có tài khoản riêng theo lời mời và quyền được cấp; người phụ trách công việc vẫn là tên nhập, chưa có thông báo tự động đến người đó.
 
-Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có tiền giao dịch thật. Tour, giá, lịch và người phụ trách phải do người quản lý nhập; bản cài mới không tự tạo dữ liệu kinh doanh. Giá SaaS chưa chốt; 500.000 VND/tháng trong CP2 là giả định, không dùng làm kết quả khảo sát. MVP thu mức sẵn sàng trả đơn giản, **không** triển khai mô hình Van Westendorp.
+Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có tiền giao dịch thật. Tour, giá, lịch và người phụ trách phải do người quản lý nhập; bản cài mới không tự tạo dữ liệu kinh doanh. Giá SaaS chưa chốt; 500.000 VND/tháng trong CP2 là giả định, không dùng làm kết quả khảo sát. Từ 0.7.2, web không thu mức sẵn sàng trả hoặc có form Van Westendorp; phân tích giá dùng dữ liệu khảo sát bên ngoài đã được nhóm cung cấp và xác minh.
 
 ## Kịch bản demo khoảng 5 phút
 
@@ -66,25 +72,25 @@ Yêu cầu tư vấn không giữ chỗ hoặc xác nhận booking; chưa có ti
 3. Mở cổng khách hàng: đối chiếu số chỗ, ngày và giá với thông tin vừa cập nhật. Xem lịch trình.
 4. Gửi yêu cầu tư vấn bằng **email giả**; về điều hành xem yêu cầu mới. Giải thích chưa xác nhận booking.
 5. Tạo việc “Chốt danh sách khách”, chỉ định người phụ trách và hạn. Chuyển sang hoàn thành.
-6. Tester vào Phản hồi MVP để gửi đánh giá. Quản trị xem / tải dữ liệu gốc.
+6. Tester trả lời khảo sát bên ngoài do nhóm cung cấp. Admin/reviewer tải nhật ký thao tác để đối chiếu; không tạo phản hồi thay người thử.
 
 ## Thử với ít nhất 20 người
 
 CP3 Requirements mục 2.1 yêu cầu ít nhất **20 cá nhân**, xem/dùng MVP rồi đánh giá tính năng. Mời >20 người theo lịch nhóm để dự phòng. Gửi **link gốc của web** (nút Dùng thử TaskHub), không gửi link `/portal/<id>` riêng của người khác.
 
 - Mỗi người tự tạo tài khoản bằng email và đồng ý thông báo dữ liệu. Email do người dùng nhập, **chưa xác minh**; không suy luận số email = số người độc lập.
-- Yêu cầu sửa tour, xem portal, tạo/đổi trạng thái việc rồi đánh giá. Tải lại tự động không ghi nhận thêm lượt xem.
-- `interactions.csv`: email, vai trò, quy mô, consent timestamp/version, action, entity và thời gian UTC. `feedback.csv`: cùng thông tin đối chiếu và điểm từng tính năng, ý định, mức trả, câu trả lời mở.
-- Admin/reviewer xem tài khoản, phản hồi và số phản hồi có đủ thao tác thử trước khi gửi (sửa tour, mở portal, tạo việc, đổi trạng thái). Nhóm vẫn phải đối chiếu người thử thật; bộ đếm không xác minh danh tính, thứ tự thử hoặc mức hiểu tính năng. Không tính dữ liệu tự động/QA vào khảo sát.
+- Yêu cầu sửa tour, xem portal, tạo/đổi trạng thái việc rồi trả lời khảo sát bên ngoài. Phân biệt tự dùng/xem demo/chưa thử, ghi thời gian và thông tin đối chiếu cần thiết trong bảng khảo sát do nhóm quản lý. Tải lại tự động không ghi nhận thêm lượt xem.
+- Nhật ký tương tác gồm email, vai trò, quy mô, consent timestamp/version, action, entity và thời gian UTC. Biểu mẫu phản hồi đã gỡ không nhận bản ghi mới; CSV phản hồi lịch sử vẫn đọc/xuất theo quyền, không tự chuyển thành kết quả của khảo sát mới.
+- Nhóm đối chiếu người thử thật và thời điểm khảo sát với log; không suy luận số email bằng số cá nhân hoặc số lần bấm bằng số người. Không tính dữ liệu tự động/QA vào khảo sát. Việc gỡ form không tự hoàn tất yêu cầu 20 cá nhân, phân tích hay Iterate/Persevere.
 - Không tự quyết định Iterate/Persevere hoặc giá khi chưa có dữ liệu thật. Phần slide, BMC và phân tích giá thuộc phân công riêng; repo chỉ cung cấp dữ liệu phục vụ các phần đó.
 
-Hướng dẫn thực hiện: [khảo sát và dữ liệu CP3](docs/CP3_TESTING_GUIDE.md). Với biểu mẫu sáu tính năng hiện tại, quản trị/reviewer tải **Người thử CSV** và **Đánh giá tính năng CSV** rồi chạy:
+Hướng dẫn và bộ câu hỏi trước đây nằm ở [khảo sát và dữ liệu CP3](docs/CP3_TESTING_GUIDE.md), [câu hỏi bàn giao An](docs/CP3_SURVEY_QUESTIONS.md). Những đoạn hướng dẫn gửi form trong web là lịch sử trước 0.7.2. Đợt này không tạo Google Forms/Sheet hoặc tự xác nhận link cũ còn dùng được. Với hai CSV raw của An đúng schema, hoặc bản xuất sáu tính năng lịch sử được cấp quyền, công cụ offline vẫn chạy:
 
 ```powershell
 npm run survey:report -- work/survey/taskhub-survey-testers.csv work/survey/taskhub-survey-features.csv work/survey/report
 ```
 
-Tệp tương tác được giữ để đối chiếu hành vi. Bộ tổng hợp **legacy** bên dưới chỉ dành cho biểu mẫu điểm ba tính năng cũ, không dùng thay cho CSV sáu tính năng:
+Tệp tương tác được giữ để đối chiếu hành vi. Bộ tổng hợp **legacy** bên dưới chỉ đọc phản hồi ba tính năng đã có từ trước, không nhận phản hồi mới và không dùng thay cho CSV sáu tính năng:
 
 ```powershell
 npm run research:report -- work/research/input/taskhub-feedback.csv work/research/input/taskhub-interactions.csv work/research/report
@@ -106,7 +112,7 @@ CP3 mục 2.1–2.3 và phân công Tuấn yêu cầu người thử, phản h�
 
 Cookie phiên đăng nhập HttpOnly/SameSite; production dùng Secure. Mật khẩu người thử được salt/hash bằng scrypt. SQL dùng prepared statements. API điều hành giới hạn theo workspace; export chỉ cho quản trị và reviewer được cấp quyền. Public portal chỉ đọc tour đã công khai và không trả email/khách hàng/công việc. Có kiểm tra origin và header riêng cho thao tác thay đổi, giới hạn tần suất đăng ký/đăng nhập/gửi yêu cầu.
 
-Thông báo đồng ý xuất hiện trước khi đăng ký; consent v1 được ghi cùng thời gian. Người thử xóa tài khoản và dữ liệu tại Hướng dẫn & hỗ trợ. Dữ liệu khảo sát/yêu cầu tư vấn quá **180 ngày** được xóa khi server khởi động và mỗi 12 giờ server chạy. `npm run data:purge` có thể chạy thủ công. Nhóm cần xóa riêng CSV, bản backup và bản đã chia sẻ; chức năng này không thể xóa bản ngoài hệ thống. Không tuyên bố quy trình đã được kiểm toán tuân thủ pháp luật.
+Thông báo đồng ý xuất hiện trước khi đăng ký; consent v1 được ghi cùng thời gian. Người thử xóa tài khoản và dữ liệu tại Tài khoản & nhóm. Dữ liệu khảo sát/yêu cầu tư vấn quá **180 ngày** được xóa khi server khởi động và mỗi 12 giờ server chạy. `npm run data:purge` có thể chạy thủ công. Nhóm cần xóa riêng CSV, bản backup và bản đã chia sẻ; chức năng này không thể xóa bản ngoài hệ thống. Không tuyên bố quy trình đã được kiểm toán tuân thủ pháp luật.
 
 ## Kiểm tra và build
 
@@ -118,7 +124,7 @@ npm start
 
 `npm start` phục vụ cả FE build và API tại http://127.0.0.1:3001. Không cần Vite trên production. Test tích hợp dùng SQLite tạm, kiểm tra consent, phân tách tenant, sync, sức chứa, ghi đồng thời, task, inquiry, CSV, lưu sau restart và xóa dữ liệu. Test không nhập email hoặc dữ liệu CP2 thật.
 
-Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task → feedback, kiểm tra màn hình 320/390/768/1440px, phục hồi kết nối và tìm kiếm, rồi xóa tài khoản test. Ảnh QA lưu trong `work/`. Các script dùng tài khoản QA tạm riêng và xóa trong finally; không chỉnh sửa dữ liệu nghiệp vụ sẵn có. Kiểm tra mới: `TEST_URL=http://127.0.0.1:3001 node tests/v05-ui.mjs` (PowerShell đặt `$env:TEST_URL` trước).
+Kiểm thử UI: để `npm run dev` đang chạy trong terminal thứ nhất, chạy `npm run test:ui` trong terminal thứ hai. Windows dùng Edge chạy ẩn; hệ điều hành khác cần `npx playwright install chromium`. Có thể đặt `PLAYWRIGHT_CHANNEL` hoặc `TEST_URL` nếu dùng môi trường khác. Script tạo tài khoản/email giả, thử tour → portal → inquiry → task/B2B và đối chiếu log; kiểm tra màn hình 320/390/768/1440px, phục hồi kết nối và tìm kiếm, rồi xóa tài khoản test. Menu/form Phản hồi MVP không còn là bước demo. Ảnh QA lưu trong `work/`. Các script dùng tài khoản QA tạm riêng và xóa trong finally; không chỉnh sửa dữ liệu nghiệp vụ sẵn có. Kiểm tra mới: `TEST_URL=http://127.0.0.1:3001 node tests/v05-ui.mjs` (PowerShell đặt `$env:TEST_URL` trước).
 
 Giao diện ngày 14/10 dùng nền xanh dương nhạt, nút xanh đậm, chữ slate và điểm nhấn mint/lavender. Tổng quan có lộ trình thử 3 bước. Khi mạng lỗi, web phân biệt dữ liệu chưa tải được với tìm kiếm không có kết quả, và cho phép tải lại. Menu mobile có lớp nền, nút đóng, Escape và trạng thái truy cập bằng bàn phím.
 

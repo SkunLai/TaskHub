@@ -19,7 +19,7 @@ packageFile.dependencies.fflate=JSON.parse(readFileSync('package.json','utf8')).
 put('package.json',JSON.stringify(packageFile,null,2)+'\n');
 put('lib/demo.mjs',readFileSync('server/demo.mjs','utf8'));
 // Remove generated sources for retired features from the retained cloud checkout.
-for (const file of ['lib/trials.mjs','app/trial-ui.jsx','app/trial.css']) rmSync(join(target,file),{force:true});
+for (const file of ['lib/trials.mjs','app/trial-ui.jsx','app/trial.css','app/experience-ui.jsx','app/experience.css']) rmSync(join(target,file),{force:true});
 let api = readFileSync('server/index.mjs', 'utf8').replaceAll('\r\n','\n');
 const replace = (before, after) => { assert.equal(api.split(before).length, 2, 'API export contract changed: ' + before.slice(0, 60)); api = api.replace(before, after); };
 api = api.replace('import http from "node:http";\n', '')
@@ -138,14 +138,6 @@ api=api.slice(0,taskStart)+`      await db.batch([
         ...eventStatement(u,'task_created',id),
       ]);
 `+api.slice(taskEnd);
-const feedbackStart=api.indexOf('      await transaction(db, async () => {',api.indexOf('if (p === "/api/feedback"'));
-const feedbackEnd=api.indexOf('      return json(res, { ok: true });',feedbackStart);
-assert.ok(feedbackStart>0 && feedbackEnd>feedbackStart);
-api=api.slice(0,feedbackStart)+`      await db.batch([
-        ['INSERT INTO feedback VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET portal=excluded.portal,operations=excluded.operations,sync=excluded.sync,ease=excluded.ease,intent=excluded.intent,price=excluded.price,liked=excluded.liked,disliked=excluded.disliked,created=excluded.created',[u.id,...values,intent,price,liked,disliked,now()]],
-        ...eventStatement(u,'feedback_submitted'),
-      ]);
-`+api.slice(feedbackEnd);
 replace('export const server = http.createServer(async (req, res) => {','return async function handle(req, res) {');
 replace('    const url = new URL(req.url, "http://localhost");','    await retention();\n    const url = new URL(req.url, "http://localhost");');
 // The framework serves frontend assets; this module handles API requests only.
@@ -226,8 +218,6 @@ export default function HostedTaskHub() {
 `);
 put('app/operations-ui.jsx',readFileSync('src/operations-ui.jsx','utf8'));
 put('app/operations-polish.css',readFileSync('src/operations-polish.css','utf8'));
-put('app/experience-ui.jsx',readFileSync('src/experience-ui.jsx','utf8'));
-put('app/experience.css',readFileSync('src/experience.css','utf8'));
 put('app/import-tours.mjs',readFileSync('src/import-tours.mjs','utf8'));
 put('app/interactions.mjs',readFileSync('src/interactions.mjs','utf8'));
 for (const file of ['api.mjs','polling.mjs','pooling-view.mjs','dates.mjs','tour-search.mjs','portal-filters.css','tour-media.jsx','tour-media-data.mjs','tour-image-variants.mjs','tour-media.css','portal-ui.jsx','accounts-ui.jsx','accounts.css','demo-ui.jsx','demo.css','sync-status.jsx','sync-state.mjs','workflow-ui.jsx','planning-ui.jsx','workspace-tools.css','analytics-ui.jsx','analytics.css','print-page.jsx','print-page.css','export-file.mjs']) {

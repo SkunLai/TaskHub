@@ -1,6 +1,6 @@
 // Run explicitly against a prepared cloud/staging URL. Uses disposable QA only.
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { qaTour } from './fixtures.mjs';
 const base = process.env.TEST_URL;
 assert.ok(base, 'Set TEST_URL to the prepared cloud/staging URL.');
@@ -46,24 +46,27 @@ try {
   assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'done',version:1},ac)).status,200);
   assert.equal((await req('/events','POST',{action:'portal_viewed'},ac)).status,200);
   const feedback={portal:4,operations:5,sync:4,ease:4,intent:'maybe',price:0,liked:'Automated QA',disliked:'=1+1'};
-  assert.equal((await req('/feedback','POST',feedback,ac)).status,200);
-  assert.equal((await req('/feedback','POST',{...feedback,ease:3},ac)).status,200);
+  assert.equal((await req('/feedback','POST',feedback,ac)).status,404);
+  assert.equal((await req('/feedback/features','POST',{},ac)).status,404);
+  assert.equal((await req('/interactions','POST',{events:[{id:randomUUID(),kind:'click',control:'qa:retired-survey',area:'workspace',at:new Date().toISOString()}]},ac)).body.count,1);
   const admin=await req('/login','POST',{email:process.env.ADMIN_EMAIL,password:process.env.ADMIN_PASSWORD});
   assert.equal(admin.status,200);
   const research=await req('/research','GET',null,admin.cookie);
   const saved=research.body.feedback.filter(f=>f.user_id===a.body.user.id);
-  assert.equal(saved.length,1);assert.equal(saved[0].ease,3);assert.equal(saved[0].has_test_flow,1);
+  assert.equal(saved.length,0,'Retired routes never create survey rows');
+  assert.equal(Object.hasOwn((await req('/workspace','GET',null,ac)).body,'feedback'),false);
   const csv=await req('/export/feedback','GET',null,admin.cookie);
-  assert.equal(csv.status,200);assert.ok(csv.body.includes("'=1+1"));
+  assert.equal(csv.status,200);assert.ok(!csv.body.includes('password'));
   const events=await req('/export/events','GET',null,admin.cookie);
   const lines=events.body.split('\r\n').filter(l=>l.includes(a.body.user.email));
   assert.equal(lines.filter(l=>l.includes('tour_updated')).length,1,'Rejected optimistic update must not log a successful update');
   assert.equal(lines.filter(l=>l.includes('task_status_changed')).length,1,'Cross-tenant failed update must not log');
+  assert.equal(lines.filter(l=>l.includes('ui_click')).length,1,'Consented click logs remain available after survey retirement');
   const reviewer=await req('/login','POST',{email:process.env.REVIEWER_EMAIL,password:process.env.REVIEWER_PASSWORD});
   assert.equal(reviewer.status,200);
   assert.equal((await req('/research','GET',null,reviewer.cookie)).status,200);
   assert.equal((await req('/tasks/'+task.body.id,'PATCH',{status:'todo'},reviewer.cookie)).status,403);
-  assert.equal((await req('/feedback','POST',feedback,reviewer.cookie)).status,403);
+  assert.equal((await req('/feedback','POST',feedback,reviewer.cookie)).status,404);
   assert.equal((await req('/account','DELETE',null,reviewer.cookie)).status,403);
   const latest=(await req('/workspace','GET',null,ac)).body.tours[0];
   assert.equal((await req('/tours/'+tour.id,'DELETE',{version:latest.version},reviewer.cookie)).status,403);
@@ -73,7 +76,7 @@ try {
   const after=(await req('/workspace','GET',null,ac)).body;
   assert.deepEqual(after.tours,[]);assert.deepEqual(after.tasks,[]);
   assert.equal((await req('/events','POST',{action:'portal_viewed'},ac,{Origin:'https://unrelated.example'})).status,403);
-  console.log('CLOUD API PASS: consent, atomic duplicate signup, tenant isolation, capacity/date validation, concurrent version updates, correct event logs, feedback upsert/test flow, protected formula-safe CSV and reviewer restrictions.');
+  console.log('CLOUD API PASS: consent, atomic duplicate signup, tenant isolation, capacity/date validation, concurrent version updates, correct event logs, retired feedback write APIs, protected historical CSV and reviewer restrictions.');
 } finally {
   for(const cookie of cookies) assert.equal((await req('/account','DELETE',null,cookie)).status,200);
   console.log('Disposable cloud API QA accounts deleted.');

@@ -29,7 +29,7 @@ Các đường dẫn dưới đây tính từ thư mục gốc repo.
 | `src/demo-ui.jsx`, `src/demo.css` | Nạp bộ mẫu giả lập tùy chọn vào không gian trống. |
 | `src/tour-media.jsx` | Ảnh minh họa có nguồn và xử lý ảnh lỗi. |
 | `src/operations-ui.jsx` | Biểu mẫu Excel/CSV, đổi số khách và ghép tour B2B. |
-| `src/experience-ui.jsx` | Phản hồi sáu nhóm tính năng, màn hình nghiên cứu và hướng dẫn. |
+| `src/accounts-ui.jsx` | Tài khoản, lời mời, quyền nhân viên; xuất log/lịch sử theo quyền và tự xóa tài khoản. Form khảo sát và màn Hướng dẫn trong web đã gỡ ở 0.7.2. |
 | `src/styles.css`, `src/portal-filters.css`, `src/operations-polish.css`, `src/experience.css` | Màu, khoảng cách, bố cục và cách hiển thị trên điện thoại. |
 | `src/api.mjs` | Hàm gọi HTTP của trình duyệt; tập trung xử lý lỗi và thời gian chờ. |
 | `src/dates.mjs` | Hàm lấy ngày hiện tại theo giờ Việt Nam. |
@@ -138,7 +138,7 @@ Khi sửa, làm ở `src/`, `server/`, `catalog/` hoặc script tương ứng tr
 | Cách tìm/lọc tour | `tour-search.mjs` và nơi gọi trong `main.jsx`; kiểm tra tour có dấu/không dấu, ngày và chỗ. |
 | Thêm trường tour | Biểu mẫu, `tourInput`/API, schema local, schema/migration D1 và xuất cloud; kiểm tra dữ liệu cũ. |
 | Quy tắc giữ chỗ hoặc tiền B2B | `server/operations.mjs` và `server/pooling-triggers.sql`; chạy kiểm tra đồng thời và lịch sử. |
-| Câu hỏi đánh giá/CSV | `experience-ui.jsx`, `feature-feedback.mjs`, schema câu hỏi và công cụ tổng hợp tương ứng. |
+| Khảo sát ngoài web / CSV lịch sử | Bộ câu hỏi trong `docs/`; `server/feature-feedback.mjs` chỉ đọc/xuất dữ liệu cũ, công cụ tổng hợp tương ứng. |
 
 Sau thay đổi, chạy các kiểm tra liên quan rồi build:
 

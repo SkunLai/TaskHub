@@ -53,9 +53,6 @@ export function createAccountUI({
               Dùng thử TaskHub <ArrowRight size={17} />
             </Button>
           </section>
-          <a className="operations-support" href="https://github.com/skunlainro3-glitch/TaskHub/issues" target="_blank" rel="noopener noreferrer">
-            Góp ý / báo lỗi
-          </a>
         </main>
       </div>
     );
@@ -436,7 +433,7 @@ export function createAccountUI({
       </Modal>
     );
   }
-  function AccountSettings({ user, notify, onUser }) {
+  function AccountSettings({ user, notify, onUser, onDelete }) {
     const [security, setSecurity] = useState(null),
       [team, setTeam] = useState(null),
       [error, setError] = useState(""),
@@ -546,7 +543,7 @@ export function createAccountUI({
                   placeholder="nhanvien@congty.vn"
                 />
               </Field>
-              <Field label="Vai trò nhân viên" hint="Vai trò giới hạn nghiệp vụ; quyền xem/sửa được chọn riêng.">
+              <Field label="Vai trò nhân viên">
                 <select name="department" defaultValue="operations" disabled={!!busy}>
                   {Object.entries(departmentNames).map(([id,label])=><option key={id} value={id}>{label}</option>)}
                 </select>
@@ -565,6 +562,7 @@ export function createAccountUI({
                 {busy === "invite" ? "Đang tạo…" : "Tạo lời mời"}
               </Button>
             </form>
+            <p className="invite-hint">Vai trò giới hạn nghiệp vụ; quyền xem/sửa được chọn riêng.</p>
             {invite && (
               <div className="invite-result" role="status">
                 <strong>Liên kết dành cho {invite.email}</strong>
@@ -677,6 +675,31 @@ export function createAccountUI({
                 ))}
               </>
             )}
+          </section>
+        )}
+
+        {["admin", "reviewer"].includes(user.role) && (
+          <section className="panel account-panel">
+            <h3>Dữ liệu kiểm thử</h3>
+            <a className="btn ghost" href="/api/export/events">Nhật ký thao tác CSV</a>
+            <details className="account-data">
+              <summary>Bản xuất khảo sát đã lưu</summary>
+              <p>Chỉ đọc dữ liệu cũ. Khảo sát mới thực hiện bằng biểu mẫu riêng của nhóm.</p>
+              <a className="text-btn" href="/api/export/survey-testers">Người thử CSV</a>
+              <a className="text-btn" href="/api/export/survey-features">Đánh giá tính năng CSV</a>
+              <a className="text-btn" href="/api/export/feedback">Phản hồi cũ CSV</a>
+            </details>
+          </section>
+        )}
+        {!["admin", "reviewer"].includes(user.role) && (
+          <section className="panel account-panel">
+            <details className="account-data">
+              <summary>Xóa tài khoản</summary>
+              <p>{user.role === "staff" ? "Dữ liệu nghiệp vụ chung của đội ngũ được giữ lại." : "Xóa toàn bộ dữ liệu của không gian này. Thao tác không thể hoàn tác."}</p>
+              <Button variant="danger" onClick={onDelete} data-track="account:delete">
+                {user.role === "staff" ? "Xóa tài khoản nhân viên của tôi" : "Xóa tài khoản và dữ liệu dùng thử"}
+              </Button>
+            </details>
           </section>
         )}
       </div>

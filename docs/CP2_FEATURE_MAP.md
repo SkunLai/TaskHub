@@ -2,6 +2,8 @@
 
 Web: https://taskhub-travel.pages.dev/. Bảng dưới mô tả phạm vi tính năng hiện có; các tag demo cũ được giữ nguyên. Xem [bàn giao Tuấn/Huy cho CP4](CP4_TUAN_HUY_HANDOFF.md) để dùng đúng bản demo và kịch bản mới, [xác nhận kiểm tra](VALIDATION.md) để biết bản phát hành đã được kiểm chứng.
 
+Từ **0.7.2**, web gỡ menu/form Phản hồi MVP và câu hỏi mức sẵn sàng trả theo yêu cầu chủ dự án. CP3 vẫn cần phản hồi và log gốc; khảo sát được thực hiện bằng công cụ bên ngoài do nhóm cung cấp. Không tạo hoặc công bố link khảo sát mới trong đợt này. Log thao tác và bản xuất dữ liệu phản hồi lịch sử chỉ đọc theo quyền admin/reviewer vẫn giữ, không xóa dữ liệu đã thu.
+
 ## Pain → tính năng → cách chứng minh
 
 | Pain CP2 | Tính năng để demo trực tiếp | Thao tác và dấu hiệu đúng | Giới hạn |
@@ -17,7 +19,7 @@ Web: https://taskhub-travel.pages.dev/. Bảng dưới mô tả phạm vi tính 
 | **S-1 — Public Tour Portal** | Đã có luồng cốt lõi: tra cứu ngoài giờ, lịch/giá/chỗ, yêu cầu tư vấn. Có 13 nội dung tour Én Việt tham khảo, tách biệt với lịch khởi hành đã xác nhận. | Booking/thanh toán tự động, chatbot và các tình huống cần con người. |
 | **S-2 — Điều hành tập trung** | Đã có tour/lịch/chỗ, tạo/sửa/xóa việc có kiểm tra phiên bản, lọc quá hạn/ưu tiên, nhập XLSX/CSV và thao tác nhanh trên thẻ. | Thông báo tự gửi; quản lý nhà cung cấp và net price/markup toàn bộ tour. Giá net B2B hiện chỉ nằm trên từng phiếu ghép. |
 | **S-3 — Tour-pooling và đối soát B2B** | **Đã có bản tối giản để demo P3:** tạo phiếu → xác nhận → giữ chỗ → ghi nhận thu/còn phải thu → lịch sử ai/lúc nào/số trước-sau → CSV/Excel, bản in và hủy hoàn chỗ. Có thống kê theo kỳ trong Báo cáo vận hành. | Đối tác tự xác nhận, hồ sơ/hợp đồng, hóa đơn và thanh toán/hoàn tiền thực tế; không gọi đây là B2B hoàn chỉnh. |
-| **S-4 — Điều chỉnh chiến lược thu phí** | Đã có thu willingness-to-pay và công cụ tổng hợp; bộ câu hỏi đánh giá từng tính năng được bàn giao cho An. Có bản nháp nội bộ Giá trị & doanh thu để nhập giả định đã được nhóm cung cấp. | Xác minh tối thiểu 20 cá nhân thật, phân tích mẫu, phỏng vấn người quyết định và chốt giá/Iterate–Persevere. Paid pilot vẫn là hướng tiếp theo. Không có kết luận thị trường từ dữ liệu QA hoặc bảng tính giả định. |
+| **S-4 — Điều chỉnh chiến lược thu phí** | Bộ câu hỏi đánh giá từng tính năng đã bàn giao cho An; công cụ offline đọc CSV bên ngoài hoặc bản xuất lịch sử. Web không còn thu willingness-to-pay. Bản nháp nội bộ Giá trị & doanh thu vẫn dùng để nhập giả định nhóm cung cấp. | Nhóm cung cấp công cụ khảo sát ngoài web, xác minh tối thiểu 20 cá nhân thật, phân tích mẫu, phỏng vấn người quyết định và chốt giá/Iterate–Persevere. Paid pilot vẫn là hướng tiếp theo. Không có kết luận thị trường từ dữ liệu QA hoặc bảng tính giả định. |
 
 ## Phần bổ sung cho CP4
 

@@ -8,7 +8,7 @@ import { analyticsRows } from '../shared/analytics.mjs';
 import { tableXlsx, xlsxMime } from '../shared/xlsx.mjs';
 import { referenceCatalog } from "./catalog.mjs";
 import { insertPublicInquiry, importTours, createPooling, updatePooling, recordInteractions, operationError } from "./operations.mjs";
-import { parseFeatureFeedback, saveFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
+import { parseFeatureFeedback, surveyExportRows, testerFields, featureFields } from "./feature-feedback.mjs";
 import { isIP } from "node:net";
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { resolve, extname } from "node:path";
@@ -331,8 +331,10 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/health") {
       await db.prepare("SELECT 1").get();
-      return json(res, { ok: true, version: "0.7.1" });
+      return json(res, { ok: true, version: "0.7.2" });
     }
+    // The in-app feedback forms are retired; historical rows remain exportable.
+    if (['/api/feedback','/api/feedback/features'].includes(p)) fail('Không tìm thấy API.',404);
     // Read-only members cannot bypass the interface by calling a write API.
     // Personal account actions do not mutate shared business data.
     if (p.startsWith('/api/') && method !== 'GET') {
@@ -523,7 +525,7 @@ export const server = http.createServer(async (req, res) => {
     }
     if (p === "/api/workspace" && method === "GET") {
       const u = await required(req);
-      const [tasks, tours, inquiries, activity, actionRows, feedback, pooling, featureFeedback, poolingHistory] =
+      const [tasks, tours, inquiries, activity, pooling, poolingHistory] =
         await Promise.all([
           db
             .prepare(
@@ -543,15 +545,9 @@ export const server = http.createServer(async (req, res) => {
               "SELECT action,entity,created FROM events WHERE user_id=? ORDER BY created DESC LIMIT 8",
             )
             .all(u.id),
-          db
-            .prepare("SELECT DISTINCT action FROM events WHERE user_id=?")
-            .all(u.id),
-          db.prepare("SELECT * FROM feedback WHERE user_id=?").get(u.id),
           db.prepare("SELECT p.*,t.title AS tour_title,t.departure AS departure FROM pooling p JOIN tours t ON t.id=p.tour_id WHERE p.workspace=? ORDER BY p.created DESC").all(u.workspace),
-          db.prepare('SELECT * FROM feature_feedback WHERE user_id=?').get(u.id),
           db.prepare('SELECT a.*,u.name AS actor_name FROM pooling_audit a LEFT JOIN users u ON u.id=a.actor_id WHERE a.workspace=? ORDER BY a.created DESC,a.id DESC LIMIT 200').all(u.workspace),
         ]);
-      const completedActions = actionRows.map((e) => e.action);
       const access=workspaceAccess(u);
       return json(res, {
         tours,
@@ -561,11 +557,8 @@ export const server = http.createServer(async (req, res) => {
         tasks,
         inquiries:access.canReadInquiries?inquiries:[],
         activity,
-        completedActions,
         catalog: referenceCatalog,
         pooling:access.canReadPooling?pooling:[],
-        feedback: feedback || null,
-        featureFeedback: parseFeatureFeedback(featureFeedback),
         poolingHistory:access.canReadPooling?poolingHistory:[],
       });
     }
@@ -731,32 +724,6 @@ export const server = http.createServer(async (req, res) => {
         .prepare("UPDATE inquiries SET status=? WHERE id=? AND workspace=?")
         .run(status, leadMatch[1], u.workspace);
       if (!result.changes) fail("Không tìm thấy yêu cầu.", 404);
-      return json(res, { ok: true });
-    }
-    if (p === '/api/feedback/features' && method === 'POST') {
-      const u=await required(req); limited(req,'feedback-features',30);
-      return json(res,await saveFeatureFeedback(db,u,await body(req)));
-    }
-    if (p === "/api/feedback" && method === "POST") {
-      const u = await required(req),
-        b = await body(req);
-      if (['admin','reviewer','staff'].includes(u.role))
-        fail("Quản trị không phải người tham gia khảo sát.");
-      const values = ["portal", "operations", "sync", "ease"].map((k) =>
-        integer(b[k], k, 1, 5),
-      );
-      const intent = choice(b.intent, ["yes", "maybe", "no"], "ý định");
-      const price = integer(b.price, "giá", 0, 100000000);
-      const liked = text(b.liked || "", "điểm thích", 1500, true),
-        disliked = text(b.disliked || "", "điểm cần sửa", 1500, true);
-      await transaction(db, async () => {
-        await db
-          .prepare(
-            "INSERT INTO feedback VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET portal=excluded.portal,operations=excluded.operations,sync=excluded.sync,ease=excluded.ease,intent=excluded.intent,price=excluded.price,liked=excluded.liked,disliked=excluded.disliked,created=excluded.created",
-          )
-          .run(u.id, ...values, intent, price, liked, disliked, now());
-        await log(u, "feedback_submitted");
-      });
       return json(res, { ok: true });
     }
     if (p === "/api/research" && method === "GET") {

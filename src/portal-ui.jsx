@@ -427,7 +427,6 @@ export function createPortalUI({
           <section id="journeys" className="journeys">
             <div className="section-title customer-heading">
               <div>
-                <div className="eyebrow blue">DÀNH CHO KHÁCH HÀNG</div>
                 <h1>Cổng thông tin tour</h1>
                 <p>Tra cứu lịch trình, giá, số chỗ và gửi yêu cầu tư vấn.</p>
               </div>
@@ -649,13 +648,6 @@ export function createPortalUI({
         <footer className="portal-footer">
           <Logo />
           <span>Lịch trình · Giá tour · Yêu cầu tư vấn</span>
-          <a
-            href="/images/tours/credits.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Nguồn ảnh
-          </a>
         </footer>
         {reference && (
           <CatalogDetails

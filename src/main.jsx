@@ -25,7 +25,6 @@ import {
   RefreshCw,
   Download,
   Menu,
-  HelpCircle,
   Send,
   SlidersHorizontal,
   CheckCircle2,
@@ -42,7 +41,6 @@ import {
 import "./styles.css";
 import { createOperationsUI } from "./operations-ui.jsx";
 import { startInteractions, flushInteractions } from "./interactions.mjs";
-import { createExperienceUI } from "./experience-ui.jsx";
 import { createPortalUI } from "./portal-ui.jsx";
 import { createAccountUI } from "./accounts-ui.jsx";
 import { createDemoUI } from "./demo-ui.jsx";
@@ -73,34 +71,6 @@ const statuses = {
   doing: "Đang thực hiện",
   done: "Hoàn thành",
 };
-const trialSteps = [
-  {
-    title: "Tạo và cập nhật tour",
-    description: "Nhập tour của bạn, sau đó thử sửa lịch hoặc số chỗ.",
-    nav: "tours",
-    actions: ["tour_updated"],
-  },
-  {
-    title: "Xem cổng khách hàng",
-    description: "Kiểm tra lịch và số chỗ sau khi vừa sửa.",
-    nav: "portal",
-    actions: ["portal_viewed"],
-  },
-  {
-    title: "Giao và xử lý công việc",
-    description: "Tạo một việc gắn với tour, rồi đổi trạng thái.",
-    nav: "tasks",
-    actions: ["task_created", "task_status_changed"],
-  },
-];
-const stepDone = (step, actions) =>
-  step.actions.every((action) => actions.has(action));
-const roleNames = {
-  operations: "Điều hành tour",
-  sales: "Sales / Marketing",
-  manager: "Quản lý / Chủ doanh nghiệp",
-  other: "Khác",
-};
 const navItems = [
   ["dashboard", "Tổng quan", LayoutDashboard],
   ["analytics", "Báo cáo vận hành", BarChart3],
@@ -110,107 +80,8 @@ const navItems = [
   ["inbox", "Yêu cầu tư vấn", Inbox],
   ["workflow", "Quy trình vận hành", GitBranch],
   ["business", "Giá trị & doanh thu", Calculator],
-  ["research", "Phản hồi MVP", BarChart3],
   ["account", "Tài khoản & nhóm", Settings],
 ];
-function Landscape({ theme = "danang", large = false }) {
-  const gradientId = useId();
-  return (
-    <svg
-      className={"landscape " + (large ? "large" : "")}
-      viewBox="0 0 600 360"
-      role="img"
-      aria-label={
-        theme === "dalat"
-          ? "Minh họa đồi thông"
-          : theme === "phuquoc"
-            ? "Minh họa biển"
-            : "Minh họa phố cổ"
-      }
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop
-            stopColor={
-              theme === "dalat"
-                ? "#deedff"
-                : theme === "phuquoc"
-                  ? "#cce5ff"
-                  : "#d5eaff"
-            }
-          />
-          <stop offset="1" stopColor="#f1f7ff" />
-        </linearGradient>
-      </defs>
-      <rect width="600" height="360" fill={`url(#${gradientId})`} />
-      <circle cx="450" cy="83" r="34" fill="#fffbdf" />
-      {theme === "dalat" ? (
-        <>
-          <path d="M0 214Q70 110 200 202Q350 76 600 186V360H0" fill="#9bbbcf" />
-          <path
-            d="M0 263Q230 148 390 263Q500 191 600 240V360H0"
-            fill="#7599b5"
-          />
-          <path d="M0 329Q230 206 600 310V360H0" fill="#527594" />
-          {[80, 155, 460, 535].map((x, i) => (
-            <g key={x} transform={`translate(${x} ${190 + (i % 2) * 27})`}>
-              <rect x="-4" width="8" height="90" fill="#465b48" />
-              <path d="M0-80L-35 15H35Z M0-40L-46 45H46Z" fill="#315c4c" />
-            </g>
-          ))}
-          <path d="M250 360L306 260L370 260L324 360" fill="#d6c3a1" />
-        </>
-      ) : theme === "phuquoc" ? (
-        <>
-          <path d="M0 176Q140 170 270 188T600 178V360H0" fill="#76afd8" />
-          <path d="M0 238Q320 210 600 310V360H0" fill="#b4d6ed" />
-          <path d="M0 290Q260 220 600 338V360H0" fill="#e5cfab" />
-          <path
-            d="M92 337Q110 160 155 90"
-            stroke="#6a7861"
-            strokeWidth="13"
-            fill="none"
-          />
-          <path
-            d="M149 110Q75 48 23 113Q96 104 149 125Q190 57 257 82Q200 99 156 131Q209 117 249 162Q184 156 150 136Q109 158 47 164Q83 123 149 110"
-            fill="#456e60"
-          />
-          <path d="M285 231L345 215L392 231L380 240H295Z" fill="#fcf7e8" />
-        </>
-      ) : (
-        <>
-          <rect y="252" width="600" height="108" fill="#7aaccd" />
-          <path
-            d="M0 281Q170 246 340 279T600 267"
-            stroke="#cce3f4"
-            fill="none"
-            strokeWidth="3"
-          />
-          {[15, 145, 285, 440].map((x, i) => (
-            <g key={x}>
-              <rect
-                x={x}
-                y={161 + (i % 2) * 18}
-                width="116"
-                height="107"
-                fill={["#cfaa64", "#dec185", "#cfa570", "#e4c382"][i]}
-              />
-              <path
-                d={`M${x - 9} ${169 + (i % 2) * 18}L${x + 56} ${115 + (i % 2) * 18}L${x + 125} ${169 + (i % 2) * 18}Z`}
-                fill="#6e7764"
-              />
-              <rect x={x + 18} y="203" width="24" height="39" fill="#657765" />
-              <rect x={x + 71} y="203" width="24" height="65" fill="#697461" />
-              <circle cx={x + 58} cy="191" r="10" fill="#cf7655" />
-            </g>
-          ))}
-          <path d="M400 315L494 312L479 326H410Z" fill="#354f49" />
-          <path d="M459 304L459 253" stroke="#596d52" strokeWidth="3" />
-        </>
-      )}
-    </svg>
-  );
-}
 function Logo() {
   return (
     <span className="logo">
@@ -947,69 +818,7 @@ function Dashboard({
   ].filter((s) => s[0] !== "Yêu cầu mới" || access.canReadInquiries);
   return (
     <>
-      <div className="welcome-banner">
-        <div>
-          <Badge tone="blue">
-            <span className="live-dot" />
-            MỘT NGUỒN DỮ LIỆU CHUNG
-          </Badge>
-          <h2>
-            Lịch trình rõ ràng.
-            <br />
-            Khách hàng yên tâm.
-          </h2>
-          <p>
-            Một nơi theo dõi lịch khởi hành, số chỗ và công việc của đội ngũ.
-          </p>
-          <Button onClick={onPortal}>
-            Xem cổng khách hàng
-            <ArrowUpRight size={16} />
-          </Button>
-        </div>
-        <div className="banner-art">
-          <Landscape theme="dalat" />
-        </div>
-      </div>
-      {showTrial && (
-        <DemoLoader data={data} reload={reload} notify={notify} />
-      )}
-      {showTrial && (
-        <section className="trial-checklist" aria-label="Lộ trình dùng thử">
-          <div className="trial-heading">
-            <div>
-              <h3>Bắt đầu trong 3 bước</h3>
-              <p>Thử các thao tác dưới đây, rồi chia sẻ trải nghiệm của bạn.</p>
-            </div>
-            <Button variant="ghost" onClick={() => onNav("research")}>
-              {data.feedback ? "Xem phản hồi" : "Gửi phản hồi"}
-              <ArrowRight size={16} />
-            </Button>
-          </div>
-          <div className="trial-grid">
-            {trialSteps.map((step, i) => {
-              const done = stepDone(step, new Set(data.completedActions));
-              return (
-                <button
-                  key={step.nav}
-                  className={"trial-item " + (done ? "completed" : "")}
-                  onClick={() =>
-                    step.nav === "portal" ? onPortal() : onNav(step.nav)
-                  }
-                >
-                  <span className="step-number">
-                    {done ? <Check size={17} /> : `0${i + 1}`}
-                  </span>
-                  <span>
-                    <strong>{step.title}</strong>
-                    <small>{step.description}</small>
-                  </span>
-                  <ChevronRight size={17} />
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {showTrial && <DemoLoader data={data} reload={reload} notify={notify} />}
       <div className="stat-grid">
         {stats.map(([label, value, Icon, note]) => (
           <div className="stat-card" key={label}>
@@ -1273,13 +1082,11 @@ function Workspace({ user, onLogout, onPortal, notify }) {
   const pending = useRef(0);
   const latest = useRef(0);
   const [permission, setPermission] = useState(user.workspace_permission);
-  const [roundTrip, setRoundTrip] = useState(null);
   const readOnly = user.role === "reviewer" || permission === "viewer";
   const [nav, setNav] = useState("dashboard"),
     [data, setData] = useState(null),
     [error, setError] = useState(""),
     [editor, setEditor] = useState(null),
-    [help, setHelp] = useState(false),
     [menu, setMenu] = useState(false),
     [query, setQuery] = useState(""),
     [tourFilter, setTourFilter] = useState("all"),
@@ -1335,12 +1142,10 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     const request = ++latest.current;
     pending.current += 1;
     try {
-      const started = performance.now();
       const d = await api("/workspace");
       if (request !== latest.current) return;
       setData(d);
       setPermission(d.workspace_permission || user.workspace_permission);
-      setRoundTrip(Math.round(performance.now() - started));
       setError("");
       setLastSuccess(Date.now());
       return d;
@@ -1379,6 +1184,17 @@ function Workspace({ user, onLogout, onPortal, notify }) {
       setPendingLead("");
     }
   }
+  async function deleteAccount() {
+    const staff = user.role === "staff";
+    if (!confirm(staff
+      ? "Xóa tài khoản nhân viên của bạn? Dữ liệu chung của đội ngũ được giữ lại."
+      : "Xóa tài khoản, nhân viên được mời và toàn bộ dữ liệu trong không gian dùng thử của bạn? Thao tác này không thể hoàn tác.")) return;
+    try {
+      await api("/account", "DELETE");
+      onLogout();
+      notify(staff ? "Đã xóa tài khoản nhân viên. Dữ liệu chung được giữ lại." : "Đã xóa tài khoản và dữ liệu.");
+    } catch (error) { notify(error.message, "error"); }
+  }
   async function refreshEditor() {
     const d = await reload();
     if (!d) throw Error("Chưa tải được bản mới. Thử lại sau.");
@@ -1412,7 +1228,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
         .includes(leadQuery.toLocaleLowerCase("vi")),
   );
   const allowedNav = navItems.filter(([id]) =>
-    (user.role !== "staff" || id !== "research") &&
     (id !== "inbox" || access.canReadInquiries) &&
     (id !== "pooling" || access.canReadPooling) &&
     (id !== "business" || access.canReadPlanning),
@@ -1445,9 +1260,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
     account: "Gửi lời mời và phân quyền cho người cùng làm việc.",
     workflow: "Các bước vận hành, người phụ trách và phạm vi của từng vai trò.",
     business: "Bản nháp nội bộ: lượng hóa giá trị, soạn gói và dự tính doanh thu.",
-    research: ["admin", "reviewer"].includes(user.role)
-      ? "Theo dõi phản hồi và xuất dữ liệu cho nhóm."
-      : "Đánh giá đúng những tính năng bạn đã tự dùng hoặc xem demo.",
   };
   return (
     <div className="app-shell">
@@ -1474,19 +1286,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           <X size={20} />
         </button>
         <Logo />
-        <div className="workspace-switch">
-          <span className="workspace-icon">TH</span>
-          <div>
-            <strong>TaskHub</strong>
-            <small>
-              {["admin", "reviewer"].includes(user.role)
-                ? "Không gian điều hành"
-                : user.role === "staff"
-                  ? "Không gian dùng chung"
-                  : "Không gian dùng thử riêng"}
-            </small>
-          </div>
-        </div>
         <div className="nav-caption">KHÔNG GIAN LÀM VIỆC</div>
         <nav>
           {allowedNav.map(([id, label, Icon]) => (
@@ -1522,10 +1321,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               <ArrowUpRight size={15} />
             </button>
           </div>
-          <button className="help-link" onClick={() => setHelp(true)}>
-            <HelpCircle size={18} />
-            Hướng dẫn & hỗ trợ
-          </button>
           <div className="profile">
             <span className="avatar">{user.name[0]}</span>
             <div>
@@ -1634,23 +1429,9 @@ function Workspace({ user, onLogout, onPortal, notify }) {
               )}
             </div>
           </div>
-          <div className="workspace-notice">
-            <ShieldCheck size={16} />
-            <span>
-              {["admin", "reviewer"].includes(user.role)
-                ? user.workspace === "agency"
-                  ? "Dữ liệu giả lập phục vụ trình diễn, không phải thông tin mở bán thực tế." +
-                    (readOnly
-                      ? " Người đánh giá chỉ có quyền xem."
-                      : " Tour, công việc và phiếu B2B tại đây phục vụ kiểm thử.")
-                  : readOnly
-                    ? "Tài khoản giảng viên / người đánh giá: chỉ xem, không chỉnh sửa dữ liệu."
-                    : "Chỉ công khai tour sau khi đã kiểm tra thông tin."
-                : user.role === "staff"
-                  ? "Không gian dùng chung. Chỉ truy cập dữ liệu theo quyền chủ không gian đã cấp; không nhập thông tin khách hàng thật."
-                  : "Không gian dùng thử riêng. Nhập dữ liệu của bạn hoặc dùng bộ mẫu giả lập; không nhập thông tin khách hàng thật."}
-            </span>
-            <SyncStatus lastSuccess={lastSuccess} error={error} roundTrip={roundTrip} />
+          <div className="workspace-sync">
+            {user.workspace === "agency" && <span className="demo-data-label">Dữ liệu giả lập</span>}
+            <SyncStatus lastSuccess={lastSuccess} error={error} compact />
           </div>
           <ErrorBox error={error} />
           {error && (
@@ -1794,7 +1575,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                       Yêu cầu tư vấn{" "}
                       <span className="count">{data.inquiries.length}</span>
                     </h3>
-                    <Badge tone="gray">Chưa giữ chỗ tự động</Badge>
                   </div>
                   <div className="filter-bar inquiry-filters">
                     <label className="search">
@@ -1889,22 +1669,15 @@ function Workspace({ user, onLogout, onPortal, notify }) {
                 </section>
               )}
               {nav === "account" && (
-                <AccountSettings user={{...user, department: data.department, workspace_permission: permission}} notify={notify} />
+                <AccountSettings user={{...user, department: data.department, workspace_permission: permission}} notify={notify} onDelete={deleteAccount} />
               )}
               {nav === "workflow" && <Workflow data={data} access={access} onNav={setNav} />}
               {nav === "analytics" && <Analytics access={access} />}
               {nav === "business" && access.canReadPlanning && <BusinessPlanning access={access} notify={notify} onDirtyChange={setPlanningDirty} />}
-              {nav === "research" &&
-                user.role !== "staff" &&
-                (["admin", "reviewer"].includes(user.role) ? (
-                  <Research notify={notify} />
-                ) : (
-                  <Feedback data={data} notify={notify} reload={reload} />
-                ))}
             </>
           )}
           <footer className="app-footer">
-            <span>TaskHub · Điều hành tour · 0.7.1</span>
+            <span>TaskHub · Điều hành tour · 0.7.2</span>
             <span>Tour · Lịch / số chỗ · Công việc</span>
           </footer>
         </main>
@@ -1992,34 +1765,6 @@ function Workspace({ user, onLogout, onPortal, notify }) {
           }}
         />
       )}
-      {help && (
-        <Help
-          user={user}
-          onNav={(nav) => nav === "portal" ? leavePlanning() && onPortal() : allowedNav.some(([id])=>id===nav) && changeNav(nav)}
-          onClose={() => setHelp(false)}
-          onDelete={async () => {
-            if (
-              !window.confirm(
-                user.role === "staff"
-                  ? "Xóa tài khoản nhân viên của bạn? Dữ liệu chung của đội ngũ được giữ lại."
-                  : "Xóa tài khoản, nhân viên được mời và toàn bộ dữ liệu trong không gian dùng thử của bạn? Thao tác này không thể hoàn tác.",
-              )
-            )
-              return;
-            try {
-              await api("/account", "DELETE");
-              onLogout();
-              notify(
-                user.role === "staff"
-                  ? "Đã xóa tài khoản nhân viên. Dữ liệu chung được giữ lại."
-                  : "Đã xóa tài khoản và dữ liệu.",
-              );
-            } catch (e) {
-              notify(e.message, "error");
-            }
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -2062,22 +1807,6 @@ const { ImportTours, SeatEditor, PoolingEditor, Pooling } = createOperationsUI({
   api,
   money,
   date,
-});
-const {
-  FeatureFeedback: Feedback,
-  Research,
-  Help,
-} = createExperienceUI({
-  Modal,
-  Button,
-  Field,
-  ErrorBox,
-  Empty,
-  Badge,
-  api,
-  money,
-  date,
-  roleNames,
 });
 
 function App() {

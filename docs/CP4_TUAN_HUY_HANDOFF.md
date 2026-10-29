@@ -1,6 +1,12 @@
 # Bàn giao Tuấn và Huy — 28/10/2026
 
+Cập nhật 29/10/2026: gỡ màn Hướng dẫn và các liên kết góp ý GitHub, dòng DÀNH CHO KHÁCH HÀNG, liên kết Nguồn ảnh ở chân trang; ghi công ảnh vẫn nằm trong chi tiết ảnh. Xuất dữ liệu và tự xóa tài khoản chuyển về Tài khoản & nhóm. Form mời nhân viên được căn hàng và kiểm tra responsive.
+
 Đối chiếu [CP4_Timeline_TaskHub](https://docs.google.com/spreadsheets/d/1qvVwdp1zHSm48SIosN7uZZ6Z6SBhFfcXPWIKeYPNG_4/edit?gid=1199392845#gid=1199392845), tab Timeline và Phân công; CP4 Paths Requirements trang 3; rubric MVP Demonstration; phản hồi trong hai file khảo sát người dùng cung cấp. Không chỉnh bảng phân công hoặc phần slide/P&L của thành viên khác.
+
+Trạng thái **0.7.2**: gỡ menu/form **Phản hồi MVP** và câu hỏi mức sẵn sàng trả trên web; gỡ banner dài “không gian dùng thử”, thẻ workspace trang trí, khối minh họa Tổng quan và badge “Chưa giữ chỗ tự động”. Tách workspace, phân quyền, log nghiệp vụ/nút/menu có đồng ý và cảnh báo offline/dữ liệu cũ vẫn giữ. Dữ liệu phản hồi đã có và các bản xuất lịch sử chỉ đọc được bảo vệ cho admin/reviewer, không xóa hoặc nhập lại thành phản hồi mới.
+
+CP3 mục 2.1–2.3 vẫn cần tối thiểu 20 người thử, phản hồi tính năng và raw interactions; tài liệu không yêu cầu form khảo sát phải là một chức năng trong website. Nhóm dùng công cụ khảo sát bên ngoài và đối chiếu với nhật ký thao tác. Đợt này không tạo hay công bố Google Forms/Sheet mới; không suy ra việc gỡ form đã hoàn thành khảo sát, phân tích giá hoặc CP3/CP4. Phần rà 0.7.1 dưới đây là lịch sử, không phải hướng dẫn mở lại form đã bỏ.
 
 Rà lại bản **0.7.1**: kiểm tra chức năng thực tế, sửa bảo vệ phiên bản khi đổi trạng thái việc, thống nhất công nợ CSV/Excel, phục hồi báo cáo và lỗi tải Excel; sửa ngày giờ Việt Nam, tìm không dấu, menu bàn phím và thông tin quyền đang đăng nhập. Giảm khẩu hiệu và gom định nghĩa báo cáo vào “Cách tính số liệu”. Dữ liệu trình diễn vẫn có nhãn giả lập; không đưa lại chức năng AI, xác minh email hoặc đo thời gian bài thử đã bỏ. Kết quả cụ thể tại [VALIDATION](VALIDATION.md).
 
@@ -40,7 +46,7 @@ Tab Phân công tổng hợp đang ghi export ở Tuấn, còn Timeline giao cho
 4. Mở sẵn Báo cáo vận hành đúng kỳ ngày khởi hành của tour. Thử nút In và tải Excel trước giờ trình bày. Tắt thông báo cá nhân trên máy.
 5. Dùng tag/bản phát hành đã kiểm tra; kiểm tra link public và bản local. Chạy local bằng Node 24+, `npm ci`, tạo `.env` từ `.env.example` với mật khẩu quản trị riêng, `npm run dev`. Có thể dùng bộ mẫu tùy chọn trong workspace trống.
 
-Bản rà 0.7.1 có tag `cp4-demo-v0.7.1`; tag `cp4-demo-v0.7.0` giữ làm mốc dự phòng. Chưa coi việc Tuấn tập demo, ghép nội dung vào slide hay freeze đúng lịch đã hoàn tất chỉ vì code đã phát hành.
+Tag `cp4-demo-v0.7.1` và `cp4-demo-v0.7.0` giữ làm mốc dự phòng trước khi gỡ form trên web. Dùng đúng commit/deployment hiện hành được ghi trong VALIDATION cho đợt 0.7.2, không tự di chuyển tag cũ. Chưa coi việc Tuấn tập demo, ghép nội dung vào slide hay freeze đúng lịch đã hoàn tất chỉ vì code đã phát hành.
 
 ## Demo live 6 phút
 
@@ -73,5 +79,6 @@ BMC DOCX và PPTX đính kèm là mẫu chưa điền; không phải giá/gói �
 - Bộ phận/quyền thực tế của nhân viên; tên người duyệt chỗ và người đối soát. Hiện có cơ chế, chưa tự gán tên người cho nhóm.
 - Giá và gói An đã chốt; điều kiện dịch vụ/đơn vị liên hệ nếu muốn có báo giá chính thức. Bản hiện tại là giá tham khảo từ dữ liệu tour.
 - Approval Path 2, số liệu mạng/thiết bị thực tế từ Đạt và xác minh 22 phản hồi từ Lợi. Web đầy đủ hơn không tự hoàn tất các phần này.
+- Link và người quản lý khảo sát bên ngoài nếu tiếp tục thu dữ liệu. Nhóm cần ghi thời điểm/định danh đối chiếu với log; không tự dùng link cũ làm bằng chứng khảo sát đang hoạt động hoặc điền phản hồi thay tester.
 
 Các bằng chứng QA tự động nằm trong `docs/VALIDATION.md`, không dùng làm số người khảo sát. Dữ liệu nhóm/public được giữ nguyên; source files và Google Sheet không bị sửa trong đợt này.

@@ -68,6 +68,11 @@ try {
   page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Tải bản đã lưu',exact:true}).click();
   assert.equal((await refreshed).status(),200);await page.getByText(/^Bản lưu lúc /).waitFor();
   await nav(page,'Tài khoản & nhóm');await layout(page,'accounts');
+  const inviteControls = await Promise.all(['Email nhân viên','Vai trò nhân viên','Quyền truy cập'].map(name=>page.getByLabel(name,{exact:true}).boundingBox()));
+  assert.ok(inviteControls.every(Boolean));
+  assert.ok(Math.max(...inviteControls.map(b=>b.y))-Math.min(...inviteControls.map(b=>b.y))<=1,'Invite input/select controls must align on desktop');
+  const inviteButton = await page.getByRole('button',{name:'Tạo lời mời',exact:true}).boundingBox();
+  assert.ok(Math.abs(inviteButton.y-inviteControls[0].y)<=2,'Invite button must align with the inputs');
   await member.goto(base+'/app');await member.locator('.profile').getByText('Kinh doanh',{exact:true}).waitFor();
   assert.equal(await member.locator('aside nav').getByRole('button',{name:'Ghép tour B2B',exact:true}).count(),0);
   assert.equal(await member.locator('aside nav').getByRole('button',{name:'Giá trị & doanh thu',exact:true}).count(),0);

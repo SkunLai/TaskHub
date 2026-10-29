@@ -8,6 +8,9 @@
 - Sửa form mời nhân viên: chuyển mô tả vai trò xuống dưới hàng nhập, thống nhất chiều cao input/select/nút; 4 cột desktop, 2 cột tablet, 1 cột mobile. Có assertion tọa độ cho ba ô/nút và kiểm tra không tràn 320/390/768/1440 px. Tên, quyền và API mời nhân viên giữ nguyên.
 - `npm test`: **101/101** đạt trên SQLite và libSQL. Full UI, v05, CP4, CP4 delivery, UX051 và performance browser suites đạt local sau điều chỉnh locator reviewer theo nhãn chỉ xem đang có. Bao gồm xác nhận UI đã gỡ, raw click logs còn ghi, reviewer đọc export ở Tài khoản, staff tự xóa giữ nghiệp vụ chung, các luồng tour/task/B2B/import/Excel/PDF và mạng chậm/xung đột. Dữ liệu QA riêng đã xóa.
 - Vite/Pages và Sites Vinext build thành công, không warning cú pháp CSS. Kết quả public/CI và mã triển khai được ghi tiếp sau phát hành.
+- Đã phát hành Sites version 21 (`appgdep_6ae2a39385648191840519e570272958`, source cloud `f9fb044`) và Pages production `af73f3dd-6898-4b57-a5d0-3a2a09b9dc14`, source runtime `324a915`. Health public trả 200/version **0.7.2**. [CI runtime 40801499986](https://github.com/skunlainro3-glitch/TaskHub/actions/runs/40801499986) hoàn tất thành công cho đúng commit này.
+- Cloud API, full UI và CP4 role/layout suites đã đạt trên **https://taskhub-travel.pages.dev**. Đã kiểm việc form/menu bị gỡ, log còn ghi, quyền xuất lịch sử, căn hàng lời mời, mobile, nhập XLSX và các luồng nghiệp vụ; QA riêng được xóa. Không lỗi JavaScript hoặc tràn ngang trong các màn hình đã thử.
+- Checksum dữ liệu nghiệp vụ trước/sau giống nhau: **3 tour, 3 công việc, 3 phiếu B2B, 2 yêu cầu tư vấn, 7 lịch sử B2B**. Bảng khảo sát cũ không bị xóa. Không đổi schema/migration/D1/secrets hoặc audience; code mới trên `build`, `dev` giữ nguyên.
 
 ## Rà cuối 0.7.1 — 28/10/2026
 
